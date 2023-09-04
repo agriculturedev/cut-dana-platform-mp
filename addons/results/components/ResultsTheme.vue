@@ -163,7 +163,9 @@ export default {
                         <img
                             :src="'https://re2-api-internal.cut.hcu-hamburg.de/' + value"
                             class="result_image"
+                            alt="Bild"
                             @click="openInNewTab('https://re2-api-internal.cut.hcu-hamburg.de/' + value)"
+                            @keypress="openInNewTab('https://re2-api-internal.cut.hcu-hamburg.de/' + value)"
                         >
                     </td>
                     <td v-else-if="key === 'Audio' && value !== null">
@@ -171,6 +173,12 @@ export default {
                             <source
                                 :src="'https://re2-api-internal.cut.hcu-hamburg.de/' + value"
                                 type="audio/mp4"
+                            >
+                            <track
+                                kind="captions"
+                                src="https://re2-api-internal.cut.hcu-hamburg.de/"
+                                srclang="de"
+                                label="de"
                             >
                             Your browser does not support the audio element.
                         </audio>
