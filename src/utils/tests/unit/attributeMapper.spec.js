@@ -24,6 +24,24 @@ const props = {
     ]
 };
 
+/**
+ * Returns the timezone offset of the given date.
+ * @param {Date} [date=new Date()] Date to get timezone offset from.
+ * @returns {String} Timezone offset.
+ * @example
+ * // returns "+02:00"
+ * timezone(new Date("2021-11-17 13:02:00"));
+ * @example
+*/
+function timezone (date = new Date()) {
+    const offset = date.getTimezoneOffset(),
+        sign = offset < 0 ? "+" : "-",
+        minutes = Math.abs(offset % 60),
+        hours = Math.abs(offset / 60);
+
+    return sign + ("0" + (hours + 1)).slice(-2) + ":" + ("0" + minutes).slice(-2);
+}
+
 before(() => {
     i18next.init({
         lng: "cimode",
@@ -167,7 +185,7 @@ describe("src/utils/attributeMapper.js", () => {
 
             expect(mapAttributes(props, mappingObj)).to.deep.equal(
                 {
-                    date: "2021-11-17T13:02:00.000+01:00"
+                    date: `2021-11-17T13:02:00.000${timezone()}`
                 });
         });
         it("should map object with mapping object and type:date and format:YYYY-MM-DD", () => {

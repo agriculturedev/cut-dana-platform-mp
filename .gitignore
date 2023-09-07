@@ -17,6 +17,7 @@ styleguide
 
 addons/*
 !addons/readme.txt
+!addons/dipasAddons
 
 bowerupdate.log
 build

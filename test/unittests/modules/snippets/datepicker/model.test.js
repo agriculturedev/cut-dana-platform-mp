@@ -61,7 +61,7 @@ describe("snippets/datepicker/model", function () {
 
     describe("getDatesForWeekPicker", function () {
         it("should return an empty array because both dates are in the same week", function () {
-            const dates = model.getDatesForWeekPicker(["Tue Jun 09 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)", "Mon Jun 08 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)"]);
+            const dates = model.getDatesForWeekPicker(["Tue Jun 09 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)", "Wed Jun 10 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)"]);
 
             expect(dates).to.be.an("array");
             expect(dates).to.be.empty;
@@ -79,7 +79,7 @@ describe("snippets/datepicker/model", function () {
             const dates = model.getDatesForWeekPicker([
                 "Tue Jun 09 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)",
                 "Tue Jun 16 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)",
-                "Mon Jun 08 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)"
+                "Wed Jun 10 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)"
             ]);
 
             expect(dates).to.be.an("array");
@@ -92,7 +92,7 @@ describe("snippets/datepicker/model", function () {
                 "Tue Jun 09 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)",
                 "Fri Jun 26 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)",
                 "Tue Jun 16 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)",
-                "Mon Jun 08 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)",
+                "Wed Jun 10 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)",
                 "Wed Jun 17 2020 00:00:00 GMT+0200 (Mitteleuropäische Sommerzeit)"
             ]);
 
