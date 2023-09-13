@@ -62,6 +62,7 @@ npm-debug.log
 !/portal/masterDefault
 !/portal/mobility-results
 
+
 #ignore pipeline files
 .gitlab-ci.yml
 bitbucket-pipelines.yml

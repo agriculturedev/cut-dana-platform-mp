@@ -57,7 +57,7 @@
       "legend": {
         "name": "common:modules.legend.name",
         "showCollapseAllButton": true,
-        "showLegend": true
+        "showLegend": false
       }
     },
     "controls": {
