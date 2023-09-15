@@ -1,4 +1,5 @@
 const Config = {
+    vuetify: "addons/dipasAddons/dataNarrator/vuetify",
     addons: ["dataNarrator"],
     ignoredKeys: [
         "BOUNDEDBY",
@@ -14,7 +15,6 @@ const Config = {
         "GEOM"
     ],
     wfsImgPath: "https://geodienste.hamburg.de/lgv-config/img/",
-    vuetify: "addons/dipasAddons/dataNarrator/vuetify",
     metadata: {
         useProxy: ["https://metaver.de/csw"]
     },
