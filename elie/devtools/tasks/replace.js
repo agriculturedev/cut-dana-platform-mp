@@ -1,7 +1,7 @@
 const replace = require("replace-in-file"),
     path = require("path"),
-    rootPath = path.resolve(__dirname, "../../"),
-    mastercodeVersionFolderName = require(path.resolve(rootPath, "devtools/tasks/getMastercodeVersionFolderName"))();
+    rootPath = path.resolve(__dirname, "../../../"),
+    mastercodeVersionFolderName = require(path.resolve(rootPath, "elie/devtools/tasks/getMastercodeVersionFolderName"))();
 
 
 module.exports = function (destination) {
@@ -9,12 +9,12 @@ module.exports = function (destination) {
         {
             "files": destination + "/index.html",
             "from": /\/*(\.+\/)*img\/Logo_Masterportal\.svg/g,
-            "to": "../mastercode/" + mastercodeVersionFolderName + "/img/Logo_Masterportal.svg"
+            "to": "./mastercode/" + mastercodeVersionFolderName + "/img/Logo_Masterportal.svg"
         },
         {
             "files": destination + "/index.html",
             "from": /\/*(\.+\/)*img\/ajax-loader\.gif/g,
-            "to": "../mastercode/" + mastercodeVersionFolderName + "/img/ajax-loader.gif"
+            "to": "./mastercode/" + mastercodeVersionFolderName + "/img/ajax-loader.gif"
         },
         {
             "files": destination + "/js/masterportal.js",
@@ -24,7 +24,7 @@ module.exports = function (destination) {
         {
             "files": destination + "/index.html",
             "from": /\/*(\.+\/)*build/g,
-            "to": "../mastercode/" + mastercodeVersionFolderName
+            "to": "./mastercode/" + mastercodeVersionFolderName
         },
         {
             "files": destination + "/css/masterportal.css",
@@ -49,12 +49,12 @@ module.exports = function (destination) {
         {
             "files": destination + "/js/masterportal.js",
             "from": /\..\/..\/img\//g,
-            "to": "../mastercode/" + mastercodeVersionFolderName + "/img/"
+            "to": "./mastercode/" + mastercodeVersionFolderName + "/img/"
         },
         {
             "files": destination + "/js/masterportal.js",
             "from": /\/locales\/\{\{lng\}\}\/\{\{ns\}\}\.json/g,
-            "to": "./../mastercode/" + mastercodeVersionFolderName + "/locales/{{lng}}/{{ns}}.json"
+            "to": "./mastercode/" + mastercodeVersionFolderName + "/locales/{{lng}}/{{ns}}.json"
         }
     ];
 

@@ -1,6 +1,6 @@
 const path = require("path"),
-    rootPath = path.resolve(__dirname, "../../"),
-    stableVersionNumber = require(path.resolve(rootPath, "devtools/tasks/getStableVersionNumber"))(),
+    rootPath = path.resolve(__dirname, "../../../"),
+    stableVersionNumber = require(path.resolve(rootPath, "elie/devtools/tasks/getStableVersionNumber"))(),
     gitRevSync = require("git-rev-sync"),
     dayjs = require("dayjs");
 

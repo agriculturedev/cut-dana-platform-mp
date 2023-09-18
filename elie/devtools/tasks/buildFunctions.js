@@ -2,11 +2,11 @@ const fs = require("fs-extra"),
     execute = require("child-process-promise").exec,
 
     path = require("path"),
-    rootPath = path.resolve(__dirname, "../../"),
+    rootPath = path.resolve(__dirname, "../../../"),
 
-    replaceStrings = require(path.resolve(rootPath, "devtools/tasks/replace")),
-    prependVersionNumber = require(path.resolve(rootPath, "devtools/tasks/prependVersionNumber")),
-    mastercodeVersionFolderName = require(path.resolve(rootPath, "devtools/tasks/getMastercodeVersionFolderName"))(),
+    replaceStrings = require(path.resolve(rootPath, "elie/devtools/tasks/replace")),
+    prependVersionNumber = require(path.resolve(rootPath, "elie/devtools/tasks/prependVersionNumber")),
+    mastercodeVersionFolderName = require(path.resolve(rootPath, "elie/devtools/tasks/getMastercodeVersionFolderName"))(),
 
     distPath = path.resolve(rootPath, "dist/"),
     buildTempPath = path.resolve(distPath, "build/"),
