@@ -1,5 +1,5 @@
 const Config = {
-    // addons: ["dataNarrator"],
+    addons: ["dataNarrator"],
     vuetify: "addons/dipasAddons/dataNarrator/vuetify",
     wfsImgPath: "./resources/img/",
     namedProjections: [
@@ -28,7 +28,8 @@ const Config = {
     mouseHover: {
         numFeaturesToShow: 2,
         infoText: "(weitere Objekte. Bitte zoomen.)"
-    }
+    },
+
 
 };
 

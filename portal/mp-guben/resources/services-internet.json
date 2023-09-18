@@ -19,7 +19,7 @@
     "minScale": "0",
     "maxScale": "2500000",
     "supported": ["2D", "3D"]
-  },  
+  },
   {
     "id": "02886f50-7bd5-46d3-a763-974213df3431",
     "name": "Hintergrundkarte Light Grau",
@@ -40,7 +40,7 @@
     "minScale": "0",
     "maxScale": "2500000",
     "supported": ["2D", "3D"]
-  },  
+  },
   {
     "id": "02886f50-7bd5-46d3-a763-974213df3439",
     "name": "basemap.de Web Raster Farbe",
@@ -915,11 +915,11 @@
     "visibility": false,
     "featureCount": "1",
     "format": "image/png",
-    "gfiAttributes":  {
+    "gfiAttributes": {
       "osm_id": "OSM ID",
       "fclass": "Klasse",
       "name": "Name"
-   },
+    },
     "gfiTheme": "default",
     "tilesize": 512,
     "transparent": true,
@@ -939,11 +939,11 @@
     "visibility": false,
     "featureCount": "1",
     "format": "image/png",
-    "gfiAttributes":  {
+    "gfiAttributes": {
       "osm_id": "OSM ID",
       "fclass": "Klasse",
       "name": "Name"
-   },
+    },
     "gfiTheme": "default",
     "tilesize": 512,
     "transparent": true,
@@ -963,11 +963,11 @@
     "visibility": false,
     "featureCount": "1",
     "format": "image/png",
-    "gfiAttributes":  {
+    "gfiAttributes": {
       "osm_id": "OSM ID",
       "fclass": "Klasse",
       "name": "Name"
-   },
+    },
     "gfiTheme": "default",
     "tilesize": 512,
     "transparent": true,
@@ -987,11 +987,11 @@
     "visibility": false,
     "featureCount": "1",
     "format": "image/png",
-    "gfiAttributes":  {
+    "gfiAttributes": {
       "osm_id": "OSM ID",
       "fclass": "Klasse",
       "name": "Name"
-   },
+    },
     "gfiTheme": "default",
     "tilesize": 512,
     "transparent": true,
@@ -1011,11 +1011,11 @@
     "visibility": false,
     "featureCount": "1",
     "format": "image/png",
-    "gfiAttributes":  {
+    "gfiAttributes": {
       "osm_id": "OSM ID",
       "fclass": "Klasse",
       "name": "Name"
-   },
+    },
     "gfiTheme": "default",
     "tilesize": 512,
     "transparent": true,
@@ -1115,9 +1115,9 @@
     "visibility": false,
     "featureCount": "1",
     "format": "image/png",
-    "gfiAttributes":  {
+    "gfiAttributes": {
       "age": "Durchschnittsalter"
-   },
+    },
     "gfiTheme": "default",
     "tilesize": 512,
     "transparent": true,
@@ -1235,13 +1235,13 @@
     "id": "111222363",
     "name": "Hochwasserrisiko (Extrem)",
     "visibility": false,
-    "featureCount": "1",
+    "featureCount": 1,
     "format": "image/png",
     "gfiAttributes": "showAll",
     "gfiTheme": "default",
     "tilesize": 512,
     "transparent": true,
-    "transparency": 0,
+    "transparency": 30,
     "typ": "WMS",
     "layerAttribution": "nicht vorhanden",
     "url": "https://maps.brandenburg.de/services/wms/hwrg",
@@ -1249,7 +1249,13 @@
     "layers": "Hochwasserrisikogebiete_BB_HQ-extrem",
     "legendURL": "",
     "minScale": "0",
-    "maxScale": "2500000"
+    "maxScale": "2500000",
+    "isVisibleInTree": false,
+    "urlIsVisible": true,
+    "infoFormat": "text/html",
+    "layerInformation": {
+      "showUrlGlobal": true
+    }
   },
   {
     "id": "111222364",

@@ -1,14 +1,10 @@
 {
-  "storyInterval": 0,
-  "titleImage": {},
   "title": "Smart Guben",
   "author": "Elie GmbH",
   "htmlFolder": "story",
-  "displayType": "classic",
   "isNoCreateMode": true,
   "coverImagePath": "https://smart.guben.de/wp-content/uploads/2022/11/smart-Guben-Gubin.jpg?x80922",
-  "isScrollytelling" : true,
-
+  "isScrollytelling": true,
 
   "chapters": [
     { "chapterNumber": 1, "chapterTitle": "Zielbilder" },
@@ -29,9 +25,7 @@
       "htmlFile": "step_1-1.html",
       "centerCoordinate": [892313.234186315, 5771283.98839225],
       "zoomLevel": 5,
-      "layers": [
-        "111222357"
-      ],
+      "layers": ["111222357"],
       "interactionAddons": []
     },
     {
@@ -43,9 +37,7 @@
       "htmlFile": "step_2-1.html",
       "centerCoordinate": [889878.2292523859, 5770927.637247532],
       "zoomLevel": 4,
-      "layers": [
-        ""
-      ],
+      "layers": [],
       "interactionAddons": []
     },
     {
@@ -57,9 +49,7 @@
       "htmlFile": "step_3-1.html",
       "centerCoordinate": [892172.8402339115, 5770915.583599124],
       "zoomLevel": 6,
-      "layers": [
-        ""
-      ],
+      "layers": [],
       "interactionAddons": []
     },
     {
@@ -83,11 +73,7 @@
       "htmlFile": "step_5-1.html",
       "centerCoordinate": [886689.4851546811, 5773010.7795407735],
       "zoomLevel": 3,
-      "layers": [
-        "111222355", 
-        "111222361", 
-        "111222363"
-      ],
+      "layers": ["111222355", "111222361", "111222363"],
       "interactionAddons": []
     },
     {
@@ -99,9 +85,7 @@
       "htmlFile": "step_6-1.html",
       "centerCoordinate": [890356.7218335355, 5770993.189500696],
       "zoomLevel": 3,
-      "layers": [
-        ""
-      ],
+      "layers": [],
       "interactionAddons": [],
       "is3D": false,
       "navigation3D": {
@@ -119,9 +103,7 @@
       "htmlFile": "step_7-1.html",
       "centerCoordinate": [892046.6708206366, 5770501.34148271],
       "zoomLevel": 5,
-      "layers": [
-        ""
-      ],
+      "layers": [],
       "interactionAddons": []
     }
   ]
