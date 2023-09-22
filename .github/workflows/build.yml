@@ -2,8 +2,8 @@ name: build
 
 on:
     push:
-        tags:
-            - 'rename-*'
+        branches:
+            - deploy
 
 jobs:
     build:
@@ -12,25 +12,30 @@ jobs:
         steps:
 
             - name: Checkout code with submodules
+              if: contains(github.event.head_commit.message, 'rename-json:')
               uses: actions/checkout@v2
               with:
                   submodules: "recursive"
                   token: ${{ secrets.GH_TOKEN }}
 
             - name: Setup Docker Buildx
+              if: contains(github.event.head_commit.message, 'rename-json:')
               uses: docker/setup-buildx-action@v1
 
             - name: Use Node.js 16.18.1
+              if: contains(github.event.head_commit.message, 'rename-json:')
               uses: actions/setup-node@v2
               with:
                   node-version: "16.18.1"
 
             - name: Run custom-build.sh
+              if: contains(github.event.head_commit.message, 'rename-json:')
               run: ./custom-build.sh
               env:
                   GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
             - name: Call Webhooks for Render Deployment
+              if: contains(github.event.head_commit.message, 'rename-json:')
               run: |
                   IFS=',' read -ra WEBHOOKS <<< "${WEBHOOK_URLS}"
                   for webhook in "${WEBHOOKS[@]}"; do
