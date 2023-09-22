@@ -8,6 +8,12 @@ set -e
 GH_USERNAME="agriculturedev"
 GH_REPO="elie-masterportal"
 
+npm install
+
+cd addons/dipasAddons/dataNarrator
+npm install --legacy-peer-deps
+cd ../../../
+
 # Step 1: Build the npm app
 echo "Building the npm app..."
 npm run elie-buildPortal
