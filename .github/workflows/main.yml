@@ -29,9 +29,9 @@ jobs:
                   git config --local user.email "action@github.com"
                   git config --local user.name "GitHub Action"
                   git add .
-                  git commit -m "Updated JSON value"
+                  git commit -m "Updated JSON value" && git tag "rename-$(date +'%Y%m%d%H%M%S')"
 
-                  git tag "rename-$(date +'%Y%m%d%H%M%S')"
+                  git push
                   git push --tags
 
 
