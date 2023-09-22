@@ -43,8 +43,8 @@ do
     echo "Building Docker image for $app..."
     image_name="ghcr.io/$GH_USERNAME/$GH_REPO/$app"
     local_image_name="$app:local"
-    docker buildx build -t $local_image_name -f ../elie/docker/Dockerfile --platform linux/amd64 "$app/"
-    docker tag $local_image_name $image_name:latest
+    docker buildx build --load -t "$local_image_name" -f ../elie/docker/Dockerfile --platform linux/amd64 "$app/"
+    docker tag "$local_image_name" "$image_name:latest"
     echo "Pushing Docker image for $app..."
     docker push $image_name
 done
