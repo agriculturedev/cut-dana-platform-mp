@@ -1,0 +1,35 @@
+name: Run Custom Build and Deploy
+
+on:
+  push:
+    branches:
+      - main  # adjust this to the branch name you wish to trigger the action on
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'  # Fetches all submodules
+
+      - name: Use Node.js 16.18.1
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.18.1'
+
+      - name: Run custom-build.sh
+        run: ./custom-build.sh
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Call Webhooks for Render Deployment
+        run: |
+          IFS=',' read -ra WEBHOOKS <<< "${WEBHOOK_URLS}"
+          for webhook in "${WEBHOOKS[@]}"; do
+            curl -X POST "$webhook"
+          done
+        env:
+          WEBHOOK_URLS: ${{ secrets.WEBHOOK_URL }}
