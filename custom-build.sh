@@ -16,7 +16,7 @@ npm run elie-buildPortal
 cd dist
 
 # Step 3: Declare an array of app names for which you want to build Docker images
-apps=("mp-guben")
+apps=("mp-guben" "mobility-data")
 
 # Step 4: Copy master code to each app directory
 echo "Copying master code to app directories..."
@@ -29,7 +29,6 @@ done
 
 # Step 5: Login to GitHub Container Registry
 echo "Logging into GitHub Container Registry..."
-echo $GH_TOKEN
 echo $GH_TOKEN | docker login ghcr.io -u $GH_USERNAME --password-stdin
 
 # Step 6: Loop through apps, build Docker images, and push to GitHub Container Registry
@@ -37,7 +36,7 @@ for app in "${apps[@]}"
 do
     echo "Building Docker image for $app..."
     image_name="ghcr.io/$GH_USERNAME/$GH_REPO/$app:latest"
-    docker build -t $image_name -f ../elie/docker/Dockerfile "$app/"
+    docker buildx build -t $image_name -f ../elie/docker/Dockerfile --platform linux/amd64 "$app/"
 
     echo "Pushing Docker image for $app..."
     docker push $image_name
