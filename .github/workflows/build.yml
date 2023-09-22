@@ -1,4 +1,4 @@
-name: Replace JSON value and build
+name: build
 
 on:
     push:
