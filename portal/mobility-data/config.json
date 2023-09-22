@@ -39,7 +39,7 @@
                         "name": "translate#additional:modules.tools.dataNarrator.title",
                         "glyphicon": "glyphicon-book",
                         "active": true,
-                        "backendURL": "https://elie-dana.onrender.com",
+                        "backendURL": "https://localhost:3000",
                         "autoplay": true
                     },
                     "gfi": {
