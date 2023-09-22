@@ -3,15 +3,13 @@ name: build
 on:
     push:
         tags:
-            - rename-*
+            - 'rename-*'
 
 jobs:
     build:
         runs-on: ubuntu-latest
         
         steps:
-            - name: Wait for a short duration
-              run: sleep 30s  # Wait for 30 seconds
 
             - name: Checkout code with submodules
               uses: actions/checkout@v2
