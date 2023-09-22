@@ -43,7 +43,7 @@ do
     echo "Building Docker image for $app..."
     image_name="ghcr.io/$GH_USERNAME/$GH_REPO/$app:latest"
     docker buildx build -t $image_name -f ../elie/docker/Dockerfile --platform linux/amd64 "$app/"
-
+    docker tag $image_name eliede:latest
     echo "Pushing Docker image for $app..."
     docker push $image_name
 done
