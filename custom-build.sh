@@ -5,8 +5,8 @@
 set -e
 
 # Github Username and Repository where the container will be stored
-GH_USERNAME="jonohas"
-GH_REPO="test-deployment"
+GH_USERNAME="agriculturedev"
+GH_REPO="elie-masterportal"
 
 npm install
 
