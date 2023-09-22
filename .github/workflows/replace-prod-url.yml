@@ -1,0 +1,33 @@
+name: Replace JSON value
+
+on:
+  push:
+    branches:
+      - deploy
+
+jobs:
+  replace_value:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16.18.1'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run the replacement script
+      run: node elie/devtools/tasks/replaceProductionURL.js
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add config.json
+        git commit -m "Updated JSON value"
+        git push
