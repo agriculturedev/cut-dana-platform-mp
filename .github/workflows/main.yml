@@ -1,9 +1,11 @@
 name: Run Custom Build and Deploy
 
 on:
-  push:
-    branches:
-      - deploy  # adjust this to the branch name you wish to trigger the action on
+
+  workflow_run:
+    workflows: ["Replace JSON value"]
+    types:
+      - completed
 
   workflow_dispatch: # allows you to run this workflow manually from the Actions tab
 
