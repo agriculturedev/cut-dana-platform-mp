@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
+/* eslint-disable */
 const replaceProductionURL = (file, value) => {
     // read the JSON file and parse it
 
@@ -28,7 +29,7 @@ const replaceProductionURL = (file, value) => {
 const files = [
     {
         "file": "portal/mobility-data/config.json",
-        "value": "https://dana-backend.onrender.com/"    
+        "value": "https://dana-backend.onrender.com"
     },
 ];
 
