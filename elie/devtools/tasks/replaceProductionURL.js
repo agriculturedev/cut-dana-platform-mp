@@ -28,7 +28,7 @@ const replaceProductionURL = (file, value) => {
 const files = [
     {
         "file": "portal/mobility-data/config.json",
-        "value": "https://dana-backend.onrender.com"    
+        "value": "https://dana-backend.onrender.com/"    
     },
 ];
 
