@@ -14,8 +14,13 @@ cd addons/dipasAddons/dataNarrator
 npm install --legacy-peer-deps
 cd ../../../
 
+echo "Replacing production URL..."
+node elie/devtools/tasks/replaceProductionURL.js
+
 # Step 1: Build the npm app
 echo "Building the npm app..."
+
+
 npm run elie-buildPortal
 
 # Step 2: Go to the build directory
@@ -33,9 +38,7 @@ do
     cp -r mastercode "$app/"
 done
 
-cd ..
-node elie/devtools/tasks/replaceProductionURL.js
-cd dist
+
 
 # Step 5: Login to GitHub Container Registry
 echo "Logging into GitHub Container Registry..."
