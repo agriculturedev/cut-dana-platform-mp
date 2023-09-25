@@ -33,7 +33,9 @@ do
     cp -r mastercode "$app/"
 done
 
+cd ..
 node elie/devtools/tasks/replaceProductionURL.js
+cd dist
 
 # Step 5: Login to GitHub Container Registry
 echo "Logging into GitHub Container Registry..."
