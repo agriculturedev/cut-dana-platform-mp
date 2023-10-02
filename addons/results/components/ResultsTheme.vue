@@ -164,6 +164,8 @@ export default {
                             :src="'https://re2-api-internal.cut.hcu-hamburg.de/' + value"
                             class="result_image"
                             alt="Bild"
+                            role="button"
+                            tabindex="0"
                             @click="openInNewTab('https://re2-api-internal.cut.hcu-hamburg.de/' + value)"
                             @keypress="openInNewTab('https://re2-api-internal.cut.hcu-hamburg.de/' + value)"
                         >
