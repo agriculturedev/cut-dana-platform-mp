@@ -136,6 +136,14 @@ const Config = {
         },
         fallbackLanguage: "de",
         changeLanguageOnStartWhen: ["querystring", "localStorage", "htmlTag"]
+    },
+    footer: {
+        urls: [{
+            "bezeichnung": "common:modules.footer.designation",
+            "url": "https://geoinfo.hamburg.de/",
+            "alias": "Landesbetrieb Geoinformation und Vermessung",
+            "alias_mobil": "LGV"
+        }]
     }
 };
 
