@@ -10,7 +10,7 @@ import "../css/bootstrap.scss";
 import "../css/style.css";
 import HttpApi from "i18next-http-backend";
 import i18nextBrowserLanguageDetector from "i18next-browser-languagedetector";
-import utilsLogin from "../src/modules/tools/login/utils/utilsLogin";
+import utilsLogin, {addAuthenticationBearerInterceptors} from "../src/modules/tools/login/utils/utilsLogin";
 
 const scriptTags = document.getElementsByTagName("script"),
     scriptTagsArray = Array.prototype.slice.call(scriptTags);
@@ -98,6 +98,7 @@ if (!("Config" in window)) {
             window.close();
             return;
         }
+        addAuthenticationBearerInterceptors(Config.login);
 
         initLanguage(Config.portalLanguage);
         fetch(Config.layerConf);
