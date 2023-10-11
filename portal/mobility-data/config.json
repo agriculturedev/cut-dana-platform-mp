@@ -28,6 +28,10 @@
         "name": "translate#common:menu.tools.name",
         "glyphicon": "glyphicon-wrench",
         "children": {
+          "login": {
+            "name": "translate#common:modules.login.login",
+            "icon": "bi-door-open"
+          },
           "dataNarrator": {
             "name": "translate#additional:modules.tools.dataNarrator.title",
             "glyphicon": "glyphicon-book",
@@ -611,4 +615,3 @@
     }
   }
 }
-

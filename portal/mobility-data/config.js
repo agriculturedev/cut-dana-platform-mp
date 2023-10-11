@@ -137,14 +137,14 @@ const Config = {
         fallbackLanguage: "de",
         changeLanguageOnStartWhen: ["querystring", "localStorage", "htmlTag"]
     },
-    footer: {
-        urls: [{
-            "bezeichnung": "common:modules.footer.designation",
-            "url": "https://geoinfo.hamburg.de/",
-            "alias": "Landesbetrieb Geoinformation und Vermessung",
-            "alias_mobil": "LGV"
-        }]
-    }
+    login: {
+        oidcAuthorizationEndpoint: "https://keycloak.elie.de/realms/masterportal-dev/protocol/openid-connect/auth",
+        oidcTokenEndpoint: "https://keycloak.elie.de/realms/masterportal-dev/protocol/openid-connect/token",
+        oidcClientId: "masterportal-dev-client",
+        oidcScope: "profile email openid",
+        oidcRedirectUri: "https://elie-dana.onrender.com/",
+        interceptorUrlRegex: "https?://dana-backend.*" // add authorization to all URLs that match the given regex
+    },
 };
 
 // conditional export to make config readable by e2e tests
