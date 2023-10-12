@@ -70,7 +70,7 @@ export function handleLoginParameters () {
  * @param {*} config OIDC configuration parameters
  * @returns {void}
  */
-function addAuthenticationBearerInterceptors (config) {
+export function addAuthenticationBearerInterceptors (config) {
     const token = Cookie.get("token");
 
 
