@@ -1,22 +1,10 @@
 {
   "Portalconfig": {
-    "treeType": "light",
+    "treeType": "default",
     "isScrollyStory": true,
     "mapView": {
       "extent": [442800, 5809000, 738000, 6102200],
       "startResolution": 5.2916638091682096
-    },
-    "searchBar": {
-      "minChars": 3,
-      "placeholder": "translate#common:modules.searchbar.placeholder.addressTopicParcel",
-      "quickHelp": false,
-      "osm": {
-        "minChars": 3,
-        "serviceId": "10",
-        "limit": 60,
-        "states": "Hamburg, Nordrhein-Westfalen, Niedersachsen",
-        "classes": "place,highway,building,shop,historic,leisure,city,county"
-      }
     },
     "menu": {
       "tree": {
@@ -54,7 +42,7 @@
       "legend": {
         "name": "common:modules.legend.name",
         "showCollapseAllButton": true,
-        "showLegend": true
+        "showLegend": false
       }
     },
     "controls": {
@@ -615,3 +603,4 @@
     }
   }
 }
+
