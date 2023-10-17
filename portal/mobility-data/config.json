@@ -1,6 +1,6 @@
 {
   "Portalconfig": {
-    "treeType": "light",
+    "treeType": "default",
     "isScrollyStory": true,
     "mapView": {
       "extent": [442800, 5809000, 738000, 6102200],
@@ -603,3 +603,4 @@
     }
   }
 }
+
