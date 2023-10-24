@@ -6,6 +6,21 @@
       "extent": [442800, 5809000, 738000, 6102200],
       "startResolution": 5.2916638091682096
     },
+    "searchBar": {
+      "komoot": {
+        "minChars": 3,
+        "serviceId": "11",
+        "limit": 20,
+        "lang": "de",
+        "lat": 53.6,
+        "lon": 10.0,
+        "bbox": "9.6,53.3,10.4,53.8"
+      },
+      "visibleVector": {},
+      "tree": {},
+      "startZoomLevel": 9,
+      "placeholder": "Suche nach: - Adresse - Aktiven WFS"
+    },
     "menu": {
       "tree": {
         "name": "translate#common:menu.topics",
