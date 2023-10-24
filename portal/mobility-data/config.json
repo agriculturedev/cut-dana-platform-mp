@@ -77,6 +77,34 @@
           "visibility": true,
           "isVisibleInTree": false,
           "legend": false
+        },
+        {
+          "id": "453",
+          "visibility": false
+        },
+        {
+          "id": "452",
+          "visibility": false
+        },
+        {
+          "id": [
+            "4736",
+            "12062",
+            "4745",
+            "4739",
+            "12061",
+            "4742",
+            "12060",
+            "12059"
+          ],
+          "name": "Geobasiskarten (schwarz-grau)",
+          "gfiAttributes": "ignore",
+          "visibility": false
+        },
+        {
+          "id": "13032",
+          "name": "Oblique",
+          "visibility": false
         }
       ]
     },
@@ -603,4 +631,3 @@
     }
   }
 }
-
