@@ -8,7 +8,14 @@ set -e
 GH_USERNAME="agriculturedev"
 GH_REPO="elie-masterportal"
 
+git clone https://bitbucket.org/geowerkstatt-hamburg/addons.git /tmp/addons
+rsync -av --exclude='addonsConf.json' /tmp/addons/ addons/
+
 npm install
+
+cd addons
+npm ci
+cd ../
 
 cd addons/dipasAddons/dataNarrator
 npm install --legacy-peer-deps
