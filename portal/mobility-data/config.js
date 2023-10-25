@@ -1,6 +1,6 @@
 const Config = {
     vuetify: "addons/dipasAddons/dataNarrator/vuetify",
-    addons: ["dataNarrator"],
+    addons: ["dataNarrator", "fileImportAddon"],
     ignoredKeys: [
         "BOUNDEDBY",
         "SHAPE",
