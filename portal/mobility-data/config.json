@@ -51,6 +51,10 @@
           "measure": {
             "name": "translate#common:menu.tools.measure",
             "icon": "bi-rulers"
+          },
+          "addWMS": {
+            "name": "translate#common:menu.tools.addWms",
+            "icon": "bi-plus-lg"
           }
         }
       },
