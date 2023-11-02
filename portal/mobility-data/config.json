@@ -55,6 +55,30 @@
           "addWMS": {
             "name": "translate#common:menu.tools.addWms",
             "icon": "bi-plus-lg"
+          },
+          "draw": {
+            "name": "translate#common:menu.tools.draw",
+            "icon": "bi-pencil-fill",
+            "renderToWindow": false,
+            "iconList": [
+              {
+                "id": "iconPoint",
+                "type": "simple_point",
+                "value": "simple_point"
+              },
+              {
+                "id": "iconMeadow",
+                "type": "image",
+                "scale": 0.8,
+                "value": "wiese.png"
+              },
+              {
+                "id": "gelber Pin",
+                "type": "image",
+                "scale": 2,
+                "value": "geo-fill-ylw.svg"
+              }
+            ]
           }
         }
       },
