@@ -99,7 +99,7 @@
       "attributions": false,
       "buttonOblique": false
     },
-    "singleBaselayer": true
+    "singleBaselayer": false
   },
   "Themenconfig": {
     "Hintergrundkarten": {
