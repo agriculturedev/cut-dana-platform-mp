@@ -3,7 +3,12 @@
     "treeType": "default",
     "isScrollyStory": true,
     "mapView": {
-      "extent": [442800, 5809000, 738000, 6102200],
+      "extent": [
+        442800,
+        5809000,
+        738000,
+        6102200
+      ],
       "startResolution": 5.2916638091682096
     },
     "searchBar": {
@@ -25,12 +30,25 @@
       "tree": {
         "name": "translate#common:menu.topics",
         "glyphicon": "glyphicon-list",
-        "isAlwaysExpanded": ["SelectedLayer"]
+        "isAlwaysExpanded": [
+          "SelectedLayer"
+        ]
       },
       "tools": {
         "name": "translate#common:menu.tools.name",
         "glyphicon": "glyphicon-wrench",
         "children": {
+          "modeler3D": {
+            "name": "translate#common:menu.tools.modeler3D",
+            "gmlId": "gmlId",
+            "updateAllLayers": false,
+            "highlightStyle": {
+              "color": "#787777",
+              "alpha": 1,
+              "silhouetteColor": "#E20D0F",
+              "silhouetteSize": 4
+            }
+          },
           "login": {
             "name": "translate#common:modules.login.login",
             "icon": "bi-door-open"
@@ -89,8 +107,8 @@
       }
     },
     "controls": {
-      "orientation3d": false,
-      "button3d": false,
+      "orientation3d": true,
+      "button3d": true,
       "toggleMenu": true,
       "fullScreen": false,
       "zoom": false,
@@ -276,8 +294,6 @@
         }
       ]
     },
-    "Fachdaten": {
-
-    }
+    "Fachdaten": {}
   }
 }
