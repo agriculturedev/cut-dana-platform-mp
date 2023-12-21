@@ -1,6 +1,6 @@
 {
   "Portalconfig": {
-    "treeType": "default",
+    "treeType": "custom",
     "isScrollyStory": true,
     "mapView": {
       "extent": [
@@ -294,6 +294,953 @@
         }
       ]
     },
-    "Fachdaten": {}
+    "Fachdaten": {
+      "name": "translate#common:tree.subjectData",
+      "Layer": [
+        {
+          "id": "2425",
+          "name": "Stadtteile",
+          "url": "https://geodienste.hamburg.de/HH_WMS_Verwaltungsgrenzen",
+          "typ": "WMS",
+          "layers": "stadtteile",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": true,
+          "transparent": true,
+          "transparency": 0,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 0,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "bezirk": "Bezirk",
+            "bezirk_name": "Bezirksname",
+            "stadtteil_name": "Stadtteilname",
+            "stadtteil_schluessel": "Stadtteilschluessel",
+            "stadtteil_nummer": "Stadtteilnummer"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 1,
+          "datasets": [
+            {
+              "md_id": "F35EAC11-C236-429F-B1BF-751C0C18E8B7",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/2e348904-17de-48fd-9376-8f6fd2750feb",
+              "md_name": "ALKIS Verwaltungsgrenzen Hamburg",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Geographie, Geologie und Geobasisdaten"
+              ],
+              "kategorie_inspire": [
+                "kein INSPIRE-Thema"
+              ],
+              "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+            }
+          ]
+        },
+        {
+          "id": "129",
+          "name": "Beispiel: Barmbek-Süd",
+          "url": "https://raw.githubusercontent.com/herzogrh/faircare-verkehr/main/assets/geodata/barmbek-sued.geojson",
+          "typ": "GeoJSON",
+          "gfiAttributes": "showAll",
+          "styleId": "2021112",
+          "urlIsVisible": true,
+          "legend": true
+        },
+        {
+          "id": "15213",
+          "name": "Magistralen",
+          "url": "https://geodienste.hamburg.de/HH_WMS_Magistralen_Bauforum_2019",
+          "typ": "WMS",
+          "layers": "magistralen_bauforum_linien",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 0,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 0,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "nr": "Nummer",
+            "magistrale": "Magistrale"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 1,
+          "datasets": [
+            {
+              "md_id": "5D0FE831-2CD4-4A91-8C0A-4FC3BB67A780",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/4854e01a-0104-4928-b26c-551c1d29cfe2",
+              "md_name": "Magistralen Bauforum 2019 Hamburg",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Infrastruktur, Bauen und Wohnen"
+              ],
+              "kategorie_inspire": [
+                "kein INSPIRE-Thema"
+              ],
+              "kategorie_organisation": "Behörde für Stadtentwicklung und Wohnen (BSW)"
+            }
+          ]
+        },
+        {
+          "id": "2796",
+          "name": "Unter 18 Jährige in Prozent",
+          "url": "https://geodienste.hamburg.de/HH_WMS_Statistik_Stadtteile_Bevoelkerung",
+          "typ": "WMS",
+          "layers": "bevoelkerung_u18_proz_31122014",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 40,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 0,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "stadtteil": "Stadtteil",
+            "bu18_prz": "Anteil Kinder und Jugendlicher unter 18 Jahren an der Gesamtbevölkerung 31.12.2014",
+            "geom": "geom"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 1,
+          "datasets": [
+            {
+              "md_id": "C2B674ED-73DB-4D29-9955-8621C1B5906A",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/839c8d84-191f-499c-9c08-6a54d6b26c4d",
+              "md_name": "Bevölkerungsdaten zu Stadtteilen in Hamburg",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Bevölkerung"
+              ],
+              "kategorie_inspire": [
+                "Verteilung der Bevölkerung — Demografie"
+              ],
+              "kategorie_organisation": "Statistisches Amt für Hamburg und Schleswig-Holstein"
+            }
+          ]
+        },
+        {
+          "id": "2787",
+          "name": "Alleinerziehende in Prozent",
+          "url": "https://geodienste.hamburg.de/HH_WMS_Statistik_Stadtteile_Bevoelkerung",
+          "typ": "WMS",
+          "layers": "bevoelkerung_alleinerz_prz_31122014",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 40,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 0,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "stadtteil": "Stadtteil",
+            "aerz_prz": "Anteil der Haushalte in denen Alleinerziehende leben an allen Haushalten 31.12.2014",
+            "geom": "geom"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 1,
+          "datasets": [
+            {
+              "md_id": "C2B674ED-73DB-4D29-9955-8621C1B5906A",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/839c8d84-191f-499c-9c08-6a54d6b26c4d",
+              "md_name": "Bevölkerungsdaten zu Stadtteilen in Hamburg",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Bevölkerung"
+              ],
+              "kategorie_inspire": [
+                "Verteilung der Bevölkerung — Demografie"
+              ],
+              "kategorie_organisation": "Statistisches Amt für Hamburg und Schleswig-Holstein"
+            }
+          ]
+        },
+        {
+          "id": "682",
+          "name": "Kindertagesstätten",
+          "url": "https://geodienste.hamburg.de/HH_WMS_KitaEinrichtung",
+          "typ": "WMS",
+          "layers": "KitaEinrichtungen",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 0,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 5,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "Name": "Name der Einrichtung",
+            "Strasse": "Straße",
+            "Hausnr": "Hausnummer",
+            "PLZ": "Postleitzahl"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 1,
+          "datasets": [
+            {
+              "md_id": "C1AC42B2-C104-45B8-91F9-DA14C3C88A1F",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/6fdc7be8-520c-44ee-8e9a-855bac1b6a6b",
+              "md_name": "Kita Einrichtungen Hamburg",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Soziales",
+                "Öffentliche Verwaltung, Haushalt und Steuern"
+              ],
+              "kategorie_inspire": [
+                "Versorgungswirtschaft und staatliche Dienste"
+              ],
+              "kategorie_organisation": "Behörde für Arbeit, Gesundheit, Soziales, Familie und Integration"
+            }
+          ]
+        },
+        {
+          "id": "123",
+          "name": "65 years and older",
+          "url": "https://geodienste.hamburg.de/HH_WMS_Statistik_Stadtteile_Bevoelkerung",
+          "typ": "WMS",
+          "layers": "bevoelkerung_ue65_proz_31122014",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 40,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "datasets": []
+        },
+        {
+          "id": "1585",
+          "name": "Öffentliche Schulen Hamburgs",
+          "url": "https://geodienste.hamburg.de/HH_WMS_Schulen",
+          "typ": "WMS",
+          "layers": "hh_schulen_dwh",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 0,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 10,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "Name": "Name",
+            "Schul_ID": "Schul_ID",
+            "Schulform": "Schulform",
+            "Schulicon": "Schulicon",
+            "Adresse": "Adresse",
+            "Ort": "Ort",
+            "bezirk": "Bezirk",
+            "stadtteil": "Stadtteil",
+            "Telefon": "Telefon",
+            "FAX": "FAX",
+            "rechtsform": "Rechtsform",
+            "internet": "Internet",
+            "email": "Email",
+            "name_rebbz": "ReBBZ Standort",
+            "schueleranzahl": "Schüleranzahl",
+            "schueleranzahl_schuljahr": "Schüleranzahl Schuljahr"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 5,
+          "datasets": [
+            {
+              "md_id": "D3DDBBA3-7329-475C-BB07-14D539ED6B1E",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/7988c147-7523-45bb-8f18-7f39d0d20541",
+              "md_name": "Schulstammdaten und Schülerzahlen der Hamburger Schulen",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Bildung und Wissenschaft",
+                "Öffentliche Verwaltung, Haushalt und Steuern",
+                "Bevölkerung"
+              ],
+              "kategorie_inspire": [
+                "Versorgungswirtschaft und staatliche Dienste"
+              ],
+              "kategorie_organisation": "Behörde für Schule und Berufsbildung"
+            }
+          ]
+        },
+        {
+          "id": "20982",
+          "name": "Discounter"
+        },
+        {
+          "id": "20983",
+          "name": "Drogerien"
+        },
+        {
+          "id": "20985",
+          "name": "Supermärkte"
+        },
+        {
+          "id": "14529",
+          "name": "Haltestellen",
+          "url": "https://geodienste.hamburg.de/MRH_WMS_Erreichbarkeitsanalysen_Ziele_Einrichtungen",
+          "typ": "WMS",
+          "layers": "mrh_haltestellen",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 0,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 20,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "name": "Name",
+            "linien": "Anzahl der Linien"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 1,
+          "datasets": [
+            {
+              "md_id": "76E7AE5D-9C06-48A5-BC7F-94DDBF62745C",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/7e26197b-4509-4e83-a998-9249c5e7d530",
+              "md_name": "MRH Erreichbarkeitsanalysen Ziele und Einrichtungen",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Transport und Verkehr"
+              ],
+              "kategorie_inspire": [
+                "kein INSPIRE-Thema"
+              ],
+              "kategorie_organisation": "Behörde für Wirtschaft und Innovation (BWI)"
+            }
+          ]
+        },
+        {
+          "id": "1935",
+          "name": [
+            "Bahnlinien",
+            "Buslinien"
+          ],
+          "url": "https://geodienste.hamburg.de/wms_hvv",
+          "typ": "WMS",
+          "layers": "geofox_workspace:geofoxdb_strecken_normal",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 0,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 0,
+          "styles": [
+            "geofox-bahn",
+            "geofox-bus"
+          ],
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "application/vnd.ogc.gml",
+          "gfiAttributes": {
+            "kategorie": "Kategorie",
+            "short_lines": "Linien",
+            "start": "Start",
+            "dest": "Standort",
+            "id": "ID",
+            "startkey": "Startschlüssel",
+            "destkey": "Standortschlüssel",
+            "kategorienr": "Kategorienummer"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 20,
+          "datasets": [
+            {
+              "md_id": "7A77D5EA-C3B4-44D9-8004-36D5D324485D",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/418f6d9e-675c-493c-b56b-ea155db99464",
+              "md_name": "HVV Streckennetz für Bahn-, Bus- und Fährlinien Hamburg",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Transport und Verkehr"
+              ],
+              "kategorie_inspire": [
+                "Verkehrsnetze"
+              ],
+              "kategorie_organisation": "Hamburger Verkehrsverbund GmbH"
+            }
+          ]
+        },
+        {
+          "id": "14792",
+          "name": "Gehstrecke zur nächsten Haltestelle",
+          "url": "https://geodienste.hamburg.de/MRH_WMS_Erreichbarkeitsanalysen_Verkehrsinfrastruktur",
+          "typ": "WMS",
+          "layers": "meter_nmiv100",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 30,
+          "urlIsVisible": true,
+          "tilesize": 256,
+          "gutter": 0,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "minrad_hst100": "Reisezeit zur nächsten Einrichtung mit dem Rad",
+            "gehstrecke_zur_naechsten_haltestelle": "Wegestrecke zur nächsten Einrichtung in Metern",
+            "minfuss_hst100": "Gehzeit zur nächsten Einrichtung",
+            "name_nmiv": "Name der im Fuß- und Radverkehr nächsten Einrichtung"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 1,
+          "datasets": [
+            {
+              "md_id": "95AD8662-B54C-4564-96F2-D704C0524AB1",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/987fa4d7-c052-4b05-a9b9-7ac6eb93bf8f",
+              "md_name": "MRH Erreichbarkeitsanalysen zu Verkehrsinfrastruktur",
+              "bbox": "606036.823459259,5887218.83573026,859241.980658021,6104120.59723013",
+              "kategorie_opendata": [
+                "Transport und Verkehr"
+              ],
+              "kategorie_inspire": [
+                "kein INSPIRE-Thema"
+              ],
+              "kategorie_organisation": "Behörde für Wirtschaft und Innovation (BWI)"
+            }
+          ]
+        },
+        {
+          "id": "20605",
+          "name": "Radwege",
+          "url": "https://geodienste.hamburg.de/HH_WMS_Radverkehrsnetz",
+          "typ": "WMS",
+          "layers": "radwege_radweg",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": false,
+          "transparent": true,
+          "transparency": 0,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 0,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "gfiAttributes": {
+            "status": "Status",
+            "strassenname": "Straßenname",
+            "radweg_art": "Art",
+            "klasse": "Klasse",
+            "fuehrungsart": "Führungsart",
+            "benutzungspflicht": "Benutzungspflicht",
+            "zeitbeschraenkung": "Zeitliche Beschränkung",
+            "richtung": "Richtung",
+            "oberflaeche": "Oberfläche",
+            "breite": "Breite",
+            "hindernis": "Hindernis",
+            "niveau": "Niveau"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 5,
+          "datasets": [
+            {
+              "md_id": "EA847D9F-6403-4B75-BCDB-73F831F960C7",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/c1500c65-6104-4a2f-864a-160d0b68eade",
+              "md_name": "Radverkehrsnetz Hamburg",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Transport und Verkehr"
+              ],
+              "kategorie_inspire": [
+                "Verkehrsnetze"
+              ],
+              "kategorie_organisation": "Behörde für Verkehr und Mobilitätswende (BVM)"
+            }
+          ]
+        },
+        {
+          "id": "20478",
+          "name": "Freizeitroute 2",
+          "url": "https://geodienste.hamburg.de/HH_WMS_Freizeitrouten",
+          "typ": "WMS",
+          "layers": "freizeitroute2",
+          "format": "image/png",
+          "version": "1.3.0",
+          "singleTile": true,
+          "transparent": true,
+          "transparency": 0,
+          "urlIsVisible": true,
+          "tilesize": 512,
+          "gutter": 0,
+          "minScale": "0",
+          "maxScale": "2500000",
+          "infoFormat": "text/xml",
+          "gfiAttributes": {
+            "routentyp": "Routentyp",
+            "status": "Status",
+            "richtung": "Richtung",
+            "routenname": "Routenname",
+            "group_": "Gruppe",
+            "routennummer": "Routennummer",
+            "verlauf": "Verlauf",
+            "routeninformation": "Routeninformation"
+          },
+          "gfiTheme": "default",
+          "gfiComplex": "false",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cache": false,
+          "featureCount": 1,
+          "datasets": [
+            {
+              "md_id": "67611D79-37ED-40DD-B7A2-A54080DB7563",
+              "csw_url": "https://metaver.de/csw",
+              "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+              "rs_id": "https://registry.gdi-de.org/id/de.hh/618950ed-5b69-4ef8-afb1-c55052a84d3f",
+              "md_name": "Freizeitrouten und Radfernwege Hamburg",
+              "bbox": "461468.968928975,5916367.22980651,587010.909598947,5980347.75579767",
+              "kategorie_opendata": [
+                "Transport und Verkehr"
+              ],
+              "kategorie_inspire": [
+                "Verkehrsnetze"
+              ],
+              "kategorie_organisation": "Behörde für Umwelt, Klima, Energie und Agrarwirtschaft (BUKEA)"
+            }
+          ]
+        },
+        {
+          "id": "128",
+          "name": "Durchschnittliches Einkommen",
+          "url": "https://raw.githubusercontent.com/herzogrh/faircare-verkehr/main/assets/geodata/Einkommen.geojson",
+          "typ": "GeoJSON",
+          "gfiAttributes": "showAll",
+          "styleId": "202111",
+          "urlIsVisible": true,
+          "legend": true,
+          "transparency": 40
+        },
+        {
+          "id": "127",
+          "clusterDistance": 50,
+          "name": "Eingegebene Mobilitätsdaten",
+          "url": "http://localhost:8080/aggregated",
+          "typ": "GeoJSON",
+          "datasets": [],
+          "urlIsVisible": true
+        }
+      ]
+    },
+    "Fachdaten_3D": {
+      "name": "translate#common:tree.subjectData3D",
+      "Layer": [
+        {
+          "id": "14261",
+          "name": "Digitales Schrägluftbild Hamburg",
+          "url": "https://daten-hamburg.de/gdi3d_schraegluftbilder2018/image.json",
+          "typ": "Oblique",
+          "resolution": 10,
+          "hideLevels": 0,
+          "minZoom": 3,
+          "terrainUrl": "",
+          "projection": "",
+          "gfiAttributes": "showAll",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "datasets": [
+              {
+                  "md_id": "87D131E6-1D27-4C38-828E-B3DBEBFF8CE6",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/87D131E6-1D27-4C38-828E-B3DBEBFF8CE6",
+                  "md_name": "Digitales Schrägluftbild Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Umwelt"
+                  ],
+                  "kategorie_inspire": [
+                      "Orthofotografie"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "12884",
+          "name": "3D-Gebäudemodell (LoD2- DE)",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD2",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "Objektart": "Objektart",
+              "Wertbezeichnung": "Gebäudefunktion",
+              "Dachform": "Dachform",
+              "measuredHeight": "Relative Höhe des Gebäudes in Metern",
+              "storeysAboveGround": "Anzahl der Obergeschosse (ALKIS)",
+              "DatenquelleLage": "Datenquelle Lage",
+              "Address.Street": "Straße",
+              "Address.HouseNumber": "Hausnummer",
+              "Address.PostalCode": "PLZ",
+              "Address.City": "Stadt",
+              "creationDate": "Ableitungsdatum",
+              "Grundrissaktualitaet": "Grundrissaktualität (ALKIS)"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "2C1F2EEC-CF9F-4D8B-ACAC-79D8C1334D5E",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/948321ba-e9b2-4290-88c3-8dda2912defa",
+                  "md_name": "3D-Gebäudemodell LoD2-DE Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Umwelt"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "16100",
+          "name": "Hauptkirchen",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/Hauptkirchen",
+          "typ": "TileSet3D",
+          "gfiAttributes": "showAll",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 0
+          },
+          "datasets": [
+              {
+                  "md_id": "7595A206-F07E-470D-A6C1-2F74F0B0C64E",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/3bef7a47-9304-4406-845a-029344e316f2",
+                  "md_name": "3D Hamburger Hauptkirchen",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "kein INSPIRE-Thema"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "16101",
+          "name": "Brückenflächen HH",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/Brueckenflaechen_HH",
+          "typ": "TileSet3D",
+          "gfiAttributes": "ignore",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "F9BC8E40-29BD-4E7C-AE4E-18CFFDF8CC80",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/979e18d5-92de-431f-ba1a-a04ae6d09870",
+                  "md_name": "3D Brückenflächen Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "kein INSPIRE-Thema"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "16102",
+          "name": "Strassenbaumkataster",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/Strassenbaumkataster",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "Baumnummer": "Baumnummer",
+              "Gattung": "Gattung",
+              "Baumart": "Baumart",
+              "Straße": "Straße",
+              "Hausnummer": "Hausnummer",
+              "Bezirk": "Bezirk",
+              "Kronendurchmesser": "Kronendurchmesser",
+              "Stammumfang": "Stammumfang",
+              "Pflanzjahr": "Pflanzjahr"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "24513F73-D928-450C-A334-E30037945729",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/06b09671-e0ac-4da5-93a0-20234d1b0dd2",
+                  "md_name": "3D Straßenbaumkataster Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "kein INSPIRE-Thema"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "24049",
+          "name": "3D-Gebäudemodell (LoD1-DE)",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD1",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "Objektart": "Objektart",
+              "Wertbezeichnung": "Gebäudefunktion",
+              "measuredHeight": "Relative Höhe des Gebäudes in Metern",
+              "storeysAboveGround": "Anzahl der Obergeschosse (ALKIS)",
+              "DatenquelleLage": "Datenquelle Lage",
+              "Address.Street": "Straße",
+              "Address.HouseNumber": "Hausnummer",
+              "Address.PostalCode": "PLZ",
+              "Address.City": "Stadt",
+              "creationDate": "Ableitungsdatum",
+              "Grundrissaktualitaet": "Grundrissaktualität (ALKIS)"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "4333E203-E3D0-4C63-A299-492BF67B7D48",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/4333E203-E3D0-4C63-A299-492BF67B7D48",
+                  "md_name": "3D-Gebäudemodell LoD1-DE Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Umwelt",
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "24050",
+          "name": "3D-Gebäudemodell (LoD3.0-HH) Area1",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD3_tex20cm_Area1",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "gmlId": "GML ID",
+              "Name": "Name",
+              "Gebaeudefunktion": "Gebäudefunktion",
+              "Strassenname": "Straßenname",
+              "Hausnummer": "Hausnummer",
+              "PLZ": "PLZ",
+              "Stadt": "Stadt"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "B438AD57-223B-43A4-8E74-767CEC8A96D7",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/4fa64017-ca1d-43e5-97e6-4edb486a62a2",
+                  "md_name": "3D-Gebäudemodell LoD3.0-HH Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": false
+        },
+        {
+          "id": "24122",
+          "name": "3D-Gebäudemodell (LoD3.0-HH) Area3",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD3_tex20cm_Area3",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "gmlId": "GML ID",
+              "Name": "Name",
+              "Gebaeudefunktion": "Gebäudefunktion",
+              "Strassenname": "Straßenname",
+              "Hausnummer": "Hausnummer",
+              "PLZ": "PLZ",
+              "Stadt": "Stadt"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "B438AD57-223B-43A4-8E74-767CEC8A96D7",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/4fa64017-ca1d-43e5-97e6-4edb486a62a2",
+                  "md_name": "3D-Gebäudemodell LoD3.0-HH Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": false
+        },
+        {
+          "id": "29082",
+          "name": "3D-Gebäudemodell (LoD3.0-HH) Area5",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD3_tex20cm_Area5",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "gmlId": "GML ID",
+              "Name": "Name",
+              "Gebaeudefunktion": "Gebäudefunktion",
+              "Strassenname": "Straßenname",
+              "Hausnummer": "Hausnummer",
+              "PLZ": "PLZ",
+              "Stadt": "Stadt"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "B438AD57-223B-43A4-8E74-767CEC8A96D7",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/4fa64017-ca1d-43e5-97e6-4edb486a62a2",
+                  "md_name": "3D-Gebäudemodell LoD3.0-HH Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": false
+        }
+      ]
+    }
   }
 }
