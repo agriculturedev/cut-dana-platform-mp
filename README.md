@@ -191,6 +191,11 @@ Default URL for the application deployed on your local machine is: http://localh
 You can also start the application with npm if you plan on connecting a database, creating a new story or adjusting the
 code to your needs.
 
+#### Addons
+
+Copy the `addonsConf.json` from the `addons` folder to the another folder. Remove all remaining files in the `addons` folder. Then pull the [addons](https://bitbucket.org/geowerkstatt-hamburg/addons/src/dev/) from the masterportal addons repository outside of the current repository and add all those files to the addons folder. Replace the `addonsConf.json` with the one you copied before.
+
+
 #### Node.js
 
 Install **[Node.js](http://nodejs.org)**. Last known working version is *v10.18.0 LTS* with *NPM version 6.13.4*.
