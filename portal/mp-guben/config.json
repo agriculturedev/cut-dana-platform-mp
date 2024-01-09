@@ -1,0 +1,474 @@
+{
+  "Portalconfig": {
+    "treeType": "custom",
+    "searchBar": {
+      "komoot": {
+        "minChars": 3,
+        "serviceId": "11",
+        "limit": 20,
+        "lang": "de",
+        "lat": 51.95,
+        "lon": 14.71,
+        "bbox": "14,51,15.4,53"
+      },
+      "visibleVector": {},
+      "tree": {},
+      "startZoomLevel": 9,
+      "placeholder": "Suche nach: - Adresse - Aktiven WFS",
+      "searchResultOrder": [
+        "common:modules.searchbar.type.address",
+        "common:modules.searchbar.type.street",
+        "common:modules.searchbar.type.parcel",
+        "common:modules.searchbar.type.location",
+        "common:modules.searchbar.type.district",
+        "common:modules.searchbar.type.topic",
+        "common:modules.searchbar.type.subject"
+      ]
+    },
+    "mapView": {
+      "backgroundImage": "./resources/img/backgroundCanvas.jpeg",
+      "startCenter": [890000, 5770000],
+      "extent": [880000, 5765000, 895000, 5775000],
+      "startZoomLevel": 1,
+      "options": [
+        {
+          "resolution": 66.14579761460263,
+          "scale": 250000,
+          "zoomLevel": 0
+        },
+        {
+          "resolution": 26.458319045841044,
+          "scale": 100000,
+          "zoomLevel": 1
+        },
+        {
+          "resolution": 15.874991427504629,
+          "scale": 60000,
+          "zoomLevel": 2
+        },
+        {
+          "resolution": 10.583327618336419,
+          "scale": 40000,
+          "zoomLevel": 3
+        },
+        {
+          "resolution": 5.2916638091682096,
+          "scale": 20000,
+          "zoomLevel": 4
+        },
+        {
+          "resolution": 2.6458319045841048,
+          "scale": 10000,
+          "zoomLevel": 5
+        },
+        {
+          "resolution": 1.3229159522920524,
+          "scale": 5000,
+          "zoomLevel": 6
+        },
+        {
+          "resolution": 0.6614579761460262,
+          "scale": 2500,
+          "zoomLevel": 7
+        },
+        {
+          "resolution": 0.2645831904584105,
+          "scale": 1000,
+          "zoomLevel": 8
+        },
+        {
+          "resolution": 0.13229159522920522,
+          "scale": 500,
+          "zoomLevel": 9
+        }
+      ]
+    },
+    "menu": {
+      "tree": {
+        "name": "Themen"
+      },
+      "tools": {
+        "name": "Werkzeuge",
+        "children": {
+          "gfi": {
+            "name": "Informationen abfragen",
+            "icon": "bi-info-circle-fill",
+            "active": true,
+            "highlightVectorRules": {
+              "fill": {
+                "color": [215, 102, 41, 0.9]
+              },
+              "image": {
+                "scale": 1.5
+              },
+              "stroke": {
+                "width": 4
+              },
+              "text": {
+                "scale": 2
+              }
+            }
+          },
+          "coordToolkit": {
+            "name": "Koordinaten"
+          },
+          "measure": {
+            "name": "Strecke / Fläche messen",
+            "lineStringUnits": ["m", "km"],
+            "polygonUnits": ["m²", "km²"]
+          },
+          "draw": {
+            "name": "Zeichnen / Schreiben",
+            "iconList": [
+              {
+                "id": "iconPoint",
+                "type": "simple_point",
+                "value": "simple_point"
+              },
+              {
+                "id": "yellow pin",
+                "type": "image",
+                "scale": 2,
+                "value": "geo-fill-ylw.svg"
+              }
+            ]
+          },
+          "fileImport": {
+            "name": "Datei Import"
+          },
+          "saveSelection": {
+            "name": "Auswahl speichern"
+          },
+          "dataNarrator": {
+            "name": "translate#additional:modules.tools.dataNarrator.title",
+            "glyphicon": "glyphicon-book",
+            "active": true,
+            "backendURL": "http://localhost:3000/",
+            "autoplay": true
+          }
+        }
+      },
+      "legend": {
+        "name": "Legende"
+      },
+      "info": {
+        "name": "Informationen",
+        "children": {
+          "staticlinks": [
+            {
+              "name": "Masterportal",
+              "url": "https://masterportal.org"
+            }
+          ]
+        }
+      },
+      "ansichten": {
+        "name": "translate#common:menu.views.name",
+        "icon": "bi-binoculars-fill",
+        "children": {
+          "view": {
+            "name": "translate#common:menu.views.view01",
+            "type": "viewpoint",
+            "icon": "bi-bullseye",
+            "center": [51.94831, 14.711238],
+            "zoomLevel": 7.456437968949651,
+            "altitude": 272.3469798217454,
+            "heading": -0.30858728378862876,
+            "tilt": 0.9321791580603296
+          }
+        }
+      }
+    },
+    "controls": {
+      "zoom": true,
+      "orientation": {
+        "zoomMode": "once"
+      },
+      "attributions": {},
+      "mousePosition": true,
+      "backForward": {},
+      "fullScreen": true,
+      "rotation": {},
+      "totalView": {},
+      "button3d": true
+    },
+    "portalTitle": {
+      "title": "Guben Cockpit",
+      "logo": "./resources/img/smart-city-guben-logo-1.png",
+      "link": "https://smart.guben.de"
+    },
+    "layerInformation": {}
+  },
+  "Themenconfig": {
+    "Hintergrundkarten": {
+      "Layer": [
+        {
+          "id": "02886f50-7bd5-46d3-a763-974213df3431"
+        },
+        {
+          "id": "02886f50-7bd5-46d3-a763-974213df3430"
+        }
+      ]
+    },
+    "Fachdaten": {
+      "Ordner": [
+        {
+          "Titel": "Stadtentwicklung & Teilhabe",
+          "Ordner": [],
+          "Layer": [
+            {
+              "id": "111222356"
+            },
+            {
+              "id": "111222357"
+            },
+            {
+              "id": "111222358"
+            },
+            {
+              "id": "111222359"
+            },
+            {
+              "id": "111222360"
+            },
+            {
+              "id": "111222364"
+            },
+            {
+              "id": "111222348"
+            }
+          ],
+          "isFolderSelectable": true
+        },
+        {
+          "Titel": "Mobilität",
+          "Ordner": [],
+          "Layer": [
+            {
+              "id": "111222349"
+            },
+            {
+              "id": "111222366"
+            },
+            {
+              "id": "111222365"
+            },
+            {
+              "id": "111222368"
+            }
+          ],
+          "isFolderSelectable": true
+        },
+        {
+          "Titel": "Klima und Umwelt",
+          "Ordner": [],
+          "Layer": [
+            {
+              "id": "111222367"
+            },
+            {
+              "id": "111222362"
+            },
+            {
+              "id": "111222363"
+            },
+            {
+              "id": "111222361"
+            }
+          ],
+          "isFolderSelectable": true
+        },
+        {
+          "Titel": "Energie und Wirtschaft",
+          "Ordner": [],
+          "Layer": [
+            {
+              "id": "111222355",
+              "name": "Trink- und Abwasser des GWAZ",
+              "visibility": false,
+              "featureCount": 1,
+              "format": "image/png",
+              "gfiAttributes": "ignore",
+              "gfiTheme": "default",
+              "tilesize": 512,
+              "transparent": true,
+              "transparency": 0,
+              "typ": "WMS",
+              "layerAttribution": "nicht vorhanden",
+              "url": "https://geoportal.lkspn.de/ows_spn/gwaz.cgi",
+              "version": "1.3.0",
+              "layers": "Trink_und_Abwasser_des_GWAZ",
+              "legendURL": "",
+              "minScale": "0",
+              "maxScale": "2500000"
+            },
+            {
+              "id": "111222350"
+            },
+            {
+              "id": "111222341"
+            }
+          ],
+          "isFolderSelectable": true
+        },
+        {
+          "Titel": "Gesundheit und Kultur",
+          "Ordner": [],
+          "Layer": [
+            {
+              "id": "211222351"
+            },
+            {
+              "id": "111222351"
+            },
+            {
+              "id": "111222352"
+            },
+            {
+              "id": "111222354"
+            },
+            {
+              "id": "111222353"
+            }
+          ],
+          "isFolderSelectable": true
+        }
+      ],
+      "Layer": []
+    },
+    "Fachdaten_Backup": {
+      "Ordner": [
+        {
+          "Titel": "Geoportal Brandenburg",
+          "Ordner": [],
+          "Layer": [
+            {
+              "id": "d8dd24b2-38b6-43cc-8ae8-b967a87eb329"
+            },
+            {
+              "id": "dad1101c-4a86-402a-a9fd-f82388333e74"
+            },
+            {
+              "id": "7d525b21-8833-460d-b847-653d4ed6fbbe"
+            },
+            {
+              "id": "4e85f308-3e06-4ec4-8ba0-83f9e1eb3b99"
+            },
+            {
+              "id": "efc4dfbe-100c-476e-aca3-5379d797c8b7"
+            },
+            {
+              "id": "369b555b-f3a0-4732-b9e8-c9330f0c3787"
+            },
+            {
+              "id": "3e091718-6bff-4807-b95b-c8e1e3ce455d"
+            },
+            {
+              "id": "26a00cb7-a52e-4424-a29d-fc70b3cc50ff"
+            },
+            {
+              "id": "cf9c8355-92fb-4511-928f-a99c5438d603"
+            },
+            {
+              "id": "2b111c8b-96d7-4e10-8538-653e042540e1"
+            }
+          ],
+          "isFolderSelectable": false
+        },
+        {
+          "Titel": "Landkreis Spree-Neisse",
+          "Ordner": [],
+          "Layer": [
+            {
+              "id": "e341a41c-0e70-4254-8679-720b89f00cc1"
+            },
+            {
+              "id": "9bda53f5-5945-46e7-9e49-11a4229d6796"
+            },
+            {
+              "id": "05fe678f-d3ef-443d-91a2-43e9e07032cc"
+            },
+            {
+              "id": "60db7b6d-6772-4e61-b02f-4254eae3b535"
+            },
+            {
+              "id": "231eaccc-cd2f-4c97-8313-c7a880c462e6"
+            },
+            {
+              "id": "f52bc368-2b7f-4188-b1d2-e365f1b0d4d1"
+            },
+            {
+              "id": "2d30e47e-2fe3-4653-b651-616dcde07c48"
+            },
+            {
+              "id": "cf00dc88-9bf9-4ba4-82eb-e7bfc738445f"
+            },
+            {
+              "id": "15df64c2-9ca5-4114-8002-eaeca0d9f708"
+            },
+            {
+              "id": "334433af-9d42-4fdf-9dce-303da586d330"
+            }
+          ],
+          "isFolderSelectable": false
+        },
+        {
+          "Titel": "STW Guben",
+          "Ordner": [],
+          "Layer": [
+            {
+              "id": "111222333"
+            },
+            {
+              "id": "111222334"
+            },
+            {
+              "id": "111222335"
+            },
+            {
+              "id": "111222336"
+            },
+            {
+              "id": "111222337"
+            },
+            {
+              "id": "111222338"
+            },
+            {
+              "id": "111222339"
+            },
+            {
+              "id": "111222340"
+            },
+            {
+              "id": "111222341"
+            },
+            {
+              "id": "111222342"
+            },
+            {
+              "id": "111222343"
+            },
+            {
+              "id": "111222344"
+            },
+            {
+              "id": "111222345"
+            },
+            {
+              "id": "111222346"
+            },
+            {
+              "id": "111222347"
+            },
+            {
+              "id": "111222348"
+            }
+          ],
+          "isFolderSelectable": false
+        }
+      ],
+      "Layer": []
+    }
+  }
+}

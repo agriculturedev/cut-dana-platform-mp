@@ -99,7 +99,6 @@ if (!("Config" in window)) {
             return;
         }
         addAuthenticationBearerInterceptors(Config.login);
-
         initLanguage(Config.portalLanguage);
         fetch(Config.layerConf);
     });

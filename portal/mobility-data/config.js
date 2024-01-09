@@ -1,6 +1,6 @@
 const Config = {
     vuetify: "addons/dipasAddons/dataNarrator/vuetify",
-    addons: ["dataNarrator"],
+    addons: ["dataNarrator", "fileImportAddon"],
     ignoredKeys: [
         "BOUNDEDBY",
         "SHAPE",
@@ -120,7 +120,6 @@ const Config = {
     layerConf: "https://geodienste.hamburg.de/services-internet.json",
     restConf:
         "https://geodienste.hamburg.de/lgv-config/rest-services-internet.json",
-    uiStyle: "table",
     styleConf: "https://raw.githubusercontent.com/herzogrh/faircare-verkehr/main/assets/data/style.json",
     storyConf: "./assets/story.json",
     isMenubarVisible: true,
@@ -137,14 +136,14 @@ const Config = {
         fallbackLanguage: "de",
         changeLanguageOnStartWhen: ["querystring", "localStorage", "htmlTag"]
     },
-    footer: {
-        urls: [{
-            "bezeichnung": "common:modules.footer.designation",
-            "url": "https://geoinfo.hamburg.de/",
-            "alias": "Landesbetrieb Geoinformation und Vermessung",
-            "alias_mobil": "LGV"
-        }]
-    }
+    login: {
+        oidcAuthorizationEndpoint: "https://keycloak.elie.de/realms/masterportal-dev/protocol/openid-connect/auth",
+        oidcTokenEndpoint: "https://keycloak.elie.de/realms/masterportal-dev/protocol/openid-connect/token",
+        oidcClientId: "masterportal-dev-client",
+        oidcScope: "profile email openid",
+        oidcRedirectUri: "https://elie-dana.onrender.com/",
+        interceptorUrlRegex: "https?://dana-backend.*" // add authorization to all URLs that match the given regex
+    },
 };
 
 // conditional export to make config readable by e2e tests

@@ -1,6 +1,6 @@
 {
   "Portalconfig": {
-    "treeType": "light",
+    "treeType": "custom",
     "isScrollyStory": true,
     "mapView": {
       "extent": [
@@ -10,18 +10,6 @@
         6102200
       ],
       "startResolution": 5.2916638091682096
-    },
-    "searchBar": {
-      "minChars": 3,
-      "placeholder": "translate#common:modules.searchbar.placeholder.addressTopicParcel",
-      "quickHelp": false,
-      "osm": {
-        "minChars": 3,
-        "serviceId": "10",
-        "limit": 60,
-        "states": "Hamburg, Nordrhein-Westfalen, Niedersachsen",
-        "classes": "place,highway,building,shop,historic,leisure,city,county"
-      }
     },
     "menu": {
       "tree": {
@@ -35,11 +23,26 @@
         "name": "translate#common:menu.tools.name",
         "glyphicon": "glyphicon-wrench",
         "children": {
+          "modeler3D": {
+            "name": "translate#common:menu.tools.modeler3D",
+            "gmlId": "gmlId",
+            "updateAllLayers": false,
+            "highlightStyle": {
+              "color": "#787777",
+              "alpha": 1,
+              "silhouetteColor": "#E20D0F",
+              "silhouetteSize": 4
+            }
+          },
+          "login": {
+            "name": "translate#common:modules.login.login",
+            "icon": "bi-door-open"
+          },
           "dataNarrator": {
             "name": "translate#additional:modules.tools.dataNarrator.title",
             "glyphicon": "glyphicon-book",
             "active": true,
-            "backendURL": "http://localhost:3000/",
+            "backendURL": "http://localhost:3000",
             "autoplay": true
           },
           "gfi": {
@@ -51,6 +54,34 @@
           "measure": {
             "name": "translate#common:menu.tools.measure",
             "icon": "bi-rulers"
+          },
+          "addWMS": {
+            "name": "translate#common:menu.tools.addWms",
+            "icon": "bi-plus-lg"
+          },
+          "draw": {
+            "name": "translate#common:menu.tools.draw",
+            "icon": "bi-pencil-fill",
+            "renderToWindow": false,
+            "iconList": [
+              {
+                "id": "iconPoint",
+                "type": "simple_point",
+                "value": "simple_point"
+              },
+              {
+                "id": "iconMeadow",
+                "type": "image",
+                "scale": 0.8,
+                "value": "wiese.png"
+              },
+              {
+                "id": "gelber Pin",
+                "type": "image",
+                "scale": 2,
+                "value": "geo-fill-ylw.svg"
+              }
+            ]
           }
         }
       },
@@ -61,8 +92,8 @@
       }
     },
     "controls": {
-      "orientation3d": false,
-      "button3d": false,
+      "orientation3d": true,
+      "button3d": true,
       "toggleMenu": true,
       "fullScreen": false,
       "zoom": false,
@@ -79,6 +110,140 @@
       "Layer": [
         {
           "id": [
+            "13534",
+            "13537",
+            "13538",
+            "13539",
+            "13540",
+            "13541",
+            "13535",
+            "13536"
+          ],
+          "name": "Geobasiskarten (Schriftplatte)",
+          "visibility": false,
+          "isBaseLayer": true,
+          "backgroundMap": true
+        },
+        {
+          "id": [
+            "368",
+            "369",
+            "370",
+            "371",
+            "372",
+            "373",
+            "374",
+            "376",
+            "13923",
+            "13924",
+            "378",
+            "379",
+            "380",
+            "375",
+            "377",
+            "13920",
+            "381",
+            "382",
+            "383",
+            "384",
+            "385",
+            "386",
+            "387",
+            "388",
+            "389",
+            "13921",
+            "390",
+            "391",
+            "392",
+            "393",
+            "13922",
+            "394",
+            "395",
+            "396",
+            "397"
+          ],
+          "name": "ALKIS farbig",
+          "visibility": false,
+          "isBaseLayer": true,
+          "backgroundMap": true
+        },
+        {
+          "id": [
+            "149",
+            "150",
+            "151",
+            "152",
+            "153",
+            "154",
+            "155",
+            "157",
+            "13926",
+            "13927",
+            "159",
+            "160",
+            "161",
+            "156",
+            "158",
+            "13928",
+            "162",
+            "163",
+            "164",
+            "165",
+            "166",
+            "167",
+            "168",
+            "169",
+            "170",
+            "13930",
+            "171",
+            "172",
+            "173",
+            "174",
+            "13931",
+            "175",
+            "176",
+            "177",
+            "178"
+          ],
+          "name": "ALKIS grau-blau",
+          "visibility": false,
+          "isBaseLayer": true,
+          "backgroundMap": true
+        },
+        {
+          "id": [
+            "717",
+            "718",
+            "719",
+            "720",
+            "13712",
+            "13709",
+            "13714",
+            "13716"
+          ],
+          "name": "Geobasiskarten (farbig)",
+          "visibility": false,
+          "isBaseLayer": true,
+          "backgroundMap": true
+        },
+        {
+          "id": [
+            "4736",
+            "12062",
+            "4745",
+            "4739",
+            "12061",
+            "4742",
+            "12060",
+            "12059"
+          ],
+          "name": "Geobasiskarten (schwarz-grau)",
+          "visibility": false,
+          "isBaseLayer": true,
+          "backgroundMap": true
+        },
+        {
+          "id": [
             "1043",
             "1044",
             "1045",
@@ -90,12 +255,32 @@
           ],
           "name": "Geobasiskarten (grau-blau)",
           "visibility": true,
-          "isVisibleInTree": false,
-          "legend": false
+          "isBaseLayer": true,
+          "backgroundMap": true
+        },
+        {
+          "id": "452",
+          "name": "Luftbilder DOP 20 (DOP 40 mit Umland)",
+          "visibility": false,
+          "isBaseLayer": true,
+          "backgroundMap": true
+        },
+        {
+          "id": "94",
+          "visibility": false,
+          "isBaseLayer": true,
+          "backgroundMap": true
+        },
+        {
+          "id": "453",
+          "visibility": false,
+          "isBaseLayer": true,
+          "backgroundMap": true
         }
       ]
     },
     "Fachdaten": {
+      "name": "translate#common:tree.subjectData",
       "Layer": [
         {
           "id": "2425",
@@ -702,6 +887,343 @@
           "typ": "GeoJSON",
           "datasets": [],
           "urlIsVisible": true
+        }
+      ]
+    },
+    "Fachdaten_3D": {
+      "name": "translate#common:tree.subjectData3D",
+      "Layer": [
+        {
+          "id": "14261",
+          "name": "Digitales Schrägluftbild Hamburg",
+          "url": "https://daten-hamburg.de/gdi3d_schraegluftbilder2018/image.json",
+          "typ": "Oblique",
+          "resolution": 10,
+          "hideLevels": 0,
+          "minZoom": 3,
+          "terrainUrl": "",
+          "projection": "",
+          "gfiAttributes": "showAll",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "datasets": [
+              {
+                  "md_id": "87D131E6-1D27-4C38-828E-B3DBEBFF8CE6",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/87D131E6-1D27-4C38-828E-B3DBEBFF8CE6",
+                  "md_name": "Digitales Schrägluftbild Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Umwelt"
+                  ],
+                  "kategorie_inspire": [
+                      "Orthofotografie"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "12884",
+          "name": "3D-Gebäudemodell (LoD2- DE)",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD2",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "Objektart": "Objektart",
+              "Wertbezeichnung": "Gebäudefunktion",
+              "Dachform": "Dachform",
+              "measuredHeight": "Relative Höhe des Gebäudes in Metern",
+              "storeysAboveGround": "Anzahl der Obergeschosse (ALKIS)",
+              "DatenquelleLage": "Datenquelle Lage",
+              "Address.Street": "Straße",
+              "Address.HouseNumber": "Hausnummer",
+              "Address.PostalCode": "PLZ",
+              "Address.City": "Stadt",
+              "creationDate": "Ableitungsdatum",
+              "Grundrissaktualitaet": "Grundrissaktualität (ALKIS)"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "2C1F2EEC-CF9F-4D8B-ACAC-79D8C1334D5E",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/948321ba-e9b2-4290-88c3-8dda2912defa",
+                  "md_name": "3D-Gebäudemodell LoD2-DE Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Umwelt"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "16100",
+          "name": "Hauptkirchen",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/Hauptkirchen",
+          "typ": "TileSet3D",
+          "gfiAttributes": "showAll",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 0
+          },
+          "datasets": [
+              {
+                  "md_id": "7595A206-F07E-470D-A6C1-2F74F0B0C64E",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/3bef7a47-9304-4406-845a-029344e316f2",
+                  "md_name": "3D Hamburger Hauptkirchen",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "kein INSPIRE-Thema"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "16101",
+          "name": "Brückenflächen HH",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/Brueckenflaechen_HH",
+          "typ": "TileSet3D",
+          "gfiAttributes": "ignore",
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "F9BC8E40-29BD-4E7C-AE4E-18CFFDF8CC80",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/979e18d5-92de-431f-ba1a-a04ae6d09870",
+                  "md_name": "3D Brückenflächen Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "kein INSPIRE-Thema"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "16102",
+          "name": "Strassenbaumkataster",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/Strassenbaumkataster",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "Baumnummer": "Baumnummer",
+              "Gattung": "Gattung",
+              "Baumart": "Baumart",
+              "Straße": "Straße",
+              "Hausnummer": "Hausnummer",
+              "Bezirk": "Bezirk",
+              "Kronendurchmesser": "Kronendurchmesser",
+              "Stammumfang": "Stammumfang",
+              "Pflanzjahr": "Pflanzjahr"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "24513F73-D928-450C-A334-E30037945729",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/06b09671-e0ac-4da5-93a0-20234d1b0dd2",
+                  "md_name": "3D Straßenbaumkataster Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "kein INSPIRE-Thema"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "24049",
+          "name": "3D-Gebäudemodell (LoD1-DE)",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD1",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "Objektart": "Objektart",
+              "Wertbezeichnung": "Gebäudefunktion",
+              "measuredHeight": "Relative Höhe des Gebäudes in Metern",
+              "storeysAboveGround": "Anzahl der Obergeschosse (ALKIS)",
+              "DatenquelleLage": "Datenquelle Lage",
+              "Address.Street": "Straße",
+              "Address.HouseNumber": "Hausnummer",
+              "Address.PostalCode": "PLZ",
+              "Address.City": "Stadt",
+              "creationDate": "Ableitungsdatum",
+              "Grundrissaktualitaet": "Grundrissaktualität (ALKIS)"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "4333E203-E3D0-4C63-A299-492BF67B7D48",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/4333E203-E3D0-4C63-A299-492BF67B7D48",
+                  "md_name": "3D-Gebäudemodell LoD1-DE Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Umwelt",
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": true
+        },
+        {
+          "id": "24050",
+          "name": "3D-Gebäudemodell (LoD3.0-HH) Area1",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD3_tex20cm_Area1",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "gmlId": "GML ID",
+              "Name": "Name",
+              "Gebaeudefunktion": "Gebäudefunktion",
+              "Strassenname": "Straßenname",
+              "Hausnummer": "Hausnummer",
+              "PLZ": "PLZ",
+              "Stadt": "Stadt"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "B438AD57-223B-43A4-8E74-767CEC8A96D7",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/4fa64017-ca1d-43e5-97e6-4edb486a62a2",
+                  "md_name": "3D-Gebäudemodell LoD3.0-HH Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": false
+        },
+        {
+          "id": "24122",
+          "name": "3D-Gebäudemodell (LoD3.0-HH) Area3",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD3_tex20cm_Area3",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "gmlId": "GML ID",
+              "Name": "Name",
+              "Gebaeudefunktion": "Gebäudefunktion",
+              "Strassenname": "Straßenname",
+              "Hausnummer": "Hausnummer",
+              "PLZ": "PLZ",
+              "Stadt": "Stadt"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "B438AD57-223B-43A4-8E74-767CEC8A96D7",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/4fa64017-ca1d-43e5-97e6-4edb486a62a2",
+                  "md_name": "3D-Gebäudemodell LoD3.0-HH Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": false
+        },
+        {
+          "id": "29082",
+          "name": "3D-Gebäudemodell (LoD3.0-HH) Area5",
+          "url": "https://daten-hamburg.de/gdi3d/datasource-data/LoD3_tex20cm_Area5",
+          "typ": "TileSet3D",
+          "gfiAttributes": {
+              "gmlId": "GML ID",
+              "Name": "Name",
+              "Gebaeudefunktion": "Gebäudefunktion",
+              "Strassenname": "Straßenname",
+              "Hausnummer": "Hausnummer",
+              "PLZ": "PLZ",
+              "Stadt": "Stadt"
+          },
+          "layerAttribution": "nicht vorhanden",
+          "legendURL": "ignore",
+          "cesium3DTilesetOptions": {
+              "maximumScreenSpaceError": 10
+          },
+          "datasets": [
+              {
+                  "md_id": "B438AD57-223B-43A4-8E74-767CEC8A96D7",
+                  "csw_url": "https://metaver.de/csw",
+                  "show_doc_url": "https://metaver.de/trefferanzeige?cmd=doShowDocument&docuuid=",
+                  "rs_id": "https://registry.gdi-de.org/id/de.hh/4fa64017-ca1d-43e5-97e6-4edb486a62a2",
+                  "md_name": "3D-Gebäudemodell LoD3.0-HH Hamburg",
+                  "bbox": "461468.96892897453,5916367.229806512,587010.9095989474,5980347.755797674",
+                  "kategorie_opendata": [
+                      "Regionen und Städte"
+                  ],
+                  "kategorie_inspire": [
+                      "Gebäude"
+                  ],
+                  "kategorie_organisation": "Landesbetrieb Geoinformation und Vermessung"
+              }
+          ],
+          "urlIsVisible": false
         }
       ]
     }
