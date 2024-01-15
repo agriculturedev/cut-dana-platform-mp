@@ -122,7 +122,6 @@ const Config = {
         "https://geodienste.hamburg.de/lgv-config/rest-services-internet.json",
     styleConf: "https://raw.githubusercontent.com/herzogrh/faircare-verkehr/main/assets/data/style.json",
     storyConf: "./assets/story.json",
-    isMenubarVisible: true,
     gemarkungen: "https://geodienste.hamburg.de/lgv-config/gemarkung.json",
     obliqueMap: true,
     startingMap3D: false,
