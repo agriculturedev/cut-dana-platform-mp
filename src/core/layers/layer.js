@@ -3,6 +3,9 @@ import bridge from "./RadioBridge.js";
 import deepCopy from "../../utils/deepCopy.js";
 import axios from "axios";
 import Cluster from "ol/source/Cluster";
+import {boundingExtent} from "ol/extent";
+import crs from "@masterportal/masterportalapi/src/crs";
+import handleAxiosResponse from "../../utils/handleAxiosResponse.js";
 
 /**
  * Creates a layer object to extend from.
@@ -288,12 +291,79 @@ Layer.prototype.setIsVisibleInMap = function (newValue) {
             layer.setVisible(newValue);
         });
     }
+
+    if (this.get("fitCapabilitiesExtent") && newValue) {
+        if (!this.get("capabilitiesUrl")) {
+            console.warn("Please add a capabilitiesUrl for your layer configuration if you want to use fitCapabilitiesExtent!");
+        }
+        this.requestCapabilitiesToFitExtent();
+    }
+
     if (lastValue !== newValue) {
         // here it is possible to change the layer visibility-info in state and listen to it e.g. in LegendWindow
         // e.g. store.dispatch("Map/toggleLayerVisibility", {layerId: this.get("id")});
         bridge.layerVisibilityChanged(this, this.get("isVisibleInMap"));
     }
 };
+
+/**
+ * Extracts the bounding box from a layer node based on specified extent attributes.
+ * @param {Element} layerNode - The layer node from the GetCapabilities response.
+ * @returns {Array<Array<number>> | null} - An array representing the transformed bounding box, or null if not found.
+ */
+Layer.prototype.extractBoundingBox = function (layerNode) {
+    const extentAttribute = this.get("fitCapabilitiesExtent").attribute,
+        sourceProjection = this.get("fitCapabilitiesExtent").epsg,
+        boundingBoxNode = layerNode.querySelector(extentAttribute),
+        map = mapCollection.getMap("2D"),
+        mapView = map.getView(),
+        targetProjection = mapView.getProjection().getCode();
+
+    if (boundingBoxNode) {
+        const trimmedText = boundingBoxNode.textContent.trim(),
+            coordinatesArray = trimmedText.split(/\s+/),
+            lowerCorner = coordinatesArray.slice(0, 2).map(parseFloat),
+            upperCorner = coordinatesArray.slice(2, 4).map(parseFloat),
+            transformedLowerCorner = crs.transform(sourceProjection, targetProjection, lowerCorner),
+            transformedUpperCorner = crs.transform(sourceProjection, targetProjection, upperCorner);
+
+        return [transformedLowerCorner, transformedUpperCorner];
+    }
+
+    return null;
+};
+
+/**
+ * Requests the GetCapabilities document and parses the result.
+ * @returns {Promise} A promise which will resolve the parsed GetCapabilities object.
+ */
+Layer.prototype.requestCapabilitiesToFitExtent = function () {
+    if (this.get("capabilitiesUrl")) {
+        axios.get(this.get("capabilitiesUrl"))
+            .then(response => handleAxiosResponse(response))
+            .then(xmlCapabilities => {
+                const xmlDocument = new DOMParser().parseFromString(xmlCapabilities, "text/xml"),
+                    {layerIdentification} = this.get("fitCapabilitiesExtent"),
+                    specificLayer = this.get("typ") === "WFS" ? this.get("featureType") : this.get("layers"),
+                    layerNodes = xmlDocument.querySelectorAll(layerIdentification);
+
+                layerNodes.forEach(layerNode => {
+                    if (layerNode.querySelector("Title").textContent.includes(specificLayer)) {
+                        const boundingBox = this.extractBoundingBox(layerNode),
+                            extent = boundingExtent(boundingBox),
+                            map = mapCollection.getMap("2D"),
+                            zoom = map.getView().getZoomForResolution(map.getView().getResolutionForExtent(extent, map.getSize()));
+
+                        store.dispatch("Maps/zoomToExtent", {extent: extent, options: {maxZoom: zoom}}, {root: true});
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Request failed:", error);
+            });
+    }
+};
+
 /**
  * Setter for transparency and setter for opacitiy of the layer.
  * @param {Number} newValue Tranparency in percent
