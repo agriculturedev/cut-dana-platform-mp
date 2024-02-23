@@ -62,7 +62,7 @@ WMTSLayer.prototype.createLegend = function () {
     if ((this.get("optionsFromCapabilities") === undefined) && (legend === true)) {
         console.error("WMTS: No legendURL is specified for the layer!");
     }
-    else if (this.get("optionsFromCapabilities") && !this.get("legendURL") && !this.get("legend")) {
+    else if (this.get("optionsFromCapabilities") && !this.get("legendURL") && (!this.get("legend") || this.get("legend") === true)) {
         const capabilitiesUrl = this.get("capabilitiesUrl");
 
         wmts.getWMTSCapabilities(capabilitiesUrl)
