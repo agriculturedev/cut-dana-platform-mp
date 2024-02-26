@@ -627,14 +627,10 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
             zoomLevel = resolutions.indexOf(0.2645831904584105) === -1 ? resolutions.length : resolutions.indexOf(0.2645831904584105);
         }
 
-        if (hit.feature.getGeometry().getType() === "GeometryCollection") {
-            this.useFirstPointAsHit(hit);
-        }
-
         if (hit?.coordinate?.length === 2 && !Array.isArray(hit.coordinate[0])) {
             store.dispatch("MapMarker/removePolygonMarker");
             hit.coordinate = this.sanitizePoint(hit.coordinate);
-            let coordinateForMarker = hit.coordinate;
+            let coordinateForMarker = hit.feature.getGeometry().getType() === "GeometryCollection" ? this.getFirstPointCoordinates(hit) : hit.coordinate;
 
             if (hit.feature.getGeometry().getType() === "Polygon") {
                 const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
@@ -1059,13 +1055,9 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
             await store.dispatch("MapMarker/removePointMarker");
             await store.dispatch("Maps/removeHighlightFeature");
 
-            if (hit.feature.getGeometry().getType() === "GeometryCollection") {
-                this.useFirstPointAsHit(hit);
-            }
-
             if (hit.coordinate.length === 2 && !Array.isArray(hit.coordinate[0])) {
                 hit.coordinate = this.sanitizePoint(hit.coordinate);
-                let coordinateForMarker = hit.coordinate;
+                let coordinateForMarker = hit.feature.getGeometry().getType() === "GeometryCollection" ? this.getFirstPointCoordinates(hit) : hit.coordinate;
 
                 if (hit.feature.getGeometry().getType() === "Polygon") {
                     const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
@@ -1181,22 +1173,15 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
 
     /**
      * Handels Geometry Collection for setting and showing markers:
-     * Use coordinates first Point in GeometryCollection for setMarker, otherwise use given hit coordinates
+     * Returns coordinates for first Point from a GeometryCollection if there is one.
      * @param {Object} hit - the result within a search.
-     * @returns {Boolean} just to break the loop after first Point was found.
+     * @returns {Array} - coordinates from first Point or from hit coordinate.
      */
-    useFirstPointAsHit: function (hit) {
-        const geomCollection = hit.feature.getGeometry();
+    getFirstPointCoordinates: function (hit) {
+        const geomCollection = hit.feature.getGeometry(),
+            firstPoint = geomCollection.getGeometries().find(geom => geom.getType() === "Point");
 
-        geomCollection.getGeometries().some(geom => {
-            if (geom.getType() === "Point") {
-                hit.coordinate = geom.getCoordinates();
-                return false;
-            }
-            return true;
-        }
-        );
-
+        return firstPoint ? firstPoint.getCoordinates() : hit.coordinate;
     }
 });
 
