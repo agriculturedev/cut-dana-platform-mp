@@ -20,6 +20,7 @@ import Collapse from "bootstrap/js/dist/collapse";
 import isMobile from "../../src/utils/isMobile";
 import uiStyle from "../../src/utils/uiStyle";
 import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList";
+import { geom } from "jsts/dist/jsts.js";
 
 /**
  * @member SearchbarTemplate
@@ -630,9 +631,10 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
         if (hit?.coordinate?.length === 2 && !Array.isArray(hit.coordinate[0])) {
             store.dispatch("MapMarker/removePolygonMarker");
             hit.coordinate = this.sanitizePoint(hit.coordinate);
-            let coordinateForMarker = hit.feature.getGeometry().getType() === "GeometryCollection" ? this.getFirstPointCoordinates(hit) : hit.coordinate;
+            const geomType = hit.feature.getGeometry().getType();
+            let coordinateForMarker = geomType === "GeometryCollection" ? this.getFirstPointCoordinates(hit) : hit.coordinate;
 
-            if (hit.feature.getGeometry().getType() === "Polygon") {
+            if (geomType === "Polygon" || geomType === "MultiPolygon") {
                 const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
 
                 if (!isPointInsidePolygon) {
@@ -1057,9 +1059,10 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
 
             if (hit.coordinate.length === 2 && !Array.isArray(hit.coordinate[0])) {
                 hit.coordinate = this.sanitizePoint(hit.coordinate);
-                let coordinateForMarker = hit.feature.getGeometry().getType() === "GeometryCollection" ? this.getFirstPointCoordinates(hit) : hit.coordinate;
+                const geomType = hit.feature.getGeometry().getType();
+                let coordinateForMarker = geomType === "GeometryCollection" ? this.getFirstPointCoordinates(hit) : hit.coordinate;
 
-                if (hit.feature.getGeometry().getType() === "Polygon") {
+                if (geomType === "Polygon" || geomType === "MultiPolygon") {
                     const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
 
                     if (!isPointInsidePolygon) {
