@@ -20,7 +20,6 @@ import Collapse from "bootstrap/js/dist/collapse";
 import isMobile from "../../src/utils/isMobile";
 import uiStyle from "../../src/utils/uiStyle";
 import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList";
-import { geom } from "jsts/dist/jsts.js";
 
 /**
  * @member SearchbarTemplate
