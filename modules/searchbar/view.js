@@ -630,7 +630,8 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
         if (hit?.coordinate?.length === 2 && !Array.isArray(hit.coordinate[0])) {
             store.dispatch("MapMarker/removePolygonMarker");
             hit.coordinate = this.sanitizePoint(hit.coordinate);
-            const geomType = hit.feature.getGeometry().getType();
+
+            const geomType = hit.feature?.getGeometry()?.getType();
             let coordinateForMarker = geomType === "GeometryCollection" ? this.getFirstPointCoordinates(hit) : hit.coordinate;
 
             if (geomType === "Polygon" || geomType === "MultiPolygon") {
@@ -1058,7 +1059,7 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
 
             if (hit.coordinate.length === 2 && !Array.isArray(hit.coordinate[0])) {
                 hit.coordinate = this.sanitizePoint(hit.coordinate);
-                const geomType = hit.feature.getGeometry().getType();
+                const geomType = hit.feature?.getGeometry()?.getType();
                 let coordinateForMarker = geomType === "GeometryCollection" ? this.getFirstPointCoordinates(hit) : hit.coordinate;
 
                 if (geomType === "Polygon" || geomType === "MultiPolygon") {
