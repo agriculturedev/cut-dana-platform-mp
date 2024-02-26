@@ -646,7 +646,7 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
             hit.coordinate = this.sanitizePoint(hit.coordinate);
             let coordinateForMarker = hit.coordinate;
 
-            if (!hit.feature.getGeometry().getType() === "GeometryCollection") {
+            if (hit.feature.getGeometry().getType() === "Polygon") {
                 const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
 
                 if (!isPointInsidePolygon) {
@@ -1052,7 +1052,6 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
      * @returns {void}
      */
     showMarker: async function (evt) {
-        console.log("show marker")
         const isEvent = evt instanceof $.Event,
             hitId = isEvent ? evt.currentTarget.id : null,
             hit = isEvent ? this.model.get("finalHitList").find(obj => obj.id === hitId) : null,
