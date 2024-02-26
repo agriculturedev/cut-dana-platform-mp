@@ -627,15 +627,33 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
             zoomLevel = resolutions.indexOf(0.2645831904584105) === -1 ? resolutions.length : resolutions.indexOf(0.2645831904584105);
         }
 
+        if (hit.feature.getGeometry().getType() === "GeometryCollection") {
+            const geomCollection = hit.feature.getGeometry();
+
+            // prefer first Point in GeometryCollection for setMarker, if not given do not change hit coordinates
+            geomCollection.getGeometries().some(geom => {
+                if (geom.getType() === "Point") {
+                    hit.coordinate = geom.getCoordinates();
+                    return false;
+                }
+                return true;
+            }
+            );
+        }
+
         if (hit?.coordinate?.length === 2 && !Array.isArray(hit.coordinate[0])) {
             store.dispatch("MapMarker/removePolygonMarker");
             hit.coordinate = this.sanitizePoint(hit.coordinate);
-            const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
             let coordinateForMarker = hit.coordinate;
 
-            if (!isPointInsidePolygon) {
-                coordinateForMarker = this.getRandomCoordinate(hit.feature.getGeometry().getCoordinates());
+            if (!hit.feature.getGeometry().getType() === "GeometryCollection") {
+                const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
+
+                if (!isPointInsidePolygon) {
+                    coordinateForMarker = this.getRandomCoordinate(hit.feature.getGeometry().getCoordinates());
+                }
             }
+
             store.dispatch("MapMarker/placingPointMarker", coordinateForMarker);
             Radio.trigger("MapView", "setCenter", coordinateForMarker, zoomLevel);
             store.commit("Maps/setClickCoordinate", hit.coordinate);
@@ -1034,6 +1052,7 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
      * @returns {void}
      */
     showMarker: async function (evt) {
+        console.log("show marker")
         const isEvent = evt instanceof $.Event,
             hitId = isEvent ? evt.currentTarget.id : null,
             hit = isEvent ? this.model.get("finalHitList").find(obj => obj.id === hitId) : null,
