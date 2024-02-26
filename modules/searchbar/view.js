@@ -628,17 +628,7 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
         }
 
         if (hit.feature.getGeometry().getType() === "GeometryCollection") {
-            const geomCollection = hit.feature.getGeometry();
-
-            // prefer first Point in GeometryCollection for setMarker, if not given do not change hit coordinates
-            geomCollection.getGeometries().some(geom => {
-                if (geom.getType() === "Point") {
-                    hit.coordinate = geom.getCoordinates();
-                    return false;
-                }
-                return true;
-            }
-            );
+            this.useFirstPointAsHit(hit);
         }
 
         if (hit?.coordinate?.length === 2 && !Array.isArray(hit.coordinate[0])) {
@@ -1069,18 +1059,26 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
             await store.dispatch("MapMarker/removePointMarker");
             await store.dispatch("Maps/removeHighlightFeature");
 
+            if (hit.feature.getGeometry().getType() === "GeometryCollection") {
+                this.useFirstPointAsHit(hit);
+            }
+
             if (hit.coordinate.length === 2 && !Array.isArray(hit.coordinate[0])) {
                 hit.coordinate = this.sanitizePoint(hit.coordinate);
-                const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
                 let coordinateForMarker = hit.coordinate;
 
-                if (!isPointInsidePolygon) {
-                    coordinateForMarker = this.getRandomCoordinate(hit.feature.getGeometry().getCoordinates());
+                if (hit.feature.getGeometry().getType() === "Polygon") {
+                    const isPointInsidePolygon = this.checkIsCoordInsidePolygon(hit);
+
+                    if (!isPointInsidePolygon) {
+                        coordinateForMarker = this.getRandomCoordinate(hit.feature.getGeometry().getCoordinates());
+                    }
+                    highlightObject = Radio.request("ModelList", "getModelByAttributes", {id: hit.layer_id}) ? this.setHighlightObjectProperties(highlightObject, hit) : null;
+                    if (highlightObject) {
+                        store.dispatch("Maps/highlightFeature", highlightObject);
+                    }
                 }
-                highlightObject = Radio.request("ModelList", "getModelByAttributes", {id: hit.layer_id}) ? this.setHighlightObjectProperties(highlightObject, hit) : null;
-                if (highlightObject) {
-                    store.dispatch("Maps/highlightFeature", highlightObject);
-                }
+
                 store.dispatch("MapMarker/placingPointMarker", coordinateForMarker);
             }
             else {
@@ -1179,6 +1177,26 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
         highlightObject.styleId = Radio.request("ModelList", "getModelByAttributes", {id: hit.layer_id}).attributes.styleId;
         highlightObject.polygons = highlightObject.feature ? highlightObject.feature.getGeometry().getPolygons() : null;
         return highlightObject;
+    },
+
+    /**
+     * Handels Geometry Collection for setting and showing markers:
+     * Use coordinates first Point in GeometryCollection for setMarker, otherwise use given hit coordinates
+     * @param {Object} hit - the result within a search.
+     * @returns {Boolean} just to break the loop after first Point was found.
+     */
+    useFirstPointAsHit: function (hit) {
+        const geomCollection = hit.feature.getGeometry();
+
+        geomCollection.getGeometries().some(geom => {
+            if (geom.getType() === "Point") {
+                hit.coordinate = geom.getCoordinates();
+                return false;
+            }
+            return true;
+        }
+        );
+
     }
 });
 
