@@ -338,8 +338,8 @@ const TreeModel = Backbone.Model.extend(/** @lends TreeModel.prototype */{
                         return item.id === parentModelId;
                     });
 
-                    // rekursive call with the parent model and adding the parent model name to the path
-                    path = this.getModelPath(parentModel) + "/" + parentModel.name;
+                    // recursive call with the parent model and adding the parent model name to the path
+                    path = this.getModelPath(parentModel) + "/" + parentModel?.name;
                 }
             }
         }

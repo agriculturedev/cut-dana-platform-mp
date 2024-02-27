@@ -9,6 +9,9 @@
 
 ### Added
 - StatisticDashboard module in core tool modules
+- The following packages have been added:
+    - devDependencies:
+        - cross-env: 7.0.3
 
 ### Changed
 
@@ -18,10 +21,8 @@
 
 ### Fixed
 - Issue #1103: fixed error on tool wfsSearch with `active`=`true`.
+- Issue #1149: fixed mobile error for type custom tree portals caused by tree model.
 - Fix: Change env to cross-env so windows powershell can run build script
-- The following packages have been added:
-    - devDependencies:
-        - cross-env: 7.0.3
 
 ---
 
