@@ -60,7 +60,14 @@ describe("src/modules/controls/startTool/components/StartTool.vue", () => {
                     getters: {
                         configuredTools: () => configuredTools
                     }
+                },
+                Maps: {
+                    namespaced: true,
+                    getters: {
+                        mode: () => "2D"
+                    }
                 }
+
             },
             getters: {
                 uiStyle: () => ""

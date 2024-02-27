@@ -23,6 +23,7 @@ export default {
     },
     computed: {
         ...mapGetters(["uiStyle"]),
+        ...mapGetters("Maps", ["mode"]),
         ...mapGetters("Tools", ["configuredTools"]),
 
         component () {
@@ -79,6 +80,14 @@ export default {
                 model.set("isActive", !tool.active);
                 this.setToolActive({id: tool.id, active: !tool.active});
             }
+        },
+        /**
+         * Checks if tools state contains 'supportedMapModes' and current map mode is contained in it.
+         * @param {Object} tool the current tool.
+         * @returns {Boolean} true, if tool's state does not contain 'supportedMapModes' or if 'supportedMapModes' contains current mode
+         */
+        visibleInMode (tool) {
+            return !Array.isArray(tool.supportedMapModes) || Array.isArray(tool.supportedMapModes) && tool.supportedMapModes.includes(this.mode);
         }
     }
 };
@@ -89,6 +98,7 @@ export default {
         <template v-for="tool in toolStates">
             <component
                 :is="component"
+                v-if="visibleInMode(tool)"
                 :key="'control-tool-' + tool.id"
                 :icon-name="tool.icon"
                 :class="[component ? 'control' : 'Table']"
