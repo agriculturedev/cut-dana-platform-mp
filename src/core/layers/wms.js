@@ -76,7 +76,8 @@ WMSLayer.prototype.getRawLayerAttributes = function (attrs) {
         maxScale: parseInt(attrs.maxScale, 10),
         crs: attrs.crs,
         crossOrigin: attrs.crossOrigin,
-        cqlFilter: attrs.cqlFilter
+        cqlFilter: attrs.cqlFilter,
+        isSecured: attrs.isSecured
     };
 
     if (attrs.styles !== "nicht vorhanden") {
