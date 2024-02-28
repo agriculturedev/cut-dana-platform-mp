@@ -20,6 +20,7 @@
 ### Removed
 
 ### Fixed
+- Issue #775: hovering over .portal-title changes color of the title now
 - Issue #1103: fixed error on tool wfsSearch with `active`=`true`.
 - Issue #1149: fixed mobile error for type custom tree portals caused by tree model.
 - Fix: Change env to cross-env so windows powershell can run build script

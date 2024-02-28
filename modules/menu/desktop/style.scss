@@ -17,19 +17,17 @@
         cursor: pointer;
         &:hover {
             @include primary_action_hover;
+            h1 {
+                color: $light_grey_contrast;
+            }
         }
         &:focus {
             @include primary_action_focus;
+            h1 {
+                color: $light_grey_contrast;
+            }
         }
     }
-}
-/**
- * This CSS rule is defined outside the primary SCSS structure to specifically target the `h1` tags within `.portal-title` on hover.
- * The direct targeting is necessary because applying the hover effect through `.tabable` does not achieve the desired outcome.
- * It ensures that the `h1` tag changes to a lighter grey contrast color when `.portal-title` is hovered.
- */
-.portal-title:hover .tabable h1 {
-     color: $light_grey_contrast;
 }
 ul#tree {
     border: none;
