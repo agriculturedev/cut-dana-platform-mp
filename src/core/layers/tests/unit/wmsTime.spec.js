@@ -34,6 +34,7 @@ describe("src/core/layers/wmsTime.js", () => {
         mapCollection.addMap(map, "2D");
     });
     beforeEach(() => {
+        sinon.stub(WMSTimeLayer.prototype, "requestCapabilities").returns(new Promise(resolve => resolve({status: 200, statusText: "OK", data: {}})));
         attributes = {
             name: "wmsTimeTestLayer",
             id: "id",
@@ -47,7 +48,7 @@ describe("src/core/layers/wmsTime.js", () => {
             transparent: false,
             isSelected: false,
             time: {
-                default: 1997
+                default: "1997"
             }
         };
         store.getters = {
@@ -116,5 +117,38 @@ describe("src/core/layers/wmsTime.js", () => {
 
         expect(wmsTimeLayer.createTimeRange(min, max, step)).to.be.an("array");
         expect(wmsTimeLayer.createTimeRange(min, max, step)).includes("2006", "2008", "2010", "2012", "2014", "2016", "2018");
+    });
+
+    describe("createCapabilitiesUrl", () => {
+        it("test params", () => {
+            const wmsTimeUrl = "https://geodienste.hamburg.de/HH_WMS-T_Satellitenbilder_Sentinel-2",
+                version = "1.1.1",
+                layers = "layer1",
+                wmsTimeLayer = new WMSTimeLayer(attributes),
+                createdUrl = wmsTimeLayer.createCapabilitiesUrl(wmsTimeUrl, version, layers);
+
+            expect(createdUrl.origin).to.eql("https://geodienste.hamburg.de");
+            expect(createdUrl.pathname).to.eql("/HH_WMS-T_Satellitenbilder_Sentinel-2");
+            expect(createdUrl.searchParams.get("service")).to.eql("WMS");
+            expect(createdUrl.searchParams.get("version")).to.eql(version);
+            expect(createdUrl.searchParams.get("layers")).to.eql(layers);
+            expect(createdUrl.searchParams.get("request")).to.eql("GetCapabilities");
+        });
+
+        it("createUrl should respect questionmark in url", () => {
+            const wmsTimeUrl = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map",
+                version = "1.1.1",
+                layers = "layer1,layer2",
+                wmsTimeLayer = new WMSTimeLayer(attributes),
+                createdUrl = wmsTimeLayer.createCapabilitiesUrl(wmsTimeUrl, version, layers);
+
+            expect(createdUrl.origin).to.eql("https://mapservice.regensburg.de");
+            expect(createdUrl.pathname).to.eql("/cgi-bin/mapserv");
+            expect(createdUrl.searchParams.get("map")).to.eql("wfs.map");
+            expect(createdUrl.searchParams.get("service")).to.eql("WMS");
+            expect(createdUrl.searchParams.get("version")).to.eql(version);
+            expect(createdUrl.searchParams.get("layers")).to.eql(layers);
+            expect(createdUrl.searchParams.get("request")).to.eql("GetCapabilities");
+        });
     });
 });

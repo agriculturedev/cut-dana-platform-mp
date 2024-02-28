@@ -162,6 +162,23 @@ WMSTimeLayer.prototype.prepareTime = function (attrs) {
 };
 
 /**
+ * Creates the capabilities url.
+ * @param {String} wmsTimeUrl The url of wms time.
+ * @param {String} version The version of wms time.
+ * @param {String} layers The layers of wms time.
+ * @returns {String} the created url
+ */
+WMSTimeLayer.prototype.createCapabilitiesUrl = function (wmsTimeUrl, version, layers) {
+    const url = new URL(wmsTimeUrl);
+
+    url.searchParams.set("service", "WMS");
+    url.searchParams.set("version", version);
+    url.searchParams.set("layers", layers);
+    url.searchParams.set("request", "GetCapabilities");
+    return url;
+};
+
+/**
  * Requests the GetCapabilities document and parses the result.
  * @param {String} url The url of wms time.
  * @param {String} version The version of wms time.
@@ -169,7 +186,7 @@ WMSTimeLayer.prototype.prepareTime = function (attrs) {
  * @returns {Promise} A promise which will resolve the parsed GetCapabilities object.
  */
 WMSTimeLayer.prototype.requestCapabilities = function (url, version, layers) {
-    return axios.get(encodeURI(`${url}?service=WMS&version=${version}&layers=${layers}&request=GetCapabilities`))
+    return axios.get(this.createCapabilitiesUrl(url, version, layers))
         .then(response => handleAxiosResponse(response, "WMS, createLayerSource, requestCapabilities"));
 };
 

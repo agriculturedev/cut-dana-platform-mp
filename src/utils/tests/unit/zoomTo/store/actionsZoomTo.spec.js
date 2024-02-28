@@ -6,12 +6,16 @@ import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList.j
 import createStyle from "@masterportal/masterportalapi/src/vectorStyle/createStyle.js";
 import VectorLayer from "ol/layer/Vector";
 import actions from "../../../../zoomTo/store/actionsZoomTo";
+import crs from "@masterportal/masterportalapi/src/crs";
 
 const fs = require("fs"),
     exampleFeatureCollection = fs.readFileSync("./src/utils/tests/unit/zoomTo/resources/featureCollection.xml", "utf8"),
     districtFeatures = fs.readFileSync("./src/utils/tests/unit/zoomTo/resources/districtFeatures.xml", "utf8"),
     idDistrictLayer = "1692",
-    id = "someId";
+    id = "someId",
+    namedProjections = [
+        ["EPSG:25832", "+title=ETRS89/UTM 32N +proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"]
+    ];
 
 /**
  * Fakes the return of a successful axios get request.
@@ -48,7 +52,17 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
             consoleWarnSpy,
             dispatch,
             getters,
-            state;
+            state,
+            layer,
+            districtLayer;
+
+        before(function () {
+            i18next.init({
+                lng: "cimode",
+                debug: false
+            });
+            crs.registerProjections(namedProjections);
+        });
 
         beforeEach(() => {
             consoleErrorSpy = sinon.spy();
@@ -61,12 +75,11 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
                 deprecatedParameters: false
             };
             state = {};
-            rawLayerList.getLayerList().push({id, url: "", version: "", featureType: ""});
-            rawLayerList.getLayerList().push({id: idDistrictLayer, url: "", version: "", featureType: ""});
+            layer = {id, url: "https://test.de", version: "", featureType: ""};
+            districtLayer = {id: idDistrictLayer, url: "https://test1.de", version: "", featureType: ""};
         });
         afterEach(() => {
             sinon.restore();
-            rawLayerList.getLayerList().length = 0;
         });
         // NOTE: The following 5 tests should be removed in v3.0.0
         it("should log an error and return if a deprecated configuration parameter is used and a zoomToFeature url parameter is used without valid configuration", () => {
@@ -96,6 +109,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         it("should zoom to district, if zoomToGeometry is a number", async () => {
             sinon.stub(styleList, "returnStyleObject").returns(styleObject);
             sinon.stub(axios, "get").callsFake(axiosDistrictFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(districtLayer);
             getters.config = [{
                 id: "zoomToGeometry",
                 layerId: "1692",
@@ -129,7 +143,6 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
 
         });
         it("should throw and log an error if an error occurs when trying to fetch features from the service", async () => {
-            sinon.stub(axios, "get").callsFake(axiosFake);
             getters.deprecatedParameters = true;
             getters.config.zoomToFeature = {
                 wfsId: id,
@@ -140,6 +153,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
             // NOTE: These sinon functions are needed here again to be able to add new behaviour to the axios.get method
             sinon.restore();
             sinon.stub(axios, "get").callsFake(() => new Promise((_, reject) => reject("Custom testing error!")));
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             sinon.stub(console, "error").callsFake(consoleErrorSpy);
             sinon.stub(console, "warn").callsFake(consoleWarnSpy);
             await actions.zoomToFeatures({state, getters, dispatch});
@@ -153,6 +167,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         });
         it("should fetch features and call respective vuex store functions if a correct (but deprecated) configuration and url parameter match for zoomToFeature is provided", async () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.deprecatedParameters = true;
             getters.config.zoomToFeature = {
                 wfsId: id,
@@ -181,6 +196,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         });
         it("should fetch features and call respective vuex store functions if a correct (but deprecated) configuration and url parameter match for zoomToFeature is provided; not adding the features to the map as a new layer through config parameter", async () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.deprecatedParameters = true;
             getters.config.zoomToFeature = {
                 wfsId: id,
@@ -205,6 +221,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         });
         it("should fetch features and call respective vuex store functions if a correct (but deprecated) configuration and url parameter match for zoomToGeometry is provided", async () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.deprecatedParameters = true;
             getters.config.zoomToGeometry = {
                 layerId: id,
@@ -233,6 +250,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
 
         it("should should resolve with a reason if a config is given but no url parameter", () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.config = [{id: "zoomToFeatureId"}];
             actions.zoomToFeatures({state, getters, dispatch})
                 .then(reason => {
@@ -253,6 +271,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
             // NOTE: These sinon functions are needed here again to be able to add new behaviour to the axios.get method
             sinon.restore();
             sinon.stub(axios, "get").callsFake(() => new Promise((_, reject) => reject("Custom testing error!")));
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             sinon.stub(console, "error").callsFake(consoleErrorSpy);
             sinon.stub(console, "warn").callsFake(consoleWarnSpy);
             await actions.zoomToFeatures({state, getters, dispatch});
@@ -268,6 +287,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         it("should add features to the map for one working config (zoomToFeatureId) and dispatch an alert for a configuration with an invalid id if both are present", async () => {
             sinon.stub(createStyle, "createStyle").returns(true);
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.config = [{id: "somethingWrong"}, {
                 id: "zoomToFeatureId",
                 layerId: id,
@@ -298,6 +318,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         });
         it("should add features to the map for one config of zoomToFeatureId", async () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.config = [{
                 id: "zoomToFeatureId",
                 layerId: id,
@@ -325,6 +346,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         });
         it("should zoom to the feature extent but not add the features for one config of zoomToFeatureId with addFeatures set to false", async () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.config = [{
                 id: "zoomToFeatureId",
                 layerId: id,
@@ -348,6 +370,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         });
         it("should add features to the map for one config of zoomToGeometry", async () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.config = [{
                 id: "zoomToGeometry",
                 layerId: id,
@@ -375,6 +398,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         });
         it("should zoom to the feature extent but not add the features for one config of zoomToGeometry with addFeatures set to false", async () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.config = [{
                 id: "zoomToGeometry",
                 layerId: id,
@@ -398,6 +422,7 @@ describe("src/utils/zoomTo/store/actionsZoomTo.js", () => {
         });
         it("should add features to the map for one config of zoomToFeatureId and one of zoomToGeometry", async () => {
             sinon.stub(axios, "get").callsFake(axiosFake);
+            sinon.stub(rawLayerList, "getLayerWhere").returns(layer);
             getters.config = [
                 {
                     id: "zoomToFeatureId",

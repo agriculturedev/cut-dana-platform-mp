@@ -1,6 +1,6 @@
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-import getAndFilterFeatures from "../utils/getAndFilterFeatures";
+import featureProvider from "../utils/getAndFilterFeatures";
 import calculateExtent from "../../calculateExtent";
 import createStyledFeatures from "../utils/createStyledFeatures";
 
@@ -41,7 +41,7 @@ const actions = {
             else {
                 return new Promise((_, reject) => reject("zoomTo: A mismatch between url parameters and configuration occurred."));
             }
-            return getAndFilterFeatures(layerId, property, urlValues)
+            return featureProvider.getAndFilterFeatures(layerId, property, urlValues)
                 .then(featureCollection => {
                     const extent = calculateExtent(
                         allowedValues === undefined
@@ -91,7 +91,7 @@ const actions = {
                 addFeatures = config.addFeatures;
             }
 
-            return getAndFilterFeatures(layerId, property, urlValues)
+            return featureProvider.getAndFilterFeatures(layerId, property, urlValues)
                 .then(featureCollection => {
                     let filteredFeatures = featureCollection;
 
