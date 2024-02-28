@@ -696,6 +696,7 @@ The entry `attributions` may be of type boolean or object. If of type boolean, t
 |----|--------|----|-------|-----------|------|
 |zoomMode|no|enum["once", "always"]|"once"|The user's location is determined and a marker turned on or off. This requires providing the portal via **https**. Modes: *once* zooms to the user's location once, *always* zooms to the user position on each activation.|false|
 |poiDistances|no|Boolean/Integer[]|true|Defines whether the feature "Close to me", which shows a list of nearby points of interest, is provided. If an array is configured, multiple such lists with the given distance in meters are offered. When simply setting `poiDistances: true`, the used distances are `[500,1000,2000]`.|false|
+|onlyFilteredFeatures|no|boolean|false|If 'onlyFilteredFeatures' is true, only features filtered via the filter are taken into account in the poi results display.|false|
 
 **Example using type boolean poiDistances**
 

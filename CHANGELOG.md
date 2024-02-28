@@ -12,6 +12,9 @@
 - The following packages have been added:
     - devDependencies:
         - cross-env: 7.0.3
+- PoiOrientation:
+    - The result window can now be moved.
+    - New parameter onlyFilteredFeatures introduced, so that only filtered features are displayed in the results window.
 
 ### Changed
 

@@ -8,6 +8,7 @@ import getters from "../../store/gettersOrientation";
 import mutations from "../../store/mutationsOrientation";
 import {extractEventCoordinates} from "../../../../../../src/utils/extractEventCoordinates";
 import LoaderOverlay from "../../../../../utils/loaderOverlay";
+import "jquery-ui/ui/widgets/draggable";
 
 export default {
     name: "PoiOrientation",
@@ -46,6 +47,10 @@ export default {
             if (this.$refs["close-icon"]) {
                 this.$refs["close-icon"].focus();
             }
+            $(".modal-dialog").draggable({
+                cursor: "move",
+                handle: ".modal-header"
+            });
         });
     },
     methods: {
@@ -68,16 +73,12 @@ export default {
          * @returns {void}
          */
         show () {
-            const el = document.querySelector(".modal"),
-                backdrop = document.querySelector(".modal-backdrop");
+            const el = document.querySelector(".modal");
 
             if (el) {
                 el.style.display = "block";
                 el.classList.add("show");
                 el.classList.remove("fade");
-                backdrop.style.display = "block";
-                backdrop.classList.add("show");
-                backdrop.classList.remove("fade");
             }
         },
 
@@ -323,12 +324,17 @@ export default {
 </script>
 
 <template>
-    <button
+    <div
         id="surrounding_vectorfeatures"
         class="modal fade in poi"
-        @keydown.esc="hidePoi"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="surrounding_vectorfeatures"
     >
-        <div class="modal-dialog">
+        <div
+            class="modal-dialog modal-dialog-centered"
+            role="document"
+        >
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">
@@ -347,7 +353,7 @@ export default {
                         <i class="bi-x-lg" />
                     </span>
                 </div>
-                <div>
+                <div class="modal-body">
                     <ul
                         class="nav nav-pills"
                         role="tablist"
@@ -418,11 +424,10 @@ export default {
                 </div>
             </div>
         </div>
-        <button
+        <div
             class="modal-backdrop fade show"
-            @click="hidePoi"
         />
-    </button>
+    </div>
 </template>
 
 <style lang="scss" scoped>
@@ -445,6 +450,7 @@ export default {
         .modal-header {
             padding: 0;
             border-bottom: 0;
+            cursor: move;
         }
         .modal-title {
             padding: 8px;
@@ -463,6 +469,7 @@ export default {
         }
         .modal-dialog {
             z-index: 1051;
+            left: 35%;
         }
         .tab-content{
             max-height: 78vH;
@@ -491,4 +498,9 @@ export default {
             }
         }
     }
+    .modal-dialog {
+    position: fixed;
+    width: 100%;
+    }
+
 </style>

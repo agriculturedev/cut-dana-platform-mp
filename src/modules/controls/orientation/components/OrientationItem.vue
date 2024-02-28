@@ -11,6 +11,7 @@ import proj4 from "proj4";
 import * as Proj from "ol/proj.js";
 import {Circle, LineString} from "ol/geom.js";
 import LoaderOverlay from "../../../../utils/loaderOverlay";
+import isObject from "../../../../utils/isObject";
 
 export default {
     name: "OrientationItem",
@@ -31,6 +32,11 @@ export default {
             type: [Boolean, Array],
             required: false,
             default: () => []
+        },
+        onlyFilteredFeatures: {
+            type: [Boolean],
+            required: false,
+            default: () => false
         }
     },
     data () {
@@ -374,11 +380,17 @@ export default {
                 circleExtent = circle.getExtent(),
                 visibleWFSLayers = Radio.request("ModelList", "getModelsByAttributes", {isVisibleInMap: true, typ: "WFS"});
             let featuresAll = [],
-                features = [];
+                features = [],
+                filteredFeatures = [];
 
             visibleWFSLayers.forEach(layer => {
                 if (layer.has("layerSource") === true) {
                     features = layer.get("layerSource").getFeaturesInExtent(circleExtent);
+                    filteredFeatures = features.filter(feat => isObject(feat.getStyle()) || (typeof feat.getStyle() === "function" && feat.getStyle()(feat) !== null));
+                    if (this.onlyFilteredFeatures === true && filteredFeatures.length > 0) {
+                        features = filteredFeatures;
+                    }
+
                     features.forEach(function (feat) {
                         Object.assign(feat, {
                             styleId: layer.get("styleId"),

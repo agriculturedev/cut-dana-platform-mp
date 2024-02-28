@@ -1185,7 +1185,7 @@
             },
             "orientation": {
                 "titleGeolocate": "Common position",
-                "titleGeolocatePOI": "Close to here",
+                "titleGeolocatePOI": "Close to here (linear distance)",
                 "geolocationDeniedText": "Localisation is not available",
                 "poiChoiceTitle": "Select starting point for radius search:",
                 "poiChoiceCurrentPostion": "Current location",

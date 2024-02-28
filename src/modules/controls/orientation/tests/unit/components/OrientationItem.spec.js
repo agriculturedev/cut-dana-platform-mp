@@ -2,6 +2,7 @@ import Vuex from "vuex";
 import {config, createLocalVue, shallowMount} from "@vue/test-utils";
 import {expect} from "chai";
 import OrientationItemComponent from "../../../components/OrientationItem.vue";
+import sinon from "sinon";
 
 const localVue = createLocalVue();
 
@@ -9,33 +10,16 @@ localVue.use(Vuex);
 config.mocks.$t = key => key;
 
 describe("src/modules/controls/orientation/components/OrientationItem.vue", () => {
-    const mockConfigJson = {
-            Portalconfig: {
-                menu: {
-                    "controls":
-                    {
-                        "orientation":
-                            {
-                                "zoomMode": "once",
-                                "poiDistances":
-                                    [
-                                        1000,
-                                        5000,
-                                        10000
-                                    ]
-                            }
-
-                    }
-                }
-            }
-        },
-
-        mockGetters = {
+    const mockGetters = {
             showPoiIcon: () => false,
             position: () => null,
             showPoiChoice: () => false,
             showPoi: () => false
+        },
+        mockAlertingActions = {
+            addSingleAlert: sinon.stub()
         };
+
     let store,
         wrapper;
 
@@ -50,10 +34,11 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
                             namespaced: true,
                             getters: mockGetters
                         }
-                    },
-                    state: {
-                        configJson: mockConfigJson
                     }
+                },
+                Alerting: {
+                    namespaced: true,
+                    actions: mockAlertingActions
                 }
             }
         });
@@ -62,6 +47,10 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
             store,
             localVue
         });
+    });
+    afterEach(() => {
+        sinon.restore();
+        wrapper.destroy();
     });
 
     it("renders the Orientation component", () => {
@@ -84,5 +73,80 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
 
         expect(wrapper.vm.union(arr1, arr2, (obj1, obj2) => obj1 === obj2)).to.deep.equal(arr);
     });
+    describe("OrientationItem.vue methods", () => {
+        const centerPosition = [0, 0],
+            distance = 10,
+            features = [{
+                getStyle: () => {
+                    return {};
+                },
+                getGeometry: () => {
+                    return {
+                        getClosestPoint: () => {
+                            return [10, 10];
+                        }
+                    };
+                },
+                get: () => sinon.stub()
+            },
+            {
+                getStyle: () => {
+                    return () => null;
+                },
+                getGeometry: () => {
+                    return {
+                        getClosestPoint: () => {
+                            return [11, 10];
+                        }
+                    };
+                },
+                get: () => sinon.stub()
+            }],
+            layerSource = {
+                getFeaturesInExtent: () => {
+                    return features;
+                }
+            },
+            wfsLayer = [{
+                has: () => {
+                    return true;
+                },
+                get: (key) => {
+                    if (key === "layerSource") {
+                        return layerSource;
+                    }
+                    else if (key === "styleId") {
+                        return "123";
+                    }
+                    else if (key === "name") {
+                        return "TestLayer";
+                    }
+                    return "";
+                }
+            }];
 
+        beforeEach(() => {
+            sinon.stub(Radio, "request").callsFake(() => {
+                return wfsLayer;
+            });
+        });
+
+        it("getVectorFeaturesInCircle returns only filtered features", async () => {
+            let returnedFeatures = "";
+
+            await wrapper.setProps({
+                onlyFilteredFeatures: true
+            });
+            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(distance, centerPosition);
+
+            expect(returnedFeatures.length).to.be.equals(1);
+        });
+        it("getVectorFeaturesInCircle returns all features", () => {
+            let returnedFeatures = "";
+
+            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(distance, centerPosition);
+
+            expect(returnedFeatures.length).to.be.equals(2);
+        });
+    });
 });

@@ -1189,7 +1189,7 @@
             },
             "orientation": {
                 "titleGeolocate": "Standpunkt",
-                "titleGeolocatePOI": "In der Nähe",
+                "titleGeolocatePOI": "In der Nähe (Luftlinie)",
                 "geolocationDeniedText": "Lokalisierung nicht verfügbar",
                 "poiChoiceTitle": "Ausgangspunkt für Umkreissuche wählen:",
                 "poiChoiceCurrentPostion": "Standort",
