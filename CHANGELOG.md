@@ -26,6 +26,7 @@
 ### Removed
 
 ### Fixed
+- Issue #597: resolve relative path for legend images in print module
 - Issue #775: hovering over .portal-title changes color of the title now
 - Issue #1103: fixed error on tool wfsSearch with `active`=`true`.
 - Issue #1124: fixed url used in WMS-time layer and in zoomTo environment to not use more than one questionmark.
