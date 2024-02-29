@@ -586,35 +586,35 @@ Layer.prototype.moveUp = function () {
     bridge.moveModelInTree(this, 1);
 };
 /**
- * Called from setSelected, handles singleBaseLayer.
+ * Called from setSelected, handles singleBaseLayer. Sets visibility to false of all other baselayers, if singleBaseLayer is true.
  * @param {Boolean} isSelected true, if layer is selected
  * @param {ol.Layer} layer the dedicated layer
  * @returns {void}
  */
 function handleSingleBaseLayer (isSelected, layer) {
     const id = layer.get("id"),
-        layerGroup = bridge.getLayerModelsByAttributes({parentId: layer.get("parentId")}),
+        childLayerGroup = bridge.getLayerModelsByAttributes({parentId: layer.get("parentId")}),
+        selectedLayer = bridge.getLayerModelsByAttributes({isBaseLayer: true, isSelected: true}),
         singleBaselayer = layer.get("singleBaselayer") && layer.get("isBaseLayer") === true;
 
-    if (isSelected) {
-        if (singleBaselayer) {
-            const map2D = mapCollection.getMap("2D");
+    if (isSelected && singleBaselayer) {
+        const map2D = mapCollection.getMap("2D"),
+            layers = childLayerGroup.concat(selectedLayer);
 
-            layerGroup.forEach(aLayer => {
-                // folders parentId is baselayer too, but they have not a function checkForScale
-                if (aLayer.get("id") !== id && typeof aLayer.checkForScale === "function") {
-                    aLayer.set("isSelected", false);
-                    aLayer.set("isVisibleInMap", false);
-                    if (aLayer.get("layer") !== undefined) {
-                        aLayer.get("layer").setVisible(false);
-                    }
-                    map2D?.removeLayer(aLayer.get("layer"));
-                    // This makes sure that the Oblique Layer, if present in the layerList, is not selectable if switching between baseLayers
-                    aLayer.checkForScale({scale: store.getters["Maps/scale"]});
+        layers.forEach(aLayer => {
+            // folders parentId is baselayer too, but they have not a function checkForScale
+            if (aLayer.get("id") !== id && typeof aLayer.checkForScale === "function") {
+                aLayer.set("isSelected", false);
+                aLayer.set("isVisibleInMap", false);
+                if (aLayer.get("layer") !== undefined) {
+                    aLayer.get("layer").setVisible(false);
                 }
-            });
-            bridge.renderMenu();
-        }
+                map2D?.removeLayer(aLayer.get("layer"));
+                // This makes sure that the Oblique Layer, if present in the layerList, is not selectable if switching between baseLayers
+                aLayer.checkForScale({scale: store.getters["Maps/scale"]});
+            }
+        });
+        bridge.renderMenu();
     }
 }
 

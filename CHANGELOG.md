@@ -29,6 +29,7 @@
 - Issue #1126: prevent that the "legend"-parameter from config is overwritten by capabilities request
 - Issue #1143: FileImport: open draw tool button is styled correctly.
 - Issue #1149: fixed mobile error for type custom tree portals caused by tree model.
+- Issue #1152: Layertree with background maps in folder structure: When changing a background map, the previously selected background map is deselected.
 - Fix: Change env to cross-env so windows powershell can run build script
 
 ---
