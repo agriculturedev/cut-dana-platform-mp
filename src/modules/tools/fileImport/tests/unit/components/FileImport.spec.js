@@ -47,6 +47,7 @@ describe("src/modules/tools/fileImport/components/FileImport.vue", () => {
             }
         });
         store.commit("Tools/FileImport/setActive", true);
+        store.commit("Tools/FileImport/setImportedFileNames", []);
     });
 
     afterEach(() => {
@@ -59,6 +60,7 @@ describe("src/modules/tools/fileImport/components/FileImport.vue", () => {
         wrapper = shallowMount(FileImportComponent, {store, localVue});
 
         expect(wrapper.find("#tool-file-import").exists()).to.be.true;
+        expect(wrapper.find("button").exists()).to.be.false;
     });
 
     it("do not render the fileImport tool if not active", () => {
@@ -72,6 +74,15 @@ describe("src/modules/tools/fileImport/components/FileImport.vue", () => {
         wrapper = shallowMount(FileImportComponent, {store, localVue});
 
         expect(wrapper.vm.selectedFiletype).to.equal("auto");
+    });
+
+    it("open draw tool button shall exist, if filenames length > 0", () => {
+        store.commit("Tools/FileImport/setImportedFileNames", ["name1"]);
+        wrapper = shallowMount(FileImportComponent, {store, localVue});
+
+        expect(wrapper.find("#tool-file-import").exists()).to.be.true;
+        expect(wrapper.find("button").exists()).to.be.true;
+        expect(wrapper.find("button span").text()).to.be.equals("modules.tools.fileImport.captions.drawTool");
     });
 
     it("modifies the imported file names", () => {

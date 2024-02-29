@@ -27,6 +27,7 @@
 - Issue #1103: fixed error on tool wfsSearch with `active`=`true`.
 - Issue #1124: fixed url used in WMS-time layer and in zoomTo environment to not use more than one questionmark.
 - Issue #1126: prevent that the "legend"-parameter from config is overwritten by capabilities request
+- Issue #1143: FileImport: open draw tool button is styled correctly.
 - Issue #1149: fixed mobile error for type custom tree portals caused by tree model.
 - Fix: Change env to cross-env so windows powershell can run build script
 

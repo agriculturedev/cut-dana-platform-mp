@@ -227,13 +227,22 @@ export default {
                         v-html="$t('modules.tools.fileImport.captions.introDrawTool')"
                     />
                     <div>
-                        <label class="upload-button-wrapper">
-                            <input
-                                type="button"
-                                @click="openDrawTool"
-                            >
-                            {{ $t("modules.tools.fileImport.captions.drawTool") }}
-                        </label>
+                        <button
+                            class="upload-button-wrapper"
+                            type="button"
+                            tabindex="0"
+                            aria-label="$t('modules.tools.fileImport.captions.drawTool')"
+                            @click="openDrawTool"
+                            @keydown.enter="openDrawTool"
+                        >
+                            <i
+                                class="bi-pencil-fill"
+                                role="img"
+                            />
+                            <span>
+                                {{ $t("modules.tools.fileImport.captions.drawTool") }}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -259,6 +268,7 @@ export default {
         cursor: pointer;
         margin:12px 0 0 0;
         font-size: $font_size_big;
+        width: 100%;
         &:focus {
             @include primary_action_focus;
         }
