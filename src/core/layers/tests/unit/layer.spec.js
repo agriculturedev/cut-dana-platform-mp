@@ -7,6 +7,8 @@ import Layer from "../../layer";
 import Group from "../../group";
 import Collection from "ol/Collection";
 import bridge from "../../RadioBridge";
+import axios from "axios";
+import crs from "@masterportal/masterportalapi/src/crs";
 
 describe("src/core/layers/layer.js", () => {
     let attributes,
@@ -75,7 +77,12 @@ describe("src/core/layers/layer.js", () => {
             },
             getView: () => {
                 return {
-                    getResolutions: () => [2000, 1000]
+                    getResolutions: () => [2000, 1000],
+                    getProjection: () => {
+                        return {
+                            getCode: () => "EPSG:25832"
+                        };
+                    }
                 };
             },
             getLayers: () => {
@@ -1004,4 +1011,110 @@ describe("src/core/layers/layer.js", () => {
         expect(layerWrapper.attributes.isVisibleInMap).to.be.equals(isVisibleInMap);
         expect(layerVisible).to.be.equals(isVisibleInMap);
     }
+
+    describe("extractBoundingBox", function () {
+        let layer, layerNode, crsTransformStub;
+
+        beforeEach(function () {
+            layer = new Layer({typ: "WMS"}, olLayer);
+            crsTransformStub = sinon.stub(crs, "transform").callsFake((sourceProjection, targetProjection, coords) => coords);
+            layerNode = null;
+        });
+
+        afterEach(function () {
+            sinon.restore();
+        });
+
+        it("should extract and transform bounding box for WMS layer", function () {
+            layer.set("typ", "WMS");
+            layerNode = new DOMParser().parseFromString(`
+                <Layer>
+                    <Name>wms_einzelbebauungsplaene</Name>
+                    <BoundingBox CRS="EPSG:4326" minx="12.0244" miny="48.9629" maxx="12.198" maxy="49.0805"/>
+                </Layer>
+            `, "text/xml").documentElement;
+            const bbox = document.createElement("BoundingBox"),
+                result = layer.extractBoundingBox(layerNode);
+
+            bbox.setAttribute("CRS", "EPSG:4326");
+            bbox.setAttribute("minx", "10");
+            bbox.setAttribute("miny", "20");
+            bbox.setAttribute("maxx", "30");
+            bbox.setAttribute("maxy", "40");
+            layerNode.appendChild(bbox);
+
+            expect(result).to.deep.equal([[48.9629, 12.0244], [49.0805, 12.198]]);
+            expect(crsTransformStub.called).to.be.true;
+        });
+
+        it("should extract and transform bounding box for WFS layer", function () {
+            layer.set("typ", "WFS");
+            layerNode = new DOMParser().parseFromString(`
+                <FeatureType>
+                    <Name>app:strecken</Name>
+                    <WGS84BoundingBox>
+                        <LowerCorner>9.887604 53.575237</LowerCorner>
+                        <UpperCorner>9.899925 53.583582</UpperCorner>
+                    </WGS84BoundingBox>
+                </FeatureType>
+            `, "text/xml").documentElement;
+
+            const result = layer.extractBoundingBox(layerNode);
+
+            expect(result).to.deep.equal([[9.887604, 53.575237], [9.899925, 53.583582]]);
+            expect(crsTransformStub.called).to.be.true;
+        });
+
+        it("should return null if bounding box is not found", function () {
+            layerNode = new DOMParser().parseFromString(`
+                <Layer>
+                    <Name>wms_einzelbebauungsplaene</Name>
+                </Layer>
+            `, "text/xml").documentElement;
+            const result = layer.extractBoundingBox(layerNode);
+
+            expect(result).to.be.null;
+        });
+    });
+    describe("Layer.prototype.requestCapabilitiesToFitExtent", () => {
+        let layer, axiosGetStub, zoomToLayerExtentSpy;
+
+        beforeEach(() => {
+            layer = new Layer({capabilitiesUrl: "https://example.com/wms?request=GetCapabilities", typ: "WMS", layers: "TestLayer"}, olLayer);
+
+            axiosGetStub = sinon.stub(axios, "get").resolves({
+                status: 200,
+                statusText: "OK",
+                data: "<Capabilities><Layer><Name>TestLayer</Name></Layer></Capabilities>"
+            });
+            zoomToLayerExtentSpy = sinon.spy(layer, "zoomToLayerExtent");
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("should call zoomToLayerExtent with the correct layer node if the specific layer is found", async () => {
+            await layer.requestCapabilitiesToFitExtent();
+            sinon.assert.calledOnce(zoomToLayerExtentSpy);
+        });
+
+        it("should handle errors from axios.get gracefully", async () => {
+            axiosGetStub.rejects(new Error("Network Error"));
+            await layer.requestCapabilitiesToFitExtent();
+
+            sinon.assert.notCalled(zoomToLayerExtentSpy);
+        });
+
+        it("should handle non-200 status codes from axios.get gracefully", async () => {
+            axiosGetStub.resolves({
+                status: 404,
+                statusText: "Not Found",
+                data: "Not Found"
+            });
+            await layer.requestCapabilitiesToFitExtent();
+
+            sinon.assert.notCalled(zoomToLayerExtentSpy);
+        });
+    });
 });

@@ -295,6 +295,7 @@ Layer.prototype.setIsVisibleInMap = function (newValue) {
     if (this.get("fitCapabilitiesExtent") && newValue) {
         if (!this.get("capabilitiesUrl")) {
             console.warn("Please add a capabilitiesUrl for your layer configuration if you want to use fitCapabilitiesExtent!");
+            return;
         }
         this.requestCapabilitiesToFitExtent();
     }
@@ -312,56 +313,86 @@ Layer.prototype.setIsVisibleInMap = function (newValue) {
  * @returns {Array<Array<number>> | null} - An array representing the transformed bounding box, or null if not found.
  */
 Layer.prototype.extractBoundingBox = function (layerNode) {
-    const extentAttribute = this.get("fitCapabilitiesExtent").attribute,
-        sourceProjection = this.get("fitCapabilitiesExtent").epsg,
-        boundingBoxNode = layerNode.querySelector(extentAttribute),
+    const isWMS = this.get("typ") === "WMS",
+        extentAttribute = isWMS ? "EX_GeographicBoundingBox" : "WGS84BoundingBox",
+        boundingBoxNodes = isWMS ? layerNode.querySelectorAll("BoundingBox[CRS=\"EPSG:4326\"]") : [layerNode.querySelector(extentAttribute)],
         map = mapCollection.getMap("2D"),
         mapView = map.getView(),
-        targetProjection = mapView.getProjection().getCode();
+        targetProjection = mapView.getProjection().getCode(),
+        sourceProjection = "EPSG:4326";
 
-    if (boundingBoxNode) {
-        const trimmedText = boundingBoxNode.textContent.trim(),
-            coordinatesArray = trimmedText.split(/\s+/),
-            lowerCorner = coordinatesArray.slice(0, 2).map(parseFloat),
-            upperCorner = coordinatesArray.slice(2, 4).map(parseFloat),
-            transformedLowerCorner = crs.transform(sourceProjection, targetProjection, lowerCorner),
-            transformedUpperCorner = crs.transform(sourceProjection, targetProjection, upperCorner);
+    for (const boundingBoxNode of boundingBoxNodes) {
+        if (boundingBoxNode) {
+            let lowerCorner, upperCorner;
 
-        return [transformedLowerCorner, transformedUpperCorner];
+            if (!isWMS) {
+                const trimmedText = boundingBoxNode.textContent.trim(),
+                    coordinatesArray = trimmedText.split(/\s+/);
+
+                lowerCorner = coordinatesArray.slice(0, 2).map(parseFloat);
+                upperCorner = coordinatesArray.slice(2, 4).map(parseFloat);
+            }
+            else {
+                lowerCorner = [parseFloat(boundingBoxNode.getAttribute("miny")), parseFloat(boundingBoxNode.getAttribute("minx"))];
+                upperCorner = [parseFloat(boundingBoxNode.getAttribute("maxy")), parseFloat(boundingBoxNode.getAttribute("maxx"))];
+            }
+
+            const transformedLowerCorner = crs.transform(sourceProjection, targetProjection, lowerCorner),
+                transformedUpperCorner = crs.transform(sourceProjection, targetProjection, upperCorner);
+
+            return [transformedLowerCorner, transformedUpperCorner];
+        }
     }
-
     return null;
 };
 
 /**
  * Requests the GetCapabilities document and parses the result.
- * @returns {Promise} A promise which will resolve the parsed GetCapabilities object.
+ * @returns {Promise} A promise that resolves with the parsed GetCapabilities object or rejects with an error.
  */
-Layer.prototype.requestCapabilitiesToFitExtent = function () {
-    if (this.get("capabilitiesUrl")) {
-        axios.get(this.get("capabilitiesUrl"))
-            .then(response => handleAxiosResponse(response))
-            .then(xmlCapabilities => {
-                const xmlDocument = new DOMParser().parseFromString(xmlCapabilities, "text/xml"),
-                    {layerIdentification} = this.get("fitCapabilitiesExtent"),
-                    specificLayer = this.get("typ") === "WFS" ? this.get("featureType") : this.get("layers"),
-                    layerNodes = xmlDocument.querySelectorAll(layerIdentification);
+Layer.prototype.requestCapabilitiesToFitExtent = async function () {
+    const capabilitiesUrl = this.get("capabilitiesUrl"),
+        layerType = this.get("typ"),
+        nameProperty = layerType === "WFS" ? "Title" : "Name",
+        layerIdentification = layerType === "WFS" ? "FeatureType" : "Layer",
+        specificLayer = layerType === "WFS" ? this.get("featureType") : this.get("layers");
 
-                layerNodes.forEach(layerNode => {
-                    if (layerNode.querySelector("Title").textContent.includes(specificLayer)) {
-                        const boundingBox = this.extractBoundingBox(layerNode),
-                            extent = boundingExtent(boundingBox),
-                            map = mapCollection.getMap("2D"),
-                            zoom = map.getView().getZoomForResolution(map.getView().getResolutionForExtent(extent, map.getSize()));
+    try {
+        const response = await axios.get(capabilitiesUrl),
+            xmlCapabilities = handleAxiosResponse(response),
+            xmlDocument = new DOMParser().parseFromString(xmlCapabilities, "text/xml"),
+            layerNodes = xmlDocument.querySelectorAll(layerIdentification);
 
-                        store.dispatch("Maps/zoomToExtent", {extent: extent, options: {maxZoom: zoom}}, {root: true});
-                    }
-                });
-            })
-            .catch(error => {
-                console.error("Request failed:", error);
-            });
+        layerNodes.forEach(layerNode => {
+            const layerNameNode = layerNode.querySelector(nameProperty);
+
+            if (layerNameNode && layerNameNode.textContent.includes(specificLayer)) {
+                this.zoomToLayerExtent(layerNode);
+            }
+        });
     }
+    catch (error) {
+        console.error("Request failed:", error);
+    }
+};
+
+/**
+ * Zooms the map to the extent of a given layer node. This function extracts the bounding box
+ * from the specified layer node and then adjusts the map's view to encompass this bounding box.
+ * @param {Element} layerNode - The XML node representing a layer from the GetCapabilities response.
+ * @returns {void}
+ */
+Layer.prototype.zoomToLayerExtent = function (layerNode) {
+    const boundingBox = this.extractBoundingBox(layerNode),
+        extent = boundingBox ? boundingExtent(boundingBox) : null,
+        map = mapCollection.getMap("2D"),
+        view = map.getView(),
+        zoom = extent ? view.getZoomForResolution(view.getResolutionForExtent(extent, map.getSize())) : null;
+
+    if (!boundingBox) {
+        return;
+    }
+    store.dispatch("Maps/zoomToExtent", {extent: extent, options: {maxZoom: zoom}}, {root: true});
 };
 
 /**
