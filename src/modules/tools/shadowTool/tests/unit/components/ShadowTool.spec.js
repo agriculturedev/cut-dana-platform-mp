@@ -12,10 +12,20 @@ const localVue = createLocalVue();
 
 localVue.use(Vuex);
 config.mocks.$t = key => key;
-
+config.mocks.$i18n = {
+    i18next: {
+        exists: sinon.stub(),
+        t: sinon.stub(),
+        language: "de",
+        options: {
+            isEnabled: () => sinon.stub(),
+            getLanguages: () => sinon.stub()
+        }
+    }
+};
 localVue.use(Vuex);
 
-describe("src/modules/tools/contact/components/ShadowTool.vue", () => {
+describe("src/modules/tools/shadowTool/components/ShadowTool.vue", () => {
     const mockConfigJson = {
         Portalconfig: {
             menu: {
@@ -95,9 +105,16 @@ describe("src/modules/tools/contact/components/ShadowTool.vue", () => {
         expect(spyToggleShadow.calledOnce).to.be.true;
     });
     it("PickDateFormat is DD.MM.YYYY for de", () => {
+        config.mocks.$i18n.i18next.language = "de";
         shadowWrapper = mount(ShadowComponent, {store, localVue, stubs: {"ToggleCheckbox": ToggleCheckboxComponent}});
         shadowWrapper.vm.checkDateFormat();
         expect(shadowWrapper.vm.pickDateFormat).to.equal("DD.MM.YYYY");
+    });
+    it("PickDateFormat is MM.DD.YYYY for en", () => {
+        config.mocks.$i18n.i18next.language = "en";
+        shadowWrapper = mount(ShadowComponent, {store, localVue, stubs: {"ToggleCheckbox": ToggleCheckboxComponent}});
+        shadowWrapper.vm.checkDateFormat();
+        expect(shadowWrapper.vm.pickDateFormat).to.equal("MM.DD.YYYY");
     });
     it("test watch on active should call create date once", async () => {
         const spyCreateDate = sinon.spy();
