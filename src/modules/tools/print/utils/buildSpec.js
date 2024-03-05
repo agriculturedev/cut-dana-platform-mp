@@ -776,9 +776,6 @@ const BuildSpecModel = {
         else if (src.indexOf("data:image/svg+xml;charset=utf-8") === 0) {
             url = src;
         }
-        else if (origin === "null") {
-            url = src;
-        }
         else if (origin.indexOf("localhost") === -1) {
             // backwards-compatibility:
             url = origin + "/lgv-config/img/" + this.getImageName(src);
