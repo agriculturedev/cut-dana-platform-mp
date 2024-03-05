@@ -17,6 +17,9 @@
     - New parameter onlyFilteredFeatures introduced, so that only filtered features are displayed in the results window.
 
 ### Changed
+- The following packages have been updated:
+    - dependencies:
+        - @masterportal/masterportalapi: 2.33.0 to 2.34.0
 
 ### Deprecated
 
