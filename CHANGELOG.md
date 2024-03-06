@@ -3,7 +3,8 @@
 
 [Semantic versioning](https://semver.org/spec/v2.0.0.html) is used.
 
-## Unreleased - in development
+## v2.43.0 - 2024-03-06
+
 ### __Breaking Changes__
 - Tree Search: the searchType (name or metadata) needs to be specified in the config.json and is not defaulted to "metadata" anymore.
 
@@ -21,21 +22,17 @@
     - dependencies:
         - @masterportal/masterportalapi: 2.33.0 to 2.34.0
 
-### Deprecated
-
-### Removed
-
 ### Fixed
-- Issue #597: resolve relative path for legend images in print module
-- Issue #775: hovering over .portal-title changes color of the title now
-- Issue #1103: fixed error on tool wfsSearch with `active`=`true`.
+- Issue #597: resolve relative path for legend images in print module.
+- Issue #775: hovering over .portal-title changes color of the title now.
+- Issue #1103: WfsSearch: fixed error with `active`=`true`.
 - Issue #1124: fixed url used in WMS-time layer and in zoomTo environment to not use more than one questionmark.
 - Issue #1126: prevent that the "legend"-parameter from config is overwritten by capabilities request
-- Issue #1131: ShadowTool fixed inital language can now also be `de-DE`.
+- Issue #1131: ShadowTool: fixed inital language can now also be `de-DE`.
 - Issue #1143: FileImport: open draw tool button is styled correctly.
 - Issue #1149: fixed mobile error for type custom tree portals caused by tree model.
-- Issue #1152: Layertree with background maps in folder structure: When changing a background map, the previously selected background map is deselected.
-- Fix: Change env to cross-env so windows powershell can run build script
+- Issue #1152: Layertree with background maps and `singleBaseLayer`=`true` in folder structure: When changing a background map, the previously selected background map is deselected.
+- Change env to cross-env so windows powershell can run build script
 
 ---
 
