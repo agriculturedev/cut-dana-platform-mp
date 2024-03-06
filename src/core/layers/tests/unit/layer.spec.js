@@ -9,7 +9,6 @@ import Collection from "ol/Collection";
 import bridge from "../../RadioBridge";
 import axios from "axios";
 import crs from "@masterportal/masterportalapi/src/crs";
-import * as extent from "ol/extent";
 
 describe("src/core/layers/layer.js", () => {
     let attributes,
