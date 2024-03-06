@@ -9,6 +9,7 @@ import Collection from "ol/Collection";
 import bridge from "../../RadioBridge";
 import axios from "axios";
 import crs from "@masterportal/masterportalapi/src/crs";
+import * as extent from "ol/extent";
 
 describe("src/core/layers/layer.js", () => {
     let attributes,
@@ -1116,5 +1117,31 @@ describe("src/core/layers/layer.js", () => {
 
             sinon.assert.notCalled(zoomToLayerExtentSpy);
         });
+    });
+    it("zoomToLayerExtent should dispatch 'Maps/zoomToExtent' with the correct extent and maxZoom", function () {
+        const dispatchCalls = {},
+            expectedExtent = [9.887604, 53.575237, 9.899925, 53.583582],
+            expectedMaxZoom = 5,
+            layer = new Layer(attributes, olLayer),
+            mapViewStub = {
+                getZoomForResolution: sinon.stub().returns(expectedMaxZoom),
+                getResolutionForExtent: sinon.stub().returns(0.0001)
+            };
+
+        store.dispatch = (action, payload) => {
+            dispatchCalls[action] = payload;
+        };
+
+        sinon.stub(layer, "extractBoundingBox").returns([[9.887604, 53.575237], [9.899925, 53.583582]]);
+        sinon.stub(mapCollection, "getMap").returns({
+            getView: sinon.stub().returns(mapViewStub),
+            getSize: sinon.stub().returns([100, 100])
+        });
+
+        layer.zoomToLayerExtent({});
+
+        expect(dispatchCalls["Maps/zoomToExtent"]).not.to.be.undefined;
+        expect(dispatchCalls["Maps/zoomToExtent"].extent).to.deep.equal(expectedExtent);
+        expect(dispatchCalls["Maps/zoomToExtent"].options.maxZoom).to.equal(expectedMaxZoom);
     });
 });
