@@ -49,6 +49,7 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
         "focusout input": "toggleStyleForRemoveIcon",
         "click .x-icon": "deleteSearchString",
         "click .btn-search": "searchAll",
+        "click .btn-table-search": "searchAll",
         "click .list-group-item.hit": "hitSelected",
         "click .list-group-item.results": "renderHitList",
         "mouseenter .list-group-item.hit": "showMarker",
