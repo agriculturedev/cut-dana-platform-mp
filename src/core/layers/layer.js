@@ -694,7 +694,14 @@ Layer.prototype.prepareFeaturesFor3D = function (features) {
     features.forEach(feature => {
         let geometry = feature.getGeometry();
 
-        geometry = this.setAltitudeOnGeometry(geometry);
+        if (geometry.getType() === "GeometryCollection") {
+            geometry.getGeometries().forEach(geom => this.setAltitudeOnGeometry(geom)
+            );
+        }
+        else {
+            geometry = this.setAltitudeOnGeometry(geometry);
+        }
+
         feature.setGeometry(geometry);
     });
 };
