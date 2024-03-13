@@ -16,6 +16,7 @@
 
 ### Fixed
 - Issue #1148: fixed bug in vector search so that it can handle GeometryCollection.
+- Issue #1154: setting of altitude and AltitudeOffset as z coordinate now works for GeometryCollection.
 - WFST-Tool: Added WFS-T fixes & improvements
 
 ---
