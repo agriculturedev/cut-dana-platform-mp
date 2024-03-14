@@ -7,7 +7,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
             geometryName: "special",
             geometry: null
         },
-        featurePrefix = "very";
+        featurePrefix = "feature";
     let updateFeature,
         featureProperties;
 
@@ -25,7 +25,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
     it("should not add an extra property if the type is 'geometry' and just set it through setGeometry", () => {
         featureProperties[0].type = "geometry";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include("special");
@@ -36,12 +36,12 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         updateFeature = true;
         featureProperties[0].type = "geometry";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include(featurePrefix + ":special");
         expect(properties[featurePrefix + ":special"]).to.be.equal(null);
-        expect(Object.keys(properties)).to.not.include(featurePrefix + ":awesome");
+        expect(Object.keys(properties)).to.include(featurePrefix + ":awesome");
         expect(Object.keys(properties)).to.not.include("awesome");
     });
     it("should set null as the value of a property if the actual value is an empty string and the function parameter updateFeature is true", () => {
@@ -49,7 +49,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "integer";
         featureProperties[0].value = "";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include(featurePrefix + ":awesome");
@@ -59,7 +59,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         updateFeature = true;
         featureProperties[0].type = "integer";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include(featurePrefix + ":awesome");
@@ -70,7 +70,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "integer";
         featureProperties[0].value = undefined;
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include(featurePrefix + ":awesome");
@@ -81,7 +81,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "string";
         featureProperties[0].value = "Heyo";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include(featurePrefix + ":awesome");
@@ -91,7 +91,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "integer";
         featureProperties[0].value = "42";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include("awesome");
@@ -101,7 +101,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "int";
         featureProperties[0].value = "42";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include("awesome");
@@ -111,7 +111,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "decimal";
         featureProperties[0].value = "42";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include("awesome");
@@ -121,7 +121,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "integer";
         featureProperties[0].value = "Not a Number";
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.not.include("awesome");
@@ -130,7 +130,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "boolean";
         featureProperties[0].value = false;
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include("awesome");
@@ -140,7 +140,7 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "boolean";
         featureProperties[0].value = undefined;
 
-        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature),
+        const feature = addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix),
             properties = feature.getProperties();
 
         expect(Object.keys(properties)).to.include("awesome");
@@ -150,6 +150,6 @@ describe("src/modules/tools/wfst/utils/addFeaturePropertiesToFeature.js", () => 
         featureProperties[0].type = "boolean";
         featureProperties[0].value = false;
 
-        expect(addFeaturePropertiesToFeature(geometryObject, featureProperties, featurePrefix, updateFeature).getId()).to.equal("unique");
+        expect(addFeaturePropertiesToFeature(geometryObject, featureProperties, updateFeature, featurePrefix).getId()).to.equal("unique");
     });
 });

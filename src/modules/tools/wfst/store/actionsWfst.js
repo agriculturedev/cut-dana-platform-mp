@@ -55,7 +55,7 @@ const actions = {
                     // TODO: It would generally be really cool to be able to actually draw Multi-X geometries
                     //  and not just have this as a fix for services only accepting Multi-X geometries
                     type: (currentInteractionConfig[interaction].multi ? "Multi" : "") + interaction,
-                    geometryName: featureProperties.find(({type}) => type === "geometry").key
+                    geometryName: featureProperties.find(({type}) => type === "geometry")?.key
                 };
 
             if (interaction === "Point") {
@@ -140,6 +140,10 @@ const actions = {
             dispatch("Maps/addInteraction", selectInteraction, {root: true});
         }
     },
+    /**
+     * Resets all values from selected layer, all interaction, any modified feature.
+     * @returns {void}
+     */
     reset ({commit, dispatch, getters, rootGetters}) {
         // NOTE: As this is a rootGetter, the naming scheme is used like this.
         // eslint-disable-next-line new-cap
@@ -204,8 +208,8 @@ const actions = {
                 geometry: geometryFeature.getGeometry()
             },
             featureProperties,
-            layerInformation[currentLayerIndex].featurePrefix,
-            selectedInteraction === "selectedUpdate"
+            selectedInteraction === "selectedUpdate",
+            layerInformation[currentLayerIndex].featurePrefix
         );
 
         await dispatch(
@@ -249,6 +253,13 @@ const actions = {
         return response;
     },
 
+    /**
+     * Sets the active property of the state to the given value.
+     * Also starts processes if the tool is activated (active === true).
+     * @param {Object} context actions context object.
+     * @param {Boolean} active Value deciding whether the tool gets activated or deactivated.
+     * @returns {void}
+     */
     setActive ({commit, dispatch, getters: {layerIds}}, active) {
 
         commit("setActive", active);
@@ -276,6 +287,11 @@ const actions = {
         }
         commit("setFeatureProperty", {key, value});
     },
+
+    /**
+     * Sets all feature properties based on actual layer
+     * @returns {void}
+     */
     async setFeatureProperties ({commit, getters: {currentLayerIndex, layerInformation, useProxy}}) {
         if (currentLayerIndex === -1) {
             commit("setFeatureProperties", i18next.t("common:modules.tools.wfsTransaction.error.allLayersNotSelected"));

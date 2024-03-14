@@ -30,10 +30,10 @@ async function prepareFeatureProperties (layer, useProxy) {
     return layer.gfiAttributes === "showAll"
         ? properties
         : properties
-            .reduce((array, property) => layer.gfiAttributes[property.key] !== undefined
+            .reduce((array, property) => property.type === "geometry" || layer.gfiAttributes[property.key] !== undefined
                 ? [...array, {...property, label: layer.gfiAttributes[property.key]}]
                 : array,
-            [properties.find(({type}) => type === "geometry")]);
+            []);
 }
 
 export default {prepareFeatureProperties};

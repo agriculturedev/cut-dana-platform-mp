@@ -16,6 +16,7 @@
 
 ### Fixed
 - Issue #1148: fixed bug in vector search so that it can handle GeometryCollection.
+- WFST-Tool: Added WFS-T fixes & improvements
 
 ---
 

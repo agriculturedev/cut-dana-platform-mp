@@ -9,7 +9,7 @@ export default {
     name: "WfsTransaction",
     components: {SimpleButton, ToolTemplate},
     computed: {
-        ...mapGetters("Tools/Wfst", ["currentInteractionConfig", "currentLayerIndex", "featureProperties", "layerIds", "layerInformation", "layerSelectDisabled", "layerSelectLabel", "selectedInteraction", "showInteractionsButtons", "active", "deactivateGFI", "icon", "name"])
+        ...mapGetters("Tools/Wfst", ["currentInteractionConfig", "currentLayerIndex", "featureProperties", "layerIds", "layerInformation", "layerSelectDisabled", "layerSelectLabel", "selectedInteraction", "showInteractionsButtons", "active", "deactivateGFI", "icon", "name", "id"])
     },
     watch: {
         active (val) {
@@ -57,14 +57,17 @@ export default {
             if (type === "string") {
                 return "text";
             }
-            if (["integer", "int", "decimal", "short", "float"].includes(type)) {
+            else if (["integer", "int", "decimal", "short", "float"].includes(type)) {
                 return "number";
             }
-            if (type === "boolean") {
+            else if (type === "boolean") {
                 return "checkbox";
             }
-            if (type === "date") {
+            else if (type === "date") {
                 return "date";
+            }
+            else if (type === "dateTime") {
+                return "datetime-local";
             }
             return "";
         }
@@ -80,16 +83,19 @@ export default {
         :deactivate-gfi="deactivateGFI"
     >
         <template #toolBody>
-            <div id="tool-wfsTransaction-container">
-                <div id="tool-wfsTransaction-layerSelect-container">
+            <div
+                v-if="active"
+                id="tool-wfs-transaction-container"
+            >
+                <div class="layer-select-container">
                     <label
-                        id="tool-wfsTransaction-layerSelect-label"
-                        for="tool-wfsTransaction-layerSelect"
+                        id="tool-wfs-transaction-layer-select-label"
+                        for="tool-wfs-transaction-layer-select-input"
                     >
                         {{ $t(layerSelectLabel) }}
                     </label>
                     <select
-                        id="tool-wfsTransaction-layerSelect"
+                        id="tool-wfs-transaction-layer-select-input"
                         class="form-select"
                         :disabled="layerSelectDisabled"
                         @change="layerChanged($event.target.options.selectedIndex)"
@@ -104,13 +110,13 @@ export default {
                     </select>
                 </div>
                 <template v-if="typeof featureProperties === 'string'">
-                    <div id="tool-wfsTransaction-layerFailure">
+                    <div class="tool-wfs-transaction-layer-failure">
                         {{ $t(featureProperties) }}
                     </div>
                 </template>
                 <div
                     v-else-if="showInteractionsButtons"
-                    id="tool-wfsTransaction-interactionSelect-container"
+                    class="tool-wfs-transaction-interaction-select-container"
                 >
                     <template v-for="(config, key) in currentInteractionConfig">
                         <SimpleButton
@@ -118,38 +124,42 @@ export default {
                             :key="key"
                             :text="config.text"
                             :icon="config.icon"
+                            class="interaction-button"
                             :interaction="() => prepareInteraction(key)"
                         />
                     </template>
                 </div>
                 <template v-else>
-                    <div id="tool-wfsTransaction-form-container">
+                    <div class="tool-wfs-transaction-form-container">
                         <hr>
-                        <p v-if="currentInteractionConfig.Polygon.available">
+                        <p
+                            v-if="currentInteractionConfig.Polygon.available"
+                            class="mb-2"
+                        >
                             {{ $t("common:modules.tools.wfsTransaction.polygonHint") }}
                         </p>
-                        <form id="tool-wfsTransaction-form">
+                        <form id="tool-wfs-transaction-form">
                             <template v-for="property of featureProperties">
                                 <template v-if="property.type !== 'geometry'">
                                     <label
                                         :key="`${property.key}-label`"
-                                        :for="`tool-wfsTransaction-form-input-${property.key}`"
+                                        :for="`tool-wfs-transaction-form-input-${property.key}`"
                                         class="form-label"
                                     >
                                         {{ $t(property.label) }}
                                     </label>
                                     <input
                                         v-if="getInputType(property.type) ==='checkbox'"
-                                        :id="`tool-wfsTransaction-form-input-${property.key}`"
-                                        :key="`${property.key}-input`"
+                                        :id="`tool-wfs-transaction-form-input-${property.key}`"
+                                        :key="`${property.key}-checkbox-input`"
                                         :type="getInputType(property.type)"
-                                        :required="property.required"
                                         :checked="['true', true].includes(property.value) ? true : false"
+                                        class="form-control-checkbox"
                                         @input="event => setFeatureProperty({key: property.key, type: getInputType(property.type), value: event.target.checked})"
                                     >
                                     <input
                                         v-else
-                                        :id="`tool-wfsTransaction-form-input-${property.key}`"
+                                        :id="`tool-wfs-transaction-form-input-${property.key}`"
                                         :key="`${property.key}-input`"
                                         class="form-control"
                                         :type="getInputType(property.type)"
@@ -159,15 +169,17 @@ export default {
                                     >
                                 </template>
                             </template>
-                            <div id="tool-wfsTransaction-form-buttons">
+                            <div class="tool-wfs-transaction-form-buttons">
                                 <SimpleButton
                                     :interaction="reset"
                                     text="common:modules.tools.wfsTransaction.form.discard"
+                                    class="form-button"
                                 />
                                 <SimpleButton
                                     :interaction="save"
                                     text="common:modules.tools.wfsTransaction.form.save"
                                     type="button"
+                                    class="form-button"
                                 />
                             </div>
                         </form>
@@ -181,64 +193,64 @@ export default {
 <style lang="scss" scoped>
 $margin: 1rem;
 
-#tool-wfsTransaction-container {
-    #tool-wfsTransaction-layerSelect-container {
+#tool-wfs-transaction-container {
+    .layer-select-container {
         display: flex;
         justify-content: space-between;
 
-        #tool-wfsTransaction-layerSelect-label {
+        #tool-wfs-transaction-layer-select-label {
             width: 10em;
             align-self: center;
         }
     }
 
-    #tool-wfsTransaction-layerFailure {
+    .tool-wfs-transaction-layer-failure {
         display: flex;
         justify-content: center;
         align-content: center;
         margin-top: $margin;
     }
 
-    #tool-wfsTransaction-interactionSelect-container {
+    .tool-wfs-transaction-interaction-select-container {
         display: flex;
         justify-content: space-between;
         margin-top: $margin;
 
-        button {
+        .interaction-button {
             margin: 5px;
         }
-        button:first-child {
+        .interaction-button:first-child {
             margin-left: 0;
         }
-        button:last-child {
+        .interaction-button:last-child {
             margin-right: 0;
         }
     }
 
-    #tool-wfsTransaction-form-container {
+    .tool-wfs-transaction-form-container {
         width: 40em;
     }
 
-    #tool-wfsTransaction-form {
+    #tool-wfs-transaction-form {
         display: grid;
         grid-template-columns: 10em 30em;
         grid-row-gap: calc(#{$margin} / 2);
 
-        label {
+        .form-label {
             align-self: center;
             margin: 0;
         }
     }
 
-    #tool-wfsTransaction-form-buttons {
+    .tool-wfs-transaction-form-buttons {
         display: grid;
         grid-template-columns: repeat(2, 20em);
         margin-top: calc(#{$margin} / 2);
 
-        button:first-child {
+        .form-button:first-child {
             margin-right: calc(#{$margin} / 2);
         }
-        button:last-child {
+        .form-button:last-child {
             margin-left: calc(#{$margin} / 2);
         }
     }
