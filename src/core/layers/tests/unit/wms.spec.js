@@ -35,6 +35,7 @@ describe("src/core/layers/wms.js", () => {
             isChildLayer: false,
             layers: "layer1,layer2",
             transparent: false,
+            cqlFilter: "A=1",
             isSelected: false
         };
         store.getters = {
@@ -120,5 +121,14 @@ describe("src/core/layers/wms.js", () => {
         expect(Array.isArray(dispatchCalls["Legend/setLegendOnChanged"])).to.be.true;
         expect(dispatchCalls["Legend/setLegendOnChanged"].length).to.be.equals(2);
 
+    });
+    it("createLayer shall create a layer with CQL_FILTER set", function () {
+        const wmsLayer = new WMSLayer(attributes),
+            layer = wmsLayer.get("layer");
+
+        expect(layer).not.to.be.undefined;
+        expect(layer.getSource()).not.to.be.undefined;
+        expect(layer.getSource().getParams()).not.to.be.undefined;
+        expect(layer.getSource().getParams().CQL_FILTER).to.be.equals("A=1");
     });
 });

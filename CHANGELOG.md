@@ -12,6 +12,7 @@
     - `Poi` control is now displayed in the same way as `Orientation` when selected.
     - `customPosition` can now be overwritten via config.json.
 - A layers extent can now be used from the getCapabilities request and applied when a layer gets selected.
+- Added WMS support to add CQL filters by attribute.
 
 ### Changed
 
