@@ -72,8 +72,8 @@ export default {
     methods: {
         ...mapMutations("Tools/WfsSearch", Object.keys(mutations)),
         ...mapActions("Tools/WfsSearch", Object.keys(actions)),
-        ...mapActions("MapMarker", ["placingPointMarker"]),
-        ...mapActions("Maps", ["setCenter", "setZoomLevel"]),
+        ...mapActions("MapMarker", ["placingPointMarker", "placingPolygonMarker"]),
+        ...mapActions("Maps", ["setCenter", "setZoomLevel", "zoomToExtent"]),
         /**
          * Function called when the window of the tool is closed.
          * Resets the whole component and sets it inactive.
@@ -120,14 +120,34 @@ export default {
                 this.setShowResultList(true);
             }
             else if (features.length > 0) {
-                this.placingPointMarker(features[0].getGeometry().getCoordinates());
-                this.setCenter(features[0].getGeometry().getCoordinates());
-                this.setZoomLevel(this.zoomLevel);
+                this.markerAndZoom(features);
                 this.setShowResultList(false);
             }
             else {
                 this.setShowResultList(true);
             }
+        },
+
+        /**
+         * Sets a point or polygon marker for a feature and zoom to it.
+         * @param {ol/Feature[]} features The feature with coordinates.
+         * @returns {void}
+         */
+        markerAndZoom (features) {
+            const feature = features[0],
+                geometry = feature.getGeometry(),
+                coordinates = geometry.getCoordinates();
+
+            if (coordinates.length === 2 && !Array.isArray(coordinates[0])) {
+                this.placingPointMarker(coordinates);
+                this.setCenter(coordinates);
+                this.setZoomLevel(this.zoomLevel);
+            }
+            else {
+                this.placingPolygonMarker(feature);
+                this.zoomToExtent({extent: geometry.getExtent()});
+            }
+            this.setShowResultList(false);
         }
     }
 };
