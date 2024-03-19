@@ -74,7 +74,7 @@ All layer information the portal needs to use the services is stored here. Confi
       "isSecured": true,
       "authenticationUrl": "https://geodienste.hamburg.de/HH_WMS_DOP10?VERSION=1.3.0&SERVICE=WMS&REQUEST=GetCapabilities",
       "layerSequence": 1,
-      "crs": "EPSG:3857"
+      "crs": "EPSG:3857",
       "datasets" : [
          {
             "md_id" : "25DB0242-D6A3-48E2-BAE4-359FB28491BA",
