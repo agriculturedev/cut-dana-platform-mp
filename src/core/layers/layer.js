@@ -52,7 +52,9 @@ export default function Layer (attrs, layer, initialize = true) {
         isClustered: false,
         filterRefId: undefined,
         scaleText: "",
-        renderer: "default"
+        renderer: "default",
+        boundingBox: undefined,
+        encompassingBoundingBox: undefined
     };
 
     this.layer = layer;
@@ -340,6 +342,7 @@ Layer.prototype.extractBoundingBox = function (layerNode) {
             const transformedLowerCorner = crs.transform(sourceProjection, targetProjection, lowerCorner),
                 transformedUpperCorner = crs.transform(sourceProjection, targetProjection, upperCorner);
 
+            this.set("boundingBox", [transformedLowerCorner, transformedUpperCorner]);
             return [transformedLowerCorner, transformedUpperCorner];
         }
     }

@@ -1,3 +1,5 @@
+import store from "../../../../src/app-store";
+import {boundingExtent} from "ol/extent";
 import FolderTemplate from "text-loader!./templateTree.html";
 
 /**
@@ -34,7 +36,8 @@ const FolderViewTree = Backbone.View.extend(/** @lends FolderViewTree.prototype 
         this.listenTo(this.model, {
             "change:isSelected": this.rerender,
             "change:isExpanded": this.rerender,
-            "change:isVisibleInTree": this.removeIfNotVisible
+            "change:isVisibleInTree": this.removeIfNotVisible,
+            "change:descendantModelsWithBbox": this.onDescendantModelsWithBboxChanged
         });
         this.render();
     },
@@ -158,6 +161,51 @@ const FolderViewTree = Backbone.View.extend(/** @lends FolderViewTree.prototype 
         this.model.toggleIsSelected();
         Radio.trigger("ModelList", "setIsSelectedOnChildModels", this.model);
         this.model.setIsExpanded(true);
+    },
+
+    onDescendantModelsWithBboxChanged: function (model) {
+        const descendantModelsWithBbox = model.get("descendantModelsWithBbox"),
+            boundingBox = this.calculateEncompassingBoundingBox(descendantModelsWithBbox),
+            extent = boundingBox ? boundingExtent(boundingBox) : null,
+            map = mapCollection.getMap("2D"),
+            view = map.getView(),
+            zoom = extent ? view.getZoomForResolution(view.getResolutionForExtent(extent, map.getSize())) : null;
+
+        if (!boundingBox) {
+            return;
+        }
+        store.dispatch("Maps/zoomToExtent", {extent: extent, options: {maxZoom: zoom}}, {root: true});
+    },
+    /**
+     * Calculates the encompassing bounding box for all child model bounding boxes.
+     * @param {Array} models - Array of models with bounding boxes.
+     * @return {Array} Encompassing bounding box as an array of two arrays, each representing a point.
+     */
+    calculateEncompassingBoundingBox (models) {
+        let minX = Infinity,
+            minY = Infinity,
+            maxX = -Infinity,
+            maxY = -Infinity;
+
+        models.forEach(model => {
+            if (model.get("boundingBox")) {
+                const bbox = model.get("boundingBox"),
+                    [bottomLeft, topRight] = bbox;
+
+                minX = Math.min(minX, bottomLeft[0]);
+                minY = Math.min(minY, bottomLeft[1]);
+                maxX = Math.max(maxX, topRight[0]);
+                maxY = Math.max(maxY, topRight[1]);
+            }
+        });
+
+        const encompassingBoundingBox = [[minX, minY], [maxX, maxY]];
+
+        models.forEach(model => {
+            model.set("encompassingBoundingBox", encompassingBoundingBox);
+        });
+
+        return encompassingBoundingBox;
     },
     /**
      * Remove if not visible

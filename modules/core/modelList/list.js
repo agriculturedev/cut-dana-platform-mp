@@ -22,6 +22,7 @@ import StaticLink from "./staticlink/model";
 import Dropdown from "bootstrap/js/dist/dropdown";
 import Collapse from "bootstrap/js/dist/collapse";
 import uiStyle from "../../../src/utils/uiStyle";
+import LoaderOverlay from "../../../src/utils/loaderOverlay";
 import rawLayerList from "@masterportal/masterportalapi/src/rawLayerList";
 
 /**
@@ -386,8 +387,13 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
      * @return {void}
      */
     setIsSelectedOnChildModels: function (model) {
-        const folder = Radio.request("Parser", "getItemsByAttributes", {id: model.get("id")});
-        let descendantModels = this.add(Radio.request("Parser", "getItemsByAttributes", {parentId: model.get("id")}));
+        const folder = Radio.request("Parser", "getItemsByAttributes", {id: model.get("id")}),
+            descendantModelsWithBbox = [],
+            layersToLoad = new Set();
+        let descendantModels = this.add(Radio.request("Parser", "getItemsByAttributes", {parentId: model.get("id")})),
+            layerPartsToLoad = 0,
+            layerPartsLoaded = 0,
+            loaderInitialized = false;
 
         // Layers in default tree are always sorted alphabetically while in other tree types, layers are
         // displayed in the order taken from config.json.
@@ -402,12 +408,68 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
             descendantModels = descendantModels.reverse();
         }
 
-        // Setting each layer as selected will trigger rerender of OL canvas and displayed selected layers.
         descendantModels.forEach(childModel => {
             const type = childModel.get("type");
 
             childModel.setIsSelected(model.get("isSelected"));
-            // if child is of type "folder", call setIsSelectedOnChildModels recursively with child
+            if (childModel.get("fitCapabilitiesExtent") && model.get("isSelected")) {
+                const layerSource = childModel.layer.getSource();
+
+                childModel.requestCapabilitiesToFitExtent();
+                descendantModelsWithBbox.push(childModel);
+
+                switch (childModel.get("typ")) {
+                    case "WMS":
+                        layersToLoad.add(childModel.layer);
+
+                        layerSource.on("tileloadstart", function () {
+                            if (!loaderInitialized) {
+                                LoaderOverlay.show();
+                                loaderInitialized = true;
+                            }
+                            layerPartsToLoad++;
+                        }, this);
+
+                        layerSource.on("tileloadend", function () {
+                            layerPartsLoaded++;
+                            if (layerPartsLoaded === layerPartsToLoad) {
+                                LoaderOverlay.hide();
+                                model.set("descendantModelsWithBbox", descendantModelsWithBbox);
+                                layerPartsLoaded = 0;
+                                layerPartsToLoad = 0;
+                                layersToLoad.clear();
+                            }
+                        }, this);
+                        break;
+
+                    case "WFS":
+                        layersToLoad.add(childModel.layer);
+
+                        layerSource.on("featuresloadstart", function () {
+                            if (!loaderInitialized) {
+                                LoaderOverlay.show();
+                                loaderInitialized = true;
+                            }
+                            layerPartsToLoad++;
+                        }, this);
+
+                        layerSource.on("featuresloadend", function () {
+                            layerPartsLoaded++;
+                            if (layerPartsLoaded === layerPartsToLoad) {
+                                LoaderOverlay.hide();
+                                model.set("descendantModelsWithBbox", descendantModelsWithBbox);
+                                layerPartsLoaded = 0;
+                                layerPartsToLoad = 0;
+                                layersToLoad.clear();
+                            }
+                        }, this);
+                        break;
+
+                    default:
+                        console.warn("Unbekannter Layertyp", childModel.get("typ"));
+                        break;
+                }
+            }
             if (type === "folder") {
                 this.setIsSelectedOnChildModels(childModel);
             }
