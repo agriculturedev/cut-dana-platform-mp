@@ -664,6 +664,7 @@ Das Attribut attributions kann vom Typ Boolean oder Object sein. Wenn es vom Typ
 
 |Name|Verpflichtend|Typ|Default|Beschreibung|Expert|
 |----|-------------|---|-------|------------|------|
+|customPosition|nein|String|"common:modules.controls.orientation.poiChoiceCustomPosition"|Damit kann gesteuert werden, welcher Text für `customPosition` in der poiChoice angezeigt wird. Das hier angegebene muss dem Pfad für den Parameter in der Übersetzungsdatei entsprechen.|false|
 |zoomMode|nein|enum["once", "always"]|"once"|Der Standort wird bestimmt und der Marker wird an- oder ausgeschaltet. Dafür ist es notwendig das Portal über **https** zu laden. Modi: *once* (Es wird einmalig auf den Standort gezoomt. ), *always* (Die Karte wird mit jedem Einschalten auf den Standort gezoomt.).|false|
 |poiDistances|nein|Boolean/Integer[]|true|Bei poiDistances=true werden die Defaultwerte verwendet. Legt fest, ob "In meiner Nähe" geladen wird und zeigt eine Liste von Features in der Umgebung an. Bei Angabe eines Array werden die darin definierten Abstände in Metern angeboten. Bei Angabe von true werden diese Abstände angeboten: [500,1000,2000].|false|
 |onlyFilteredFeatures|nein|boolean|false|Wenn 'onlyFilteredFeatures' true ist, werden in der Ergebnissanzeige von poi nur über den Filter gefilterte Features berücksichtigt.|false|

@@ -7,6 +7,10 @@
 ### __Breaking Changes__
 
 ### Added
+-PoiOrientation:
+    - Improved handling when selecting a feature from the list.
+    - `Poi` control is now displayed in the same way as `Orientation` when selected.
+    - `customPosition` can now be overwritten via config.json.
 
 ### Changed
 
@@ -19,6 +23,8 @@
 - Issue #1154: setting of altitude and AltitudeOffset as z coordinate now works for GeometryCollection.
 - WFST-Tool: Added WFS-T fixes & improvements
 - WfsSearch: It is now also possible to zoom in on result features with a geometry of type polygon.
+- PoiOrientation:
+    - Only features that match the selected distance are displayed.
 
 ---
 
@@ -52,6 +58,7 @@
 - Issue #1149: fixed mobile error for type custom tree portals caused by tree model.
 - Issue #1152: Layertree with background maps and `singleBaseLayer`=`true` in folder structure: When changing a background map, the previously selected background map is deselected.
 - Change env to cross-env so windows powershell can run build script
+
 
 ---
 

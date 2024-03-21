@@ -37,6 +37,11 @@ export default {
             type: [Boolean],
             required: false,
             default: () => false
+        },
+        customPosition: {
+            type: [String],
+            required: false,
+            default: () => "common:modules.controls.orientation.poiChoiceCustomPosition"
         }
     },
     data () {
@@ -291,6 +296,7 @@ export default {
          * @returns {void}
          */
         getPOI () {
+            this.togglePoiControl(true);
             this.setShowPoiChoice(true);
         },
 
@@ -380,18 +386,26 @@ export default {
                 circleExtent = circle.getExtent(),
                 visibleWFSLayers = Radio.request("ModelList", "getModelsByAttributes", {isVisibleInMap: true, typ: "WFS"});
             let featuresAll = [],
-                features = [],
-                filteredFeatures = [];
+                features = [];
 
             visibleWFSLayers.forEach(layer => {
+                let preparedFeatures,
+                    filteredFeatures = [];
+
                 if (layer.has("layerSource") === true) {
                     features = layer.get("layerSource").getFeaturesInExtent(circleExtent);
                     filteredFeatures = features.filter(feat => isObject(feat.getStyle()) || (typeof feat.getStyle() === "function" && feat.getStyle()(feat) !== null));
-                    if (this.onlyFilteredFeatures === true && filteredFeatures.length > 0) {
+                    if (this.onlyFilteredFeatures === true) {
                         features = filteredFeatures;
                     }
+                    preparedFeatures = features.filter((feat) => {
+                        const dist = this.getDistance(feat, centerPosition);
 
-                    features.forEach(function (feat) {
+                        return dist <= distance;
+                    });
+
+                    preparedFeatures.forEach(function (feat) {
+
                         Object.assign(feat, {
                             styleId: layer.get("styleId"),
                             layerName: layer.get("name"),
@@ -399,7 +413,7 @@ export default {
                             dist2Pos: this.getDistance(feat, centerPosition)
                         });
                     }, this);
-                    featuresAll = this.union(features, featuresAll, function (obj1, obj2) {
+                    featuresAll = this.union(preparedFeatures, featuresAll, function (obj1, obj2) {
                         return obj1 === obj2;
                     });
                 }
@@ -466,6 +480,19 @@ export default {
                 return nearbyTitleText;
             }
             return [];
+        },
+        /**
+         * Adds and removes the class for the poi control in the map if its pressed or not.
+         * @param  {Boolean} buttonPressed Feature
+         * @returns {void}
+         */
+        togglePoiControl (buttonPressed) {
+            if (buttonPressed) {
+                this.$refs.geolocatePOI.$el.classList.add("toggleButtonPressed");
+            }
+            else {
+                this.$refs.geolocatePOI.$el.classList.remove("toggleButtonPressed");
+            }
         }
     }
 
@@ -489,6 +516,7 @@ export default {
         <ControlIcon
             v-if="showPoiIcon"
             id="geolocatePOI"
+            ref="geolocatePOI"
             :icon-name="'record-circle'"
             :title="$t('common:modules.controls.orientation.titleGeolocatePOI')"
             :on-click="getPOI"
@@ -496,12 +524,15 @@ export default {
         <PoiChoice
             v-if="showPoiChoice"
             id="geolocatePoiChoice"
+            :custom-position="customPosition"
+            @togglePoiControl="togglePoiControl"
             @track="trackPOI"
         />
         <PoiOrientation
             v-if="showPoi"
             :poi-distances="poiDistancesLocal"
             :get-features-in-circle="getVectorFeaturesInCircle"
+            @togglePoiControl="togglePoiControl"
             @hide="untrackPOI"
         />
     </div>

@@ -5,12 +5,19 @@ import mutations from "../../store/mutationsOrientation";
 
 export default {
     name: "PoiChoice",
+    props: {
+        customPosition: {
+            type: [String],
+            required: false,
+            default: () => "common:modules.controls.orientation.poiChoiceCustomPosition"
+        }
+    },
     computed: {
         ...mapGetters("controls/orientation", Object.keys(getters)),
         choices () {
             return {
                 "currentPosition": this.$t("common:modules.controls.orientation.poiChoiceCurrentPostion"),
-                "customPosition": this.$t("common:modules.controls.orientation.poiChoiceCustomPostion")
+                "customPosition": this.$t(this.customPosition)
             };
         }
     },
@@ -32,6 +39,7 @@ export default {
          */
         closeIconTriggered (event) {
             if (event.type === "click" || event.which === 32 || event.which === 13) {
+                this.$emit("togglePoiControl", false);
                 this.hidePoiChoice();
             }
         },
@@ -89,6 +97,7 @@ export default {
             this.setCurrentPositionEnabled(true);
             this.$store.dispatch("MapMarker/removePointMarker");
             this.hidePoiChoice();
+            this.$emit("togglePoiControl", false);
         }
     }
 };
@@ -157,7 +166,7 @@ export default {
         </div>
         <button
             class="modal-backdrop fade in"
-            @click="hidePoiChoice"
+            @click="stopPoi"
         />
     </div>
 </template>

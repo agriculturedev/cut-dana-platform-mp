@@ -75,7 +75,7 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
     });
     describe("OrientationItem.vue methods", () => {
         const centerPosition = [0, 0],
-            distance = 10,
+            distance = 100,
             features = [{
                 getStyle: () => {
                     return {};
@@ -96,7 +96,7 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
                 getGeometry: () => {
                     return {
                         getClosestPoint: () => {
-                            return [11, 10];
+                            return [15, 10];
                         }
                     };
                 },
@@ -147,6 +147,13 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
             returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(distance, centerPosition);
 
             expect(returnedFeatures.length).to.be.equals(2);
+        });
+        it("getVectorFeaturesInCircle returns only features in extent", () => {
+            let returnedFeatures = "";
+
+            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(15, centerPosition);
+
+            expect(returnedFeatures.length).to.be.equals(1);
         });
     });
 });

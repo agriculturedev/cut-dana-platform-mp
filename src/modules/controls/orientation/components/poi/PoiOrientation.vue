@@ -89,6 +89,10 @@ export default {
         hidePoi () {
             this.$emit("hide");
             this.poiFeatures = [];
+            this.setPoiMode("currentPosition");
+            this.setCurrentPositionEnabled(true);
+            this.$emit("togglePoiControl", false);
+            this.$store.dispatch("MapMarker/removePointMarker");
         },
 
         /**
@@ -217,7 +221,7 @@ export default {
                 index = resolutions.indexOf(0.2645831904584105) === -1 ? resolutions.length : resolutions.indexOf(0.2645831904584105);
 
             this.zoomToExtent({extent: coordinate, options: {maxZoom: index}});
-            this.$emit("hide");
+            this.hidePoi();
         },
 
         /**
