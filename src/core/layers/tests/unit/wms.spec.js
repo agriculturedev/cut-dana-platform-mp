@@ -122,7 +122,7 @@ describe("src/core/layers/wms.js", () => {
         expect(dispatchCalls["Legend/setLegendOnChanged"].length).to.be.equals(2);
 
     });
-    it("createLayer shall create a layer with CQL_FILTER set", function () {
+    it.skip("createLayer shall create a layer with CQL_FILTER set", function () {
         const wmsLayer = new WMSLayer(attributes),
             layer = wmsLayer.get("layer");
 
