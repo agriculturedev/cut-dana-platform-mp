@@ -5668,7 +5668,9 @@ Neben diesen Attributen gibt es auch Typ-spezifische Attribute für **[WMS](#mar
 |----|-------------|---|-------|------------|------|
 |id|ja|String/String[]||Id des Layers. In der **[services.json](services.json.de.md)** werden die ids aufgelöst und die notwendigen Informationen herangezogen. ACHTUNG: Hierbei ist wichtig, dass die angegebenen ids dieselbe URL ansprechen, also den selben Dienst benutzen. Bei Konfiguration eines Arrays von Ids ist die Angabe der minScale und maxScale in der services.json für jeden Layer notwendig.|false|
 |name|nein|String||Name des Layers.|false|
+|capabilitiesUrl|nein|String||Wert aus **[services.json](services.json.de.md)**. Capabilities URL des Dienstes|false
 |entities|ja|**[Entity3D](#markdown-header-themenconfiglayerentity3d)**[]||Modelle, die angezeigt werden sollen |false|
+|fitCapabilitiesExtent|nein|Boolean|false|Wert aus **[services.json](services.json.de.md)**. Bei Aktivierung dieser Option und Vorhandensein einer Capabilities URL in der Konfiguration, passt die Anwendung die Kartenausdehnung automatisch an die Bounding-Box-Informationen an, die sie aus der GetCapabilities-Anfrage erhält."|false|
 |transparency|nein|Integer|0|Transparenz des Layers.|false|
 |visibility|nein|Boolean|false|Sichtbarkeit des Layers.|false|
 |supported|nein|String[]|["2D", "3D"]|Gibt die Modi an, in denen der Layer verwendet werden kann.|false|

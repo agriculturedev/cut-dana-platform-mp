@@ -5741,7 +5741,9 @@ Layer definition. Multiple ways to define layers exist. Most attributes are defi
 |----|--------|----|-------|-----------|------|
 |id|yes|String/String[]||Layer ID(s). Resolved using the **[services.json](services.json.md)** file. Please mind that the given IDs **MUST** refer to the same URL, that is, use the same service. When configuring an array of IDs, setting `minScale` and `maxScale` of each layer is required to be in the `services.json`.|false|
 |name|no|String||Layer name.|false|
+|capabilitiesUrl|no|String||**[services.json](services.json.md)** value. Service's capabilities URL|false
 |entities|yes|**[Entity3D](#markdown-header-themenconfiglayerentity3d)**[]||Models to be shown.|false|
+|fitCapabilitiesExtent|no|Boolean|false|**[services.json](services.json.md)** value. When set to `true` and a `capabilitiesUrl` is specified in the configuration, the application will fit the map extent based on the bounding box information retrieved from the GetCapabilities document.|false|
 |transparency|no|Integer|0|Layer transparency.|false|
 |visibility|no|Boolean|false|Layer visibility.|false|
 |supported|no|String[]|["2D", "3D"]|List of modes the layer may be used in.|false|
