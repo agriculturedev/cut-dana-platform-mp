@@ -11,6 +11,7 @@
     - Improved handling when selecting a feature from the list.
     - `Poi` control is now displayed in the same way as `Orientation` when selected.
     - `customPosition` can now be overwritten via config.json.
+- A layers extent can now be used from the getCapabilities request and applied when a layer gets selected.
 
 ### Changed
 
@@ -41,7 +42,6 @@
 - PoiOrientation:
     - The result window can now be moved.
     - New parameter onlyFilteredFeatures introduced, so that only filtered features are displayed in the results window.
-- A layers extent can now be used from the getCapabilities request and applied when a layer gets selected.
 
 ### Changed
 - The following packages have been updated:
