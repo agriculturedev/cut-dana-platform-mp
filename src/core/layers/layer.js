@@ -896,7 +896,9 @@ Layer.prototype.showLayerInformation = function () {
         layerMetaId = this.get("datasets")[0]?.md_id ? this.get("datasets")[0].md_id : null;
     }
     const metaID = [],
-        name = this.get("name");
+        name = this.get("name"),
+        legend = this.get("legend") ? this.get("legend")[0] : undefined,
+        legendURL = this.get("legendURL") ? this.get("legendURL") : legend;
 
     metaID.push(layerMetaId);
 
@@ -906,7 +908,7 @@ Layer.prototype.showLayerInformation = function () {
         "metaIdArray": metaID,
         "layername": name,
         "url": this.get("url"),
-        "legendURL": this.get("legendURL"),
+        "legendURL": legendURL,
         "typ": this.get("typ"),
         "cswUrl": cswUrl,
         "customMetadata": customMetadata,

@@ -266,7 +266,7 @@ TileSetLayer.prototype.createLegend = function () {
             legend = this.get("legendURL");
         }
     }
-    if (Array.isArray(legend)) {
+    if (Array.isArray(legend) && legend) {
         this.setLegend(legend);
     }
     else if (styleObject && legend === true) {

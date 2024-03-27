@@ -23,6 +23,7 @@
 ### Fixed
 - Issue #1148: fixed bug in vector search so that it can handle GeometryCollection.
 - Issue #1154: setting of altitude and AltitudeOffset as z coordinate now works for GeometryCollection.
+- Issue #1157: using layer attribute legend: "ignore" hides legend tab in layerinformation.
 - WFST-Tool: Added WFS-T fixes & improvements
 - WfsSearch: It is now also possible to zoom in on result features with a geometry of type polygon.
 - PoiOrientation:
