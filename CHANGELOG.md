@@ -53,6 +53,7 @@
 - WfsSearch: It is now also possible to zoom in on result features with a geometry of type polygon.
 - PoiOrientation:
     - Only features that match the selected distance are displayed.
+- WfsSearch: Closing the WfsSearch UI and clicking on the "ResetUI"-Button now also remove the highlighting.
 
 ---
 

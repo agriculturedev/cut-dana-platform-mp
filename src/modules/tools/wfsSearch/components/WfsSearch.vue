@@ -72,7 +72,7 @@ export default {
     methods: {
         ...mapMutations("Tools/WfsSearch", Object.keys(mutations)),
         ...mapActions("Tools/WfsSearch", Object.keys(actions)),
-        ...mapActions("MapMarker", ["placingPointMarker", "placingPolygonMarker"]),
+        ...mapActions("MapMarker", ["placingPointMarker", "placingPolygonMarker", "removePolygonMarker"]),
         ...mapActions("Maps", ["setCenter", "setZoomLevel", "zoomToExtent"]),
         /**
          * Function called when the window of the tool is closed.
@@ -81,6 +81,7 @@ export default {
          * @returns {void}
          */
         close () {
+            this.removePolygonMarker();
             this.setActive(false);
             this.resetModule(true);
             const model = getComponent(this.id);
@@ -90,6 +91,7 @@ export default {
             }
         },
         resetUI () {
+            this.removePolygonMarker();
             // Reset input fields
             const inputFields = document.getElementsByClassName("tool-wfsSearch-field-input");
 
