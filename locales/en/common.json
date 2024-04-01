@@ -1019,6 +1019,7 @@
             "wfsTransaction": {
                 "layerSelectLabel": "Current layer:",
                 "polygonHint": "To move a polygon, hold down the Ctrl key and move your mouse while holding the mouse button down.",
+                "fieldRequired": "Field required",
                 "interactionSelect": {
                     "update": "Edit geometry",
                     "delete": "Delete geometry",
@@ -1062,6 +1063,12 @@
                 "form": {
                     "discard": "Discard",
                     "save": "Save"
+                },
+                "mandatoryInputError": {
+                    "text": "Regular text characters and special characters like , . / \\ [ ] space and German characters ö ä ü Ö Ä Ü ß and not only numbers are required",
+                    "number": "Number, partial number or negative number is required",
+                    "date": "Full date is required",
+                    "datetime-local": "Full date and hour is required"
                 }
             },
             "routing": {

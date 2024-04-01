@@ -8,7 +8,6 @@ import loader from "../../../../utils/loaderOverlay";
 import getProxyUrl from "../../../../utils/getProxyUrl";
 import wfs from "@masterportal/masterportalapi/src/layer/wfs";
 
-
 let drawInteraction,
     drawLayer,
     modifyInteraction,
@@ -18,6 +17,11 @@ let drawInteraction,
     translateInteraction;
 
 const actions = {
+    /**
+     * Clear all map interactions.
+     *
+     * @returns {void}
+     */
     clearInteractions ({commit, dispatch}) {
         dispatch("Maps/removeInteraction", drawInteraction, {root: true});
         dispatch("Maps/removeInteraction", modifyInteraction, {root: true});
@@ -43,7 +47,8 @@ const actions = {
         const {currentInteractionConfig, currentLayerId, currentLayerIndex, layerInformation, featureProperties, toggleLayer} = getters,
             // NOTE: As this is a rootGetter, the naming scheme is used like this.
             // eslint-disable-next-line new-cap
-            sourceLayer = rootGetters["Maps/getLayerById"]({layerId: currentLayerId});
+            sourceLayer = rootGetters["Maps/getLayerById"]({layerId: currentLayerId}),
+            shouldValidateForm = featureProperties.find(featProp => featProp.type !== "geometry" && featProp.required);
 
         if (interaction === "LineString" || interaction === "Point" || interaction === "Polygon") {
             commit("setSelectedInteraction", "insert");
@@ -92,6 +97,9 @@ const actions = {
                 dispatch("Maps/addInteraction", translateInteraction, {root: true});
             });
             dispatch("Maps/addInteraction", drawInteraction, {root: true});
+            if (shouldValidateForm) {
+                dispatch("validateForm", featureProperties);
+            }
         }
         else if (interaction === "update") {
             commit("setSelectedInteraction", "update");
@@ -118,8 +126,12 @@ const actions = {
                 commit(
                     "setFeatureProperties",
                     featureProperties
-                        .map(property => ({...property, value: modifyFeature.get(property.key)}))
+                        .map(property => ({...property, value: modifyFeature.get(property.key), valid: true}))
                 );
+                if (shouldValidateForm) {
+                    dispatch("validateForm", featureProperties);
+                    commit("setIsFormDisabled", false);
+                }
             });
             dispatch("Maps/addInteraction", selectInteraction, {root: true});
         }
@@ -152,7 +164,7 @@ const actions = {
 
         commit("setFeatureProperties",
             layerSelected
-                ? getters.featureProperties.map(property => ({...property, value: null}))
+                ? getters.featureProperties.map(property => ({...property, value: null, valid: null}))
                 : getters.featureProperties
         );
         commit("setSelectedInteraction", null);
@@ -261,7 +273,6 @@ const actions = {
      * @returns {void}
      */
     setActive ({commit, dispatch, getters: {layerIds}}, active) {
-
         commit("setActive", active);
 
         if (active) {
@@ -275,21 +286,66 @@ const actions = {
             dispatch("reset");
         }
     },
-    setFeatureProperty ({commit, dispatch}, {key, type, value}) {
-        if (type === "number" && !Number.isFinite(parseFloat(value))) {
-            dispatch("Alerting/addSingleAlert", {
-                category: "Info",
-                displayClass: "info",
-                content: i18next.t("common:modules.tools.wfsTransaction.error.onlyNumbersAllowed"),
-                mustBeConfirmed: false
-            }, {root: true});
-            return;
+
+    /**
+     * Validates the user-input sets the error messages.
+     * @param {Object} property property that is validated based on it's type
+     * @returns {void}
+     */
+    validateInput ({commit}, property) {
+        if (property.type === "number") {
+            const isNotEmpty = property.value.length > 0,
+                hasNumbersOrPartialNumbers = !Number.isNaN(Number(property.value)),
+                isNumberValid = isNotEmpty && hasNumbersOrPartialNumbers;
+
+            commit("setFeatureProperty", {...property, valid: isNumberValid});
         }
-        commit("setFeatureProperty", {key, value});
+        else if (property.type === "text") {
+            const hasTextAndNumberAndHasSpecials = (/^[A-Za-z0-9 [\]öäüÖÄÜß,/\\.-]*$/).test(property.value),
+                hasOnlyNumbers = (/^[0-9]*$/).test(property.value),
+                isTextValid = hasTextAndNumberAndHasSpecials && !hasOnlyNumbers;
+
+            commit("setFeatureProperty", {...property, valid: isTextValid});
+        }
+        else if (property.type === "date") {
+            const dateEpoch = Date.parse(property.value),
+                year2100 = 4133894400000,
+                isDateValid = year2100 > dateEpoch;
+
+            commit("setFeatureProperty", {...property, valid: isDateValid});
+        }
+    },
+
+    /**
+     * Validates whole form based on the list of received properties.
+     * @param {Object} featureProperties a list of properties
+     * @returns {void}
+     */
+    validateForm ({commit}, featureProperties) {
+        const isFormInvalid = featureProperties.find(f => f.type !== "geometry" && f.required && f.valid !== true);
+
+        commit("setIsFormDisabled", Boolean(isFormInvalid));
+    },
+
+    /**
+     * Sets actual feature property based on the user action on an input.
+     * @param {Object} feature of a feature with it's key, type and value
+     *
+     * @returns {void}
+     */
+    updateFeatureProperty ({dispatch, commit, getters: {featureProperties}}, feature) {
+        if (feature.required) {
+            dispatch("validateInput", feature);
+            dispatch("validateForm", featureProperties);
+        }
+        else {
+            commit("setFeatureProperty", {...feature, key: feature.key, value: feature.value});
+        }
     },
 
     /**
      * Sets all feature properties based on actual layer
+     *
      * @returns {void}
      */
     async setFeatureProperties ({commit, getters: {currentLayerIndex, layerInformation, useProxy}}) {

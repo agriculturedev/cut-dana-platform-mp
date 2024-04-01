@@ -58,6 +58,8 @@
  * @property {FeatureProperty[]} featureProperties Possible properties to be set on a feature for the current layer.
  * @property {TransactionLayer[]} layerInformation Information about the different WFS-T layers configured for the tool.
  * @property {("LineString"|"Point"|"Polygon"|"delete"|"updated"|"selectedUpdate"|null)} selectedInteraction Which selection is currently active, if any.
+ * WfsTransaction extension tool
+ * @property {Boolean} isFormDisabled if true then feature form inputs are invalid and form data cannot be saved to backend
  */
 const state = {
     id: "wfst",
@@ -82,7 +84,9 @@ const state = {
     currentLayerIndex: -1,
     featureProperties: [],
     layerInformation: [],
-    selectedInteraction: null
+    selectedInteraction: null,
+    // WfsTransaction extension tool
+    isFormDisabled: false
 };
 
 export default state;

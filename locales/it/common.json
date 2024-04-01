@@ -943,6 +943,7 @@
             "wfsTransaction": {
                 "layerSelectLabel": "Layer corrente:",
                 "polygonHint": "Tenere premuto il tasto Ctrl e muovere il mouse con il pulsante premuto per spostare un poligono.",
+                "fieldRequired": "Campo obbligatorio",
                 "interactionSelect": {
                     "update": "Modifica della geometria",
                     "delete": "Eliminare la geometria",

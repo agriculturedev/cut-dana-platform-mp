@@ -84,7 +84,7 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
             expect(commit.firstCall.args[0]).to.equal("setFeatureProperties");
             expect(Array.isArray(commit.firstCall.args[1])).to.be.true;
             expect(commit.firstCall.args[1].length).to.equal(1);
-            expect(commit.firstCall.args[1][0]).to.eql({symbol: featurePropertiesSymbol, value: null});
+            expect(commit.firstCall.args[1][0]).to.eql({symbol: featurePropertiesSymbol, value: null, valid: null});
             expect(commit.secondCall.args.length).to.equal(2);
             expect(commit.secondCall.args[0]).to.equal("setSelectedInteraction");
             expect(commit.secondCall.args[1]).to.equal(null);
@@ -291,42 +291,44 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
             expect(dispatch.firstCall.args[0]).to.equal("reset");
         });
     });
-    describe("setFeatureProperty", () => {
+    describe("updateFeatureProperty", () => {
+        const featurePropertiesSymbol = Symbol("featureProperties");
         let featureProperty;
 
         beforeEach(() => {
+            commit = sinon.spy();
+            dispatch = sinon.spy();
+            getters = {
+                featureProperties: featurePropertiesSymbol
+            };
             featureProperty = {
                 type: "number",
                 value: "3",
-                key: "specialKey"
+                key: "specialKey",
+                valid: null,
+                required: null
             };
         });
 
-        it("should commit the property if the type is fitting to the value", () => {
-            actionsWfst.setFeatureProperty({commit, dispatch}, featureProperty);
+        it("should commit the property if the type is not required", () => {
+
+            actionsWfst.updateFeatureProperty({commit, dispatch, getters}, featureProperty);
 
             expect(commit.calledOnce).to.be.true;
-            expect(commit.firstCall.args.length).to.equal(2);
-            expect(commit.firstCall.args[0]).to.equal("setFeatureProperty");
-            expect(commit.firstCall.args[1]).to.eql({key: featureProperty.key, value: featureProperty.value});
             expect(dispatch.notCalled).to.be.true;
-        });
-        it("should dispatch an alert if the type is a number but the converted value is not", () => {
-            featureProperty.value = "noNumber";
+            expect(commit.firstCall.args.length).to.equal(2);
 
-            actionsWfst.setFeatureProperty({commit, dispatch}, featureProperty);
+            expect(commit.firstCall.args[1]).to.eql(featureProperty);
+        });
+        it("should dispatch a validation if featureProperty is required", () => {
+            featureProperty.required = true;
+
+            actionsWfst.updateFeatureProperty({commit, dispatch, getters}, featureProperty);
 
             expect(commit.notCalled).to.be.true;
-            expect(dispatch.calledOnce).to.be.true;
-            expect(dispatch.firstCall.args.length).to.equal(3);
-            expect(dispatch.firstCall.args[0]).to.equal("Alerting/addSingleAlert");
-            expect(dispatch.firstCall.args[1]).to.eql({
-                category: "Info",
-                displayClass: "info",
-                content: "modules.tools.wfsTransaction.error.onlyNumbersAllowed",
-                mustBeConfirmed: false
-            });
-            expect(dispatch.firstCall.args[2]).to.eql({root: true});
+            expect(dispatch.calledTwice).to.be.true;
+            expect(dispatch.firstCall.args[1]).to.eql(featureProperty);
+            expect(dispatch.secondCall.args[1]).to.eql(getters.featureProperties);
         });
     });
     describe("setFeatureProperties", () => {

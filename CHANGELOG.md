@@ -11,6 +11,10 @@
   - Set points while drawing can be undone with CTRL + Z and redone with CTRL + Y
   - The movement of objects can be undone with CTRL + Z and redone with CTRL + Y
 - New parameter `renderIn3d` for overviewMap. Enables the overviewMap in 3d mode.
+- WFST-Tool: Added WFS-T improvements
+  - correct transactionFeature properties order
+  - input validation
+  - gfiAttributes nested object handling
 
 ### Changed
 - Measure module:
