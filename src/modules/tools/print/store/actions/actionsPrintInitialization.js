@@ -7,8 +7,8 @@ import getVisibleLayer from "./../../utils/getVisibleLayer";
 import {createEmpty, extendCoordinate} from "ol/extent.js";
 import {apply as applyTransform} from "ol/transform.js";
 import getProxyUrl from "../../../../../utils/getProxyUrl";
-import {autoDrawMask} from "olcs/print/drawCesiumMask.js";
-import {computeRectangle} from "olcs/print/computeRectangle.js";
+import {autoDrawMask} from "olcs/lib/olcs/print/drawCesiumMask.js";
+import {computeRectangle} from "olcs/lib/olcs/print/computeRectangle.js";
 
 let lastPrintedExtent;
 
