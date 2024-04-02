@@ -15,6 +15,9 @@
 - Added WMS support to add CQL filters by attribute.
 
 ### Changed
+- The following packages have been updated:
+    - dependencies:
+        - @masterportal/masterportalapi: 2.34.0 to 2.35.0
 
 ### Deprecated
 
