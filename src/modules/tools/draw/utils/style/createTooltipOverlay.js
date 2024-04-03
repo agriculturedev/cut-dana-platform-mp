@@ -21,47 +21,28 @@ function createTooltipOverlay ({state, getters, commit, dispatch}, projection) {
                 tooltip.setPosition(evt.coordinate);
             },
             featureChangeEvent: evt => {
-                let value = null;
+                let value = null,
+                    addSquare = "";
 
                 if (state?.drawType?.id === "drawCircle" || state?.drawType?.id === "drawDoubleCircle") {
                     value = evt.target.getRadius();
-                    if (autoUnit && evt.target.getRadius() > 500 || !autoUnit && styleSettings.unit === "km") {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(evt.target.getRadius()).toFixed(decimalsForKilometers) / 1000) + " km";
-                    }
-                    else {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(evt.target.getRadius())) + " m";
-                    }
                 }
-                else if (state?.drawType?.id === "drawSquare") {
-                    value = getArea(evt.target);
-                    if (autoUnit && getArea(evt.target) > 500 || !autoUnit && styleSettings.unit === "km") {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(getArea(evt.target)).toFixed(decimalsForKilometers) / 1000) + " km²";
-                    }
-                    else {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(getArea(evt.target))) + " m²";
-                    }
-                    setters.setSquareArea({getters, commit, dispatch}, Math.round(getArea(evt.target)));
-                }
-                else if (state?.drawType?.id === "drawArea") {
+                else if (state?.drawType?.id === "drawSquare" || state?.drawType?.id === "drawArea") {
                     value = getArea(evt.target, {projection});
-                    if (autoUnit && value > 500 || !autoUnit && styleSettings.unit === "km") {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value).toFixed(decimalsForKilometers) / 1000) + " km²";
-                    }
-                    else {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value)) + " m²";
-                    }
-                    setters.setArea({getters, commit, dispatch}, Math.round(value));
+                    addSquare = "²";
                 }
                 else if (state?.drawType?.id === "drawLine") {
                     value = getLength(evt.target, {projection});
-                    if (autoUnit && value > 500 || !autoUnit && styleSettings.unit === "km") {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value).toFixed(decimalsForKilometers) / 1000) + " km";
-                    }
-                    else {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value)) + " m";
-                    }
-                    setters.setLength({getters, commit, dispatch}, Math.round(value));
                 }
+
+                if (autoUnit && value > 500 || !autoUnit && styleSettings.unit === "km") {
+                    tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value).toFixed(decimalsForKilometers) / 1000) + " km" + addSquare;
+                }
+                else {
+                    tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value)) + " m" + addSquare;
+                }
+                setters.setArea({getters, commit, dispatch}, Math.round(value));
+
                 updateCalculations({state, getters, commit, dispatch}, value);
             }
         };
