@@ -53,14 +53,14 @@ function createTooltipOverlay ({state, getters, commit, dispatch}, projection) {
                     setters.setArea({getters, commit, dispatch}, Math.round(value));
                 }
                 else if (state?.drawType?.id === "drawLine") {
-                    value = getLength(evt.target);
-                    if (autoUnit && getLength(evt.target) > 500 || !autoUnit && styleSettings.unit === "km") {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(getLength(evt.target)).toFixed(decimalsForKilometers) / 1000) + " km";
+                    value = getLength(evt.target, {projection});
+                    if (autoUnit && value > 500 || !autoUnit && styleSettings.unit === "km") {
+                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value).toFixed(decimalsForKilometers) / 1000) + " km";
                     }
                     else {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(getLength(evt.target))) + " m";
+                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value)) + " m";
                     }
-                    setters.setLength({getters, commit, dispatch}, Math.round(getLength(evt.target)));
+                    setters.setLength({getters, commit, dispatch}, Math.round(value));
                 }
                 updateCalculations({state, getters, commit, dispatch}, value);
             }
