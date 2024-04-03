@@ -192,7 +192,7 @@ const initialState = JSON.parse(JSON.stringify(stateDraw)),
          * @param {Number} [payload.maxFeatures] Max amount of features to be added to the map.
          * @returns {void}
          */
-        createDrawInteractionListener ({rootState, state, dispatch, getters, commit}, {isOuterCircle, drawInteraction, maxFeatures}) {
+        createDrawInteractionListener ({rootState, rootGetters, state, dispatch, getters, commit}, {isOuterCircle, drawInteraction, maxFeatures}) {
             const interaction = state["drawInteraction" + drawInteraction];
             let tooltip;
 
@@ -207,7 +207,7 @@ const initialState = JSON.parse(JSON.stringify(stateDraw)),
                     commit("setSquareSide", 0);
                 }
                 if (drawTypeId === "drawCircle" || drawTypeId === "drawDoubleCircle" || drawTypeId === "drawSquare" || drawTypeId === "drawArea" || drawTypeId === "drawLine") {
-                    tooltip = createTooltipOverlay({state, getters, commit, dispatch});
+                    tooltip = createTooltipOverlay({state, getters, commit, dispatch}, rootGetters["Maps/projection"].getCode());
                     const map = mapCollection.getMap(rootState.Maps.mode);
 
                     map.addOverlay(tooltip);

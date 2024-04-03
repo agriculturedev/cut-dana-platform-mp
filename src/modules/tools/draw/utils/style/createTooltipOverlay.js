@@ -6,10 +6,11 @@ import {getArea, getLength} from "ol/sphere.js";
 /**
  * returns the Feature to use as mouse label on change of circle, double circle, line, area and square
  * @param {Object} context context object for actions, getters and setters.
+ * @param {String} projection projection of the map
  *
  * @returns {module:ol/Overlay} the Feature to use as mouse label
  */
-function createTooltipOverlay ({state, getters, commit, dispatch}) {
+function createTooltipOverlay ({state, getters, commit, dispatch}, projection) {
     let tooltip = null;
     const decimalsForKilometers = 3,
         autoUnit = false,
@@ -42,14 +43,14 @@ function createTooltipOverlay ({state, getters, commit, dispatch}) {
                     setters.setSquareArea({getters, commit, dispatch}, Math.round(getArea(evt.target)));
                 }
                 else if (state?.drawType?.id === "drawArea") {
-                    value = getArea(evt.target);
-                    if (autoUnit && getArea(evt.target) > 500 || !autoUnit && styleSettings.unit === "km") {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(getArea(evt.target)).toFixed(decimalsForKilometers) / 1000) + " km²";
+                    value = getArea(evt.target, {projection});
+                    if (autoUnit && value > 500 || !autoUnit && styleSettings.unit === "km") {
+                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value).toFixed(decimalsForKilometers) / 1000) + " km²";
                     }
                     else {
-                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(getArea(evt.target))) + " m²";
+                        tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value)) + " m²";
                     }
-                    setters.setArea({getters, commit, dispatch}, Math.round(getArea(evt.target)));
+                    setters.setArea({getters, commit, dispatch}, Math.round(value));
                 }
                 else if (state?.drawType?.id === "drawLine") {
                     value = getLength(evt.target);
