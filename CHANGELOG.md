@@ -9,6 +9,11 @@
 ### Added
 
 ### Changed
+- The following packages have been updated:
+    - dependencies:
+        - @masterportal/masterportalapi: 2.35.0 to 2.36.0 (This also raised ol to version 9.1.0)
+    - devDependencies:
+        - @geoblocks/print: 0.7.4 to 0.7.8
 
 ### Deprecated
 
@@ -30,9 +35,7 @@
 ### Changed
 - The following packages have been updated:
     - dependencies:
-        - @masterportal/masterportalapi: 2.35.0 to 2.36.0 (This also raised ol to version 9.1.0)
-    - devDependencies:
-        - @geoblocks/print: 0.7.4 to 0.7.8
+        - @masterportal/masterportalapi: 2.34.0 to 2.35.0
 
 ### Fixed
 - Issue #1148: fixed bug in vector search so that it can handle GeometryCollection.
