@@ -123,7 +123,7 @@ export default {
              */
             get () {
                 if (this.styleSettings?.unit === "km") {
-                    const areaKm = this.styleSettings?.area / 1000;
+                    const areaKm = this.styleSettings?.area / 1000000;
 
                     return areaKm.toFixed(2);
                 }

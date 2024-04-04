@@ -36,7 +36,7 @@ function createTooltipOverlay ({state, getters, commit, dispatch}, projection) {
                 }
 
                 if (autoUnit && value > 500 || !autoUnit && styleSettings.unit === "km") {
-                    tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value).toFixed(decimalsForKilometers) / 1000) + " km" + addSquare;
+                    tooltip.getElement().innerHTML = (value / 1000000).toFixed(decimalsForKilometers) + " km" + addSquare;
                 }
                 else {
                     tooltip.getElement().innerHTML = thousandsSeparator(Math.round(value)) + " m" + addSquare;
