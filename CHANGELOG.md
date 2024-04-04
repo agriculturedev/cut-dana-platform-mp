@@ -50,6 +50,7 @@
 - The version of npm was updated to `^8.1.2 || ^9.5.1 || ^10.5.0`
 
 ### Fixed
+- Issue #1160: show right values for areas in Draw Tool.
 - Issue #1174: Draw: the outer outline color of the double circle is drawn as selected.
 - addWMS:
   - Now displays metadata correctly when adding a WMS layer, if "cswId" is specified in the configuration.
@@ -74,7 +75,6 @@
 - Issue #1148: fixed bug in vector search so that it can handle GeometryCollection.
 - Issue #1154: setting of altitude and AltitudeOffset as z coordinate now works for GeometryCollection.
 - Issue #1157: using layer attribute legend: "ignore" hides legend tab in layerinformation.
-- Issue #1160: show right values for draw areas.
 - WFST-Tool: Added WFS-T fixes & improvements.
 - WfsSearch: It is now also possible to zoom in on result features with a geometry of type polygon.
 - PoiOrientation:
