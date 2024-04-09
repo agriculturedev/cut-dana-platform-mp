@@ -33,7 +33,7 @@
 
 ## v2.44.0 - 2024-04-03
 ### Added
--PoiOrientation:
+- PoiOrientation:
     - Improved handling when selecting a feature from the list.
     - `Poi` control is now displayed in the same way as `Orientation` when selected.
     - `customPosition` can now be overwritten via config.json.
