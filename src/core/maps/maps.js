@@ -21,10 +21,15 @@ function create2DMap (mapViewSettings) {
             layerConf: rawLayerList.getLayerList()
         }, "2D", {});
 
+    // Vue shall not observe the map, see vue.runtime.esm.js function observe
+    map.__v_skip = true;
     mapCollection.addMap(map, "2D");
     store.dispatch("Maps/initView");
     store.dispatch("Maps/setMapAttributes", {map: map});
     Radio.trigger("ModelList", "addInitiallyNeededModels");
+    if (map?.__ob__) {
+        console.error("map2D is observed by vue:", map, " This leads to extreme performance problems, and the cause must be eliminated. This can have several causes: the map3D is in vuex-state or is available via getter. Layers are in the state or in the getters and reference the map3D.");
+    }
 }
 
 /**

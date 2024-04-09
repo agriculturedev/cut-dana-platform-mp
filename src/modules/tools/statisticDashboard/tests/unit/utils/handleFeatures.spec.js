@@ -79,6 +79,7 @@ describe("src/modules/tools/statisticDashboard/utils/handleFeatures.js", () => {
                     color_: [198, 219, 239, 0.9]
                 },
                 fill3 = {
+                    patternImage_: null,
                     color_: [8, 81, 156, 0.9]
                 },
                 stroke = {

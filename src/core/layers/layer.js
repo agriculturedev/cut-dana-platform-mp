@@ -58,8 +58,10 @@ export default function Layer (attrs, layer, initialize = true) {
     };
 
     this.layer = layer;
+    // Vue shall not observe any layer, see vue.runtime.esm.js function observe
+    this.layer.__v_skip = true;
     this.observersAutoRefresh = [];
-    this.attributes = {...Object.assign({}, this.layer.values_, defaults, attrs)};
+    this.attributes = {...Object.assign({}, this.layer?.values_, defaults, attrs)};
     this.id = attrs.id;
 
     delete this.attributes.source;
