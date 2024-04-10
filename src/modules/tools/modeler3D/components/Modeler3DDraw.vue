@@ -63,6 +63,22 @@ export default {
             eventHandler.setInputAction(this.addGeometryPosition, Cesium.ScreenSpaceEventType.LEFT_CLICK);
             eventHandler.setInputAction(this.stopDrawing, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
             eventHandler.setInputAction(this.stopDrawing, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+            document.addEventListener("keydown", this.catchUndoRedo);
+        },
+        /**
+         * Called on every keypress to catch CTRL + Y/Z to undo or redo the last action.
+         * @param {Event} event keypress event
+         * @returns {void}
+         */
+        catchUndoRedo (event) {
+            if (event.ctrlKey && event.key === "z") {
+                this.undoGeometryPosition();
+                event.preventDefault();
+            }
+            else if (event.ctrlKey && event.key === "y") {
+                this.redoGeometryPosition();
+                event.preventDefault();
+            }
         },
         /**
          * Called on mouse move. Repositions the current pin to set the position.
@@ -121,7 +137,7 @@ export default {
             let floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId),
                 entity = null;
 
-            if (this.activeShapePoints.length === 1) {
+            if (this.activeShapePoints.length === 1 && !this.shapeId) {
                 const scene = mapCollection.getMap("3D").getCesiumScene();
 
                 this.setHeight(this.clampToGround ?
@@ -154,6 +170,52 @@ export default {
             this.activeShapePoints.push(this.currentPosition);
         },
         /**
+         * Called on CTRL + Y/Z. Deletes the last set geometry position.
+         * When no positions were set, the function is escaped to avoid errors.
+         * @returns {void}
+         */
+        undoGeometryPosition () {
+            if (!this.isDrawing || this.activeShapePoints.length < 1) {
+                return;
+            }
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                lastPositionIndex = this.activeShapePoints.length - 2,
+                lastFloatingPoint = entities.values.find(cyl => cyl.positionIndex === lastPositionIndex),
+                currentFloatingPoint = entities.values.find(cyl => cyl.positionIndex === lastPositionIndex + 1);
+
+            currentFloatingPoint.positionIndex = lastPositionIndex;
+            this.undonePointInfo = {
+                position: lastFloatingPoint.position.getValue(),
+                length: lastFloatingPoint.cylinder.length.getValue(),
+                posIndex: lastPositionIndex
+            };
+            entities.remove(lastFloatingPoint);
+
+            this.activeShapePoints.splice(lastPositionIndex, 1);
+        },
+        /**
+         * Called on CTRL + Y/Z. Redoes the last undone geometry position.
+         * When no positions were undone, the function is escaped to avoid errors.
+         * @returns {void}
+         */
+        redoGeometryPosition () {
+            if (!this.isDrawing || !this.undonePointInfo) {
+                return;
+            }
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                undonePositionIndex = this.activeShapePoints.length - 1,
+                currentFloatingPoint = entities.values.find(cyl => cyl.positionIndex === undonePositionIndex);
+
+            currentFloatingPoint.positionIndex = undonePositionIndex + 1;
+
+            this.activeShapePoints.push(currentFloatingPoint.position.getValue());
+            this.activeShapePoints.splice(undonePositionIndex, 1, this.undonePointInfo.position);
+
+            this.createCylinder(this.undonePointInfo);
+            this.setCylinderId(currentFloatingPoint.id);
+            this.undonePointInfo = null;
+        },
+        /**
          * Called on mouse rightclick. Completes the polygon when there are at least 3 corners or deletes it when it has less.
          * @returns {void}
          */
@@ -183,6 +245,7 @@ export default {
             this.setIsDrawing(false);
             document.body.style.cursor = "auto";
             eventHandler.destroy();
+            window.removeEventListener("keydown", this.catchUndoRedo);
         },
         /**
          * Creates the drawn shape in the EntityCollection and sets its attributes.
