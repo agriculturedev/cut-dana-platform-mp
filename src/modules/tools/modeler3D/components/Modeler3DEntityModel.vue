@@ -325,6 +325,22 @@ export default {
                 @decrement-shift="heightString = prettyCoord(height - coordAdjusted({shift: true, coordType: 'height'}))"
             />
             <div
+                id="area"
+                class="row pt-2"
+            >
+                <label
+                    class="col col-md-5"
+                    for="displayArea"
+                >
+                    {{ $t("modules.tools.modeler3D.entity.projections.area") + " [m²]" }}
+                </label>
+                <div
+                    class="col col-md-5 displayArea"
+                >
+                    {{ area }}
+                </div>
+            </div>
+            <div
                 id="adapt-check"
                 class="form-group form-group-sm row"
             >

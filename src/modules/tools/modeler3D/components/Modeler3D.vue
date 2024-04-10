@@ -11,13 +11,12 @@ import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
 import crs from "@masterportal/masterportalapi/src/crs";
 import getGfiFeatures from "../../../../api/gfi/getGfiFeaturesByTileFeature";
-import {adaptCylinderToGround, adaptCylinderToEntity, adaptCylinderUnclamped} from "../utils/draw";
+import {adaptCylinderToGround, adaptCylinderToEntity, adaptCylinderUnclamped, calculatePolygonArea} from "../utils/draw";
 import VectorLayer from "ol/layer/Vector.js";
 import VectorSource from "ol/source/Vector.js";
 import Feature from "ol/Feature.js";
 import {Point} from "ol/geom.js";
 import {Fill, Style, Circle} from "ol/style.js";
-
 
 let eventHandler = null;
 
@@ -365,6 +364,9 @@ export default {
                     else {
                         this.setCurrentModelId(entity.id);
                         this.setCylinderId(null);
+                        if (entity.polygon) {
+                            this.setArea(calculatePolygonArea(entity));
+                        }
                     }
                 }
                 else if (this.hideObjects && picked instanceof Cesium.Cesium3DTileFeature) {

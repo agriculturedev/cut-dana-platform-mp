@@ -37,7 +37,9 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             model: {scale: 1}
         },
         entities = {
-            getById: () => entity,
+            getById: (val) => {
+                return entities.values.find(x => x.id === val);
+            },
             values: [],
             add: () => entity,
             remove: (val) => {
@@ -100,7 +102,11 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             Color: {
                 fromBytes: sinon.stub().returns({
                     withAlpha: sinon.stub()
-                })
+                }),
+                fromCssColorString: sinon.stub()
+            },
+            LabelStyle: {
+                FILL: sinon.stub()
             },
             CallbackProperty: sinon.stub(),
             ColorMaterialProperty: sinon.stub(),
@@ -108,9 +114,41 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                 ENABLED: 1
             },
             defined: sinon.stub().returns(true),
-            Cartesian3: {
-                equals: sinon.stub().returns(false)
+            Cartesian3: class {
+                /**
+                 * Mock constructor
+                 * @param {Number} x - X.
+                 * @param {Number} y - Y.
+                 * @param {Number} z - Z.
+                */
+                constructor (x = 0, y = 0, z = 0) {
+                    this.x = x;
+                    this.y = y;
+                    this.z = z;
+                }
+                /**
+                 * Mock static method.
+                 * @returns {Number} 0.
+                 */
+                static distance () {
+                    return 123;
+                }
+                /**
+                 * Mock static method.
+                 * @returns {Number} 0.
+                 */
+                static equals () {
+                    return 0;
+                }
+                /**
+                 * Mock static method
+                 * @returns {void} Nothing.
+                 */
+                static midpoint () {
+                    return {x: 100, y: 100, z: 100};
+                }
             },
+            Cartesian2: sinon.stub(),
             Math: {
                 toDegrees: () => 9.99455657887449
             },
@@ -245,6 +283,25 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             expect(scene.globe.pick.called).to.be.false;
             expect(wrapper.vm.activeShapePoints).to.have.lengthOf(2);
         });
+        it("should call addLabel when activeShapePoints length is 1", () => {
+            wrapper.vm.addLabel = sinon.spy();
+
+            store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300}]);
+
+            wrapper.vm.addGeometryPosition();
+
+            expect(wrapper.vm.addLabel).to.be.called;
+        });
+        it("should call addLabel when activeShapePoints length is more than 1", () => {
+            wrapper.vm.addLabel = sinon.spy();
+
+            store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300},
+                {x: 200, y: 300, z: 400}]);
+
+            wrapper.vm.addGeometryPosition();
+
+            expect(wrapper.vm.addLabel).to.be.called;
+        });
 
         it("should undo the last geometry position when CTRL+Z is pressed", () => {
             store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300}, {x: 200, y: 300, z: 400}, {x: 300, y: 400, z: 500}, {x: 400, y: 500, z: 600}]);
@@ -336,6 +393,62 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             ]);
             wrapper.vm.drawShape();
             expect(entities.add.calledWith(sinon.match({id: sinon.match.number, polygon: sinon.match.object}))).to.be.true;
+        });
+
+        it("should add label", () => {
+            store.commit("Tools/Modeler3D/setSelectedDrawType", "polygon");
+
+            store.commit("Tools/Modeler3D/setActiveShapePoints", [
+                {x: 100, y: 200, z: 300},
+                {x: 200, y: 300, z: 400}
+            ]);
+            wrapper.vm.addLabel("distance");
+            expect(entities.add.calledWith(sinon.match({id: sinon.match.number, label: sinon.match.object}))).to.be.true;
+        });
+        it("should remove label", () => {
+            const mockLabel = {
+                position: {x: 100, y: 200, z: 300},
+                id: 1,
+                label: {
+                    text: "text",
+                    fillColor: Cesium.Color.BLACK,
+                    font: "10px",
+                    showBackground: true,
+                    show: true
+                }
+            };
+
+            entities.values.push(mockLabel);
+
+            wrapper.vm.removeLabel();
+            expect(entities.values).to.have.lengthOf(1);
+        });
+
+        it("should return calculated distances in label with correct position", async () => {
+            const mockLabel = {
+                position: {x: 100, y: 200, z: 300},
+                id: "2",
+                label: {
+                    text: "text",
+                    show: false
+                }
+            };
+
+            entities.values.push(mockLabel);
+            store.commit("Tools/Modeler3D/setActiveShapePoints", [
+                {x: 100, y: 200, z: 300},
+                {x: 200, y: 300, z: 400}
+            ]);
+            wrapper.vm.currentPosition = {x: 300, y: 400, z: 500};
+            await wrapper.setData({labelId: "2"});
+
+            wrapper.vm.calculateDistances();
+
+            expect(entities.values[1].label.text).to.equal("123m");
+            expect(entities.values[1].position.x).to.equal(100);
+            expect(entities.values[1].position.y).to.equal(100);
+            expect(entities.values[1].position.z).to.equal(100);
+            expect(entities.values[1].label.show).to.be.true;
         });
     });
 });

@@ -667,6 +667,7 @@
                     },
                     "projections": {
                         "adaptToHeight": "Adapt to Terrain",
+                        "area": "Area",
                         "cartesian": {
                             "eastingLabel": "Easting",
                             "northingLabel": "Northing"

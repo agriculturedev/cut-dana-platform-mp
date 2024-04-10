@@ -51,6 +51,7 @@ export default {
     id: "modeler3D",
     activeShapePoints: [],
     adaptToHeight: true,
+    area: null,
     coordinateEasting: 0,
     coordinateNorthing: 0,
     currentLayout: {

@@ -21,6 +21,7 @@ const actions = {
             commit("setActiveShapePoints", []);
             commit("setCylinderId", null);
             commit("setCurrentModelId", null);
+            commit("setArea", null);
 
             stateArray.splice(modelIndex, 1);
             entities.removeById(id);

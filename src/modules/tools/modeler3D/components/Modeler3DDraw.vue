@@ -4,7 +4,7 @@ import actions from "../store/actionsModeler3D";
 import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
 import crs from "@masterportal/masterportalapi/src/crs";
-import {adaptCylinderToEntity, adaptCylinderToGround, adaptCylinderUnclamped} from "../utils/draw";
+import {adaptCylinderToEntity, adaptCylinderToGround, adaptCylinderUnclamped, calculatePolygonArea} from "../utils/draw";
 
 import DrawTypes from "./ui/DrawTypes.vue";
 import DrawLayout from "./ui/DrawLayout.vue";
@@ -24,8 +24,11 @@ export default {
             clampToGround: true,
             currentPosition: null,
             shapeId: null,
+            undonePointInfo: null,
+            labelId: null,
             lastAddedPosition: null,
-            undonePointInfo: null
+            dimensions: true,
+            areaLabelId: null
         };
     },
     computed: {
@@ -91,6 +94,7 @@ export default {
                 entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
 
+
             if (this.clampToGround) {
                 const ray = scene.camera.getPickRay(event.endPosition),
                     position = scene.globe.pick(ray, scene);
@@ -121,6 +125,22 @@ export default {
             }
             if (Cesium.defined(this.currentPosition)) {
                 this.activeShapePoints.splice(floatingPoint.positionIndex, 1, this.currentPosition);
+                if (this.activeShapePoints.length > 1 && this.shapeId !== null && this.dimensions) {
+                    const shape = entities.getById(this.shapeId),
+                        labelId = entities.getById(this.areaLabelId);
+
+                    if (shape?.polygon) {
+                        this.calculateDistances();
+                        const area = calculatePolygonArea(shape);
+
+                        labelId.label.text = Math.round(area * 100) / 100 + " m²";
+                        labelId.label.show = this.dimensions;
+                        this.setArea(area);
+                    }
+                    if (shape?.polyline) {
+                        this.calculateDistances();
+                    }
+                }
             }
         },
         /**
@@ -135,6 +155,7 @@ export default {
             this.lastAddedPosition = this.currentPosition;
 
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
+
             let floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId),
                 entity = null;
 
@@ -146,8 +167,10 @@ export default {
                     scene.sampleHeight(Cesium.Cartographic.fromCartesian(this.currentPosition), [floatingPoint])
                 );
                 this.drawShape();
+                this.addLabel("area");
             }
             entity = entities.getById(this.shapeId);
+            this.addLabel("distance");
 
             if (this.clampToGround) {
                 floatingPoint.position = adaptCylinderToGround(floatingPoint, this.currentPosition);
@@ -230,6 +253,7 @@ export default {
 
             if (shape?.polygon && this.activeShapePoints.length > 2) {
                 shape.polygon.hierarchy = new Cesium.ConstantProperty(new Cesium.PolygonHierarchy(this.activeShapePoints));
+
             }
             if (shape?.polyline && this.activeShapePoints.length >= 2) {
                 shape.polyline.positions = this.activeShapePoints;
@@ -240,6 +264,7 @@ export default {
 
             this.setActiveShapePoints([]);
             this.removeCylinders();
+            this.removeLabel();
             this.currentPosition = null;
             this.shapeId = null;
             this.setIsDrawing(false);
@@ -433,6 +458,87 @@ export default {
             link.click();
             URL.revokeObjectURL(url);
             document.body.removeChild(link);
+        },
+        /**
+         * Creates the label in the EntityCollection depending on "distance" or "area" type.
+         * @param {String} type - label type can be "distance" or "area".
+         * @returns {void}
+         */
+        addLabel (type) {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                lastElement = entities.values.filter(ent => !ent.cylinder).pop(),
+                lastId = lastElement ? lastElement.id : undefined,
+                labelId = lastId ? lastId + 1 : 1;
+            let label;
+
+            if (type === "distance") {
+                label = {
+                    position: this.currentPosition,
+                    id: labelId,
+                    label: {
+                        text: "text",
+                        wasDrawn: true,
+                        fillColor: Cesium.Color.BLACK,
+                        font: "10px",
+                        showBackground: true,
+                        backgroundColor: Cesium.Color.fromCssColorString("#DCE2F3"),
+                        style: Cesium.LabelStyle.FILL,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        show: false
+                    }
+                };
+                entities.add(label);
+                this.labelId = label.id;
+            }
+            else if (type === "area") {
+                label = {
+                    position: this.activeShapePoints[0],
+                    id: labelId,
+                    label: {
+                        text: "text",
+                        wasDrawn: true,
+                        fillColor: Cesium.Color.WHITE,
+                        font: "10px",
+                        showBackground: true,
+                        backgroundColor: Cesium.Color.fromCssColorString("#3C5F94"),
+                        style: Cesium.LabelStyle.FILL,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        show: false,
+                        pixelOffset: new Cesium.Cartesian2(30, -30)
+                    }
+                };
+                entities.add(label);
+                this.areaLabelId = label.id;
+            }
+        },
+        /**
+        * Removes all Label from the the Cesium EntityCollection.
+        * @returns {void}
+        */
+        removeLabel () {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                labelEntities = entities.values.filter(entity => entity.label);
+
+            labelEntities.forEach(entity => {
+                entities.remove(entity);
+            });
+        },
+        /**
+        * Calculate the distance between two points and update the label.
+        * @returns {void}
+        */
+        calculateDistances () {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                newLabel = entities.getById(this.labelId),
+                leftPosition = new Cesium.Cartesian3(this.activeShapePoints[this.activeShapePoints.length - 2].x, this.activeShapePoints[this.activeShapePoints.length - 2].y, this.activeShapePoints[this.activeShapePoints.length - 2].z),
+                rightPosition = new Cesium.Cartesian3(this.currentPosition.x, this.currentPosition.y, this.currentPosition.z),
+                distance = Cesium.Cartesian3.distance(leftPosition, rightPosition),
+                midPointCartesian = new Cesium.Cartesian3(),
+                labelPosition = Cesium.Cartesian3.midpoint(leftPosition, rightPosition, midPointCartesian);
+
+            newLabel.label.text = Math.round(distance * 100) / 100 + "m";
+            newLabel.position = labelPosition;
+            newLabel.label.show = this.dimensions;
         }
     }
 };
@@ -465,6 +571,23 @@ export default {
                     for="clampToGroundSwitch"
                 >
                     {{ $t("modules.tools.modeler3D.draw.captions.clampToGround") }}
+                </label>
+            </div>
+            <div class="form-check form-switch cta">
+                <input
+                    id="dimensionsSwitch"
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    :aria-checked="dimensions"
+                    :checked="dimensions"
+                    @change="dimensions = !dimensions; resetDrawing();"
+                >
+                <label
+                    class="form-check-label"
+                    for="clampToGroundSwitch"
+                >
+                    {{ "Maße anzeigen" }}
                 </label>
             </div>
             <div

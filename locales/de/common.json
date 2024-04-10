@@ -669,6 +669,7 @@
                     },
                     "projections": {
                         "adaptToHeight": "An Gelände anpassen",
+                        "area": "Grundfläche",
                         "cartesian": {
                             "eastingLabel": "Rechtswert",
                             "northingLabel": "Hochwert"
