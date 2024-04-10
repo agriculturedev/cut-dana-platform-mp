@@ -6,7 +6,9 @@ import mutations from "../store/mutationsModeler3D";
 import EntityAttribute from "./ui/EntityAttribute.vue";
 import EntityAttributeSlider from "./ui/EntityAttributeSlider.vue";
 import AccordionItem from "./ui/AccordionItem.vue";
+import IconButton from "./ui/IconButton.vue";
 import {adaptCylinderToEntity, adaptCylinderToGround} from "../utils/draw";
+
 
 import {convertColor} from "../../../../utils/convertColor";
 
@@ -15,7 +17,8 @@ export default {
     components: {
         EntityAttribute,
         EntityAttributeSlider,
-        AccordionItem
+        AccordionItem,
+        IconButton
     },
     computed: {
         ...mapGetters("Tools/Modeler3D", Object.keys(getters)),
@@ -219,6 +222,13 @@ export default {
                 this.setDrawRotation(adjustedValue);
                 this.rotateDrawnEntity();
             }
+        },
+        selectedModelName () {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                entity = entities?.getById(this.currentModelId),
+                drawName = this.drawName !== "" ? this.drawName : entity?.name;
+
+            return drawName;
         }
     },
     methods: {
@@ -304,6 +314,21 @@ export default {
                     entity.orientation = orientationMatrix;
                 }
             }
+        },
+        /**
+         * Copies the specified entity with the given id. The copied entity will be placed next to the original.
+         * @param {Number} id - The ID of the entity to copy.
+         * @param {Number} nextId - The ID of the new entity.
+         * @returns {void}
+         */
+        copySelectedEntity () {
+            let nextId = 1;
+
+            if (this.drawnModels.length > 0) {
+                nextId = Math.max(nextId, Math.max(...this.drawnModels.map(model => model.id))) + 1;
+            }
+
+            this.copyEntity({id: this.currentModelId, nextId: nextId});
         }
     }
 };
@@ -317,6 +342,26 @@ export default {
             class="cta red"
             v-html="$t('modules.tools.modeler3D.entity.captions.projectionInfo')"
         />
+        <hr
+            v-if="wasDrawn"
+            class="m-0"
+        >
+        <AccordionItem
+            v-if="wasDrawn"
+            id="options-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.draw.captions.options')"
+            icon="bi bi-tools"
+            :is-open="true"
+        >
+            <IconButton
+                id="copy-entity"
+                :interaction="copySelectedEntity"
+                :aria="$t('modules.tools.modeler3D.entity.captions.copyTitle', {name: selectedModelName})"
+                :class-array="['btn-primary']"
+                icon="bi bi-stickies"
+            />
+        </AccordionItem>
         <hr
             v-if="showPositioning"
             class="m-0"
@@ -572,7 +617,7 @@ export default {
         >
         <AccordionItem
             v-if="showWidth || showFillColor || wasDrawn"
-            id="transformation-section"
+            id="design-section"
             class="p-0"
             :title="$t('modules.tools.modeler3D.draw.captions.design')"
             icon="bi bi-paint-bucket"

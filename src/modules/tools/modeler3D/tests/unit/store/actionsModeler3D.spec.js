@@ -175,6 +175,10 @@ describe("Actions", () => {
             sampleHeight: () => 9
         };
         entities = {
+            add: sinon.stub().callsFake((ent) => {
+                entities.values.push(ent);
+                return ent;
+            }),
             getById: sinon.spy(() => entity),
             removeById: sinon.spy(),
             values: []
@@ -183,6 +187,7 @@ describe("Actions", () => {
     afterEach(() => {
         entity = undefined;
         sinon.restore();
+        entities.values = [];
 
     });
     describe("deleteEntity", () => {
@@ -972,6 +977,124 @@ describe("Actions", () => {
             actions.updateRectangleDimensions({commit, getters, state}, dimensions);
 
             expect(state.activeShapePoints).to.be.an("array").with.lengthOf(4);
+        });
+    });
+    describe("copyEntity", () => {
+        const commit = sinon.spy(),
+            nextId = 2,
+            state = {
+                currentModelId: 1,
+                drawnModels: []
+            },
+            name = "Zeichnung 1";
+
+        beforeEach(() => {
+            global.Cesium = {
+                Rectangle: {
+                    fromCartographicArray: sinon.stub().returns(
+                        {
+                            west: 10, south: 30, east: 30, north: 10
+                        }
+                    )},
+                Cartographic: {
+                    fromCartesian: sinon.stub().returns({longitude: 0, latitude: 0, height: 0})
+                },
+                Cartesian3: {
+                    fromRadians: sinon.stub().returns({x: 10, y: 20, z: 30})
+                },
+                PolygonHierarchy: function (positions) {
+                    this.positions = positions;
+                },
+                ConstantProperty: function (value) {
+                    this._value = value;
+                    this.getValue = () => {
+                        return this._value;
+                    };
+                },
+                ColorMaterialProperty: function (color) {
+                    this.color = color;
+                },
+                Color: function (red, green, blue, alpha) {
+                    this.red = red;
+                    this.green = green;
+                    this.blue = blue;
+                    this.alpha = alpha;
+                }
+
+            };
+        });
+        afterEach(() => {
+            sinon.restore();
+            state.drawnModels = [];
+        });
+        it("should copy a polygon entity", () => {
+            entity = {
+                id: 1,
+                name: name,
+                polygon: {
+                    hierarchy: {
+                        getValue: () => ({
+                            positions:
+                            [
+                                {x: 10, y: 20, z: 30},
+                                {x: 20, y: 30, z: 10},
+                                {x: 30, y: 10, z: 20}
+                            ]})
+                    },
+                    material: {
+                        color: {
+                            getValue: () => ({red: 1, green: 0, blue: 0, alpha: 1})
+                        }
+                    },
+                    outlineColor: {
+                        getValue: () => ({red: 0, green: 1, blue: 0, alpha: 1})
+                    },
+                    height: {
+                        getValue: () => 5
+                    },
+                    extrudedHeight: {
+                        getValue: () => 15
+                    }
+                },
+                clampToGround: true
+            };
+
+            actions.copyEntity({state, commit}, {id: entity.id, nextId});
+
+            expect(commit.calledWith("setDrawnModels", state.drawnModels)).to.be.true;
+            expect(commit.calledWith("setCurrentModelId", nextId)).to.be.true;
+            expect(state.drawnModels).to.eql([{id: nextId, name: name + " copy", show: true, edit: false}]);
+            expect(entities.values[0]).to.have.property("polygon");
+            expect(entities.values[0]).to.not.have.property("polyline");
+        });
+
+        it("should copy a polyline entity", () => {
+            entity = {
+                id: 1,
+                name: name,
+                polyline: {
+                    positions: {
+                        getValue: () => [
+                            {x: 10, y: 20, z: 30},
+                            {x: 20, y: 30, z: 10},
+                            {x: 30, y: 10, z: 20}
+                        ]
+                    }
+                },
+                originalColor: {
+                    red: 1, green: 0, blue: 0, alpha: 1
+                },
+                originalWidth: 5,
+                clampToGround: true
+            };
+
+            actions.copyEntity({state, commit}, {id: entity.id, nextId});
+
+            expect(commit.calledWith("setDrawnModels", state.drawnModels)).to.be.true;
+            expect(commit.calledWith("setCurrentModelId", nextId)).to.be.true;
+            expect(state.drawnModels).to.eql([{id: nextId, name: name + " copy", show: true, edit: false}]);
+            expect(entities.values[0]).to.have.property("polyline");
+            expect(entities.values[0]).to.not.have.property("polygon");
         });
     });
 });

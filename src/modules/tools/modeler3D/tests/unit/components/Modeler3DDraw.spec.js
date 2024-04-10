@@ -587,5 +587,12 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                 expect(cr).to.be.an("object").that.has.all.keys("x", "y", "z");
             });
         });
+
+        it("should return the next id", () => {
+            entities.values.push(entity);
+            const nextId = wrapper.vm.getNextId();
+
+            expect(nextId).to.equal(Number(entity.id) + 1);
+        });
     });
 });

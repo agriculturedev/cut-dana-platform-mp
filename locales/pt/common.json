@@ -401,6 +401,7 @@
                         "backToList": "Voltar para Lista",
                         "delete": "Apagar Modelo",
                         "deletionTitle": "Apagar Modelo 3D \"{{name}}\"",
+                        "copyTitle": "Copiar Modelo 3D \"{{name}}\"",
                         "editInfo": "Modificar os atributos do modelo selecionado.",
                         "editModel": "Editar Modelo 3D \"{{name}}\"",
                         "incrementTooltip": "Mantenha a tecla Shift pressionada para aumentar o valor de forma mais grosseira.",

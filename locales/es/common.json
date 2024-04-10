@@ -408,6 +408,7 @@
                 "entity": {
                     "captions": {
                         "backToList": "Volver a la Lista",
+                        "copyTitle": "Copiar Modelo 3D \"{{name}}\"",
                         "delete": "Eliminar Modelo",
                         "deletionTitle": "Eliminar Modelo 3D \"{{name}}\"",
                         "editInfo": "Modifica los atributos del modelo seleccionado.",

@@ -464,7 +464,73 @@ const actions = {
                 adaptCylinderToGround(cyl, state.activeShapePoints[cyl.positionIndex]) :
                 adaptCylinderToEntity(entity, cyl, state.activeShapePoints[cyl.positionIndex]);
         });
+    },
+    /**
+     * Copys a drawn entity and places the copy next to the original entity.
+     * For the placement, it calculates the extent of the entity and adds its width as offset to the longitude of the copied entity.
+     * @param {Object} context - The context of the Vuex module.
+     * @param {Object} idObject - Contains the id of the entity to be copied and nextId for the new entity.
+     * @returns {void}
+     */
+    copyEntity ({state, commit}, {id, nextId}) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            models = state.drawnModels,
+            entity = entities.getById(id),
+            geometry = entity.polygon || entity.polyline,
+            positions = entity.polygon ? entity.polygon.hierarchy.getValue().positions : entity.polyline.positions.getValue(),
+            color = entity.polygon ? geometry.material.color.getValue() : entity.originalColor,
+            outlineColor = geometry.outlineColor?.getValue(),
+            positionsJson = JSON.parse(JSON.stringify(positions)),
+            positionsCartographic = positionsJson.map(position => Cesium.Cartographic.fromCartesian(position)),
+            extent = Cesium.Rectangle.fromCartographicArray(positionsCartographic),
+            widthInRadians = extent.east - extent.west,
+            positionsCopy = positionsCartographic.map(position => {
+                position.longitude += widthInRadians;
+                return Cesium.Cartesian3.fromRadians(position.longitude, position.latitude, position.height);
+            });
+
+        let copiedEntity = null;
+
+        if (!entity) {
+            return;
+        }
+        copiedEntity = {
+            id: nextId,
+            name: entity.name + " copy",
+            clampToGround: entity.clampToGround,
+            show: true,
+            wasDrawn: true
+        };
+
+        if (entity.polygon) {
+            copiedEntity.polygon = {
+                hierarchy: new Cesium.ConstantProperty(new Cesium.PolygonHierarchy(positionsCopy)),
+                material: new Cesium.ColorMaterialProperty(color),
+                outlineColor: new Cesium.Color(outlineColor.red, outlineColor.green, outlineColor.blue, outlineColor.alpha),
+                height: entity.polygon.height.getValue(),
+                extrudedHeight: entity.polygon.extrudedHeight.getValue()
+            };
+        }
+        else {
+            copiedEntity.polyline = {
+                positions: new Cesium.ConstantProperty(positionsCopy),
+                material: new Cesium.ColorMaterialProperty(color),
+                width: entity.originalWidth
+            };
+        }
+
+        entities.add(copiedEntity);
+
+        models.push({
+            id: copiedEntity.id,
+            name: copiedEntity.name,
+            show: true,
+            edit: false
+        });
+        commit("setDrawnModels", models);
+        commit("setCurrentModelId", copiedEntity.id);
     }
+
 };
 
 export default actions;

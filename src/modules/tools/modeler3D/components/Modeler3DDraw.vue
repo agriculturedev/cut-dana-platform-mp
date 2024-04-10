@@ -364,15 +364,26 @@ export default {
             window.removeEventListener("keydown", this.catchUndoRedo);
         },
         /**
+         * Returns the next free id for all entities that have been drawn until then.
+         * @returns {Number} - the next free id.
+         */
+        getNextId () {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                drawnEntities = entities.values.filter(ent => !ent.cylinder),
+                lastElement = drawnEntities.pop(),
+                lastId = lastElement && typeof lastElement === "object" ?
+                    Number(lastElement.id) : undefined;
+
+            return lastId ? lastId + 1 : 1;
+        },
+        /**
          * Creates the drawn shape in the EntityCollection and sets its attributes.
          * @returns {void}
          */
         drawShape () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 models = this.drawnModels,
-                lastElement = entities.values.filter(ent => !ent.cylinder).pop(),
-                lastId = lastElement ? lastElement.id : undefined,
-                shapeId = lastId ? lastId + 1 : 1,
+                shapeId = this.getNextId(),
                 positionData = new Cesium.CallbackProperty(() => {
                     if (this.selectedDrawType === "polygon" || this.selectedDrawType === "rectangle") {
                         return new Cesium.PolygonHierarchy(this.activeShapePoints);

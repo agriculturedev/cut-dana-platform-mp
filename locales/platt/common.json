@@ -409,6 +409,7 @@
                 "entity": {
                     "captions": {
                         "backToList": "Tüch na'n Überblick",
+                        "copyTitle": "3D-Modell \"{{name}}\" kopieren",
                         "delete": "Modell löschen",
                         "deletionTitle": "3D-Modell \"{{name}}\" löschen",
                         "editInfo": "Ännere de Utseggen vun dat utwählte Modell.",

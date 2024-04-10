@@ -10,7 +10,7 @@
 - Modeler3D:
   - Drawn entities can be rotated.
   - Dimensions of rectangles can now be set using forms when selected.
-
+  - Added copy function for drawn models.
 ### Changed
 - Modeler3D:
   - Polygon and line highlighting has been changed

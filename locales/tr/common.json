@@ -408,6 +408,7 @@
                 "entity": {
                     "captions": {
                         "backToList": "Listeye Dön",
+                        "copyTitle": "3D Modeli kopyala \"{{name}}\"",
                         "delete": "Modeli Sil",
                         "deletionTitle": "3D Modeli Sil \"{{name}}\"",
                         "editInfo": "Seçilen modelin özelliklerini değiştirin.",
