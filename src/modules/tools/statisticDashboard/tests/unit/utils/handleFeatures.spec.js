@@ -73,9 +73,11 @@ describe("src/modules/tools/statisticDashboard/utils/handleFeatures.js", () => {
                 }),
                 colorScheme = [[198, 219, 239, 0.9], [158, 202, 225, 0.9], [107, 174, 214, 0.9], [49, 130, 189, 0.9], [8, 81, 156, 0.9]],
                 fill1 = {
+                    patternImage_: null,
                     color_: [158, 202, 225, 0.9]
                 },
                 fill2 = {
+                    patternImage_: null,
                     color_: [198, 219, 239, 0.9]
                 },
                 fill3 = {

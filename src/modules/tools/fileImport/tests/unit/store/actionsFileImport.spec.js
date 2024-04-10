@@ -224,7 +224,7 @@ describe("src/modules/tools/fileImport/store/actionsFileImport.js", () => {
             expect(dispatch.secondCall.args[1]).to.equal("TestFile1.kml");
             expect(layer.getSource().getFeatures().length).to.equal(1);
             expect(layer.getSource().getFeatures()[0].getStyle().getText().getFill()).to.deep.equals({
-                color_: [228, 26, 28, 1]
+                color_: [228, 26, 28, 1], patternImage_: null
             });
             expect(layer.getSource().getFeatures()[0].getStyle().getText().getFont()).to.equals("16px Arial");
             expect(layer.getSource().getFeatures()[0].getStyle().getText().getScale()).to.equals(2);
