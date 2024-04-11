@@ -6,7 +6,6 @@ import omit from "../../../../utils/omit";
 import actionsPrintInitialization from "./actions/actionsPrintInitialization";
 import getVisibleLayer from "./../utils/getVisibleLayer";
 import {DEVICE_PIXEL_RATIO} from "ol/has.js";
-// olcs/lib/olcs/
 import {takeScreenshot} from "olcs/lib/olcs/print/takeCesiumScreenshot.js";
 import {computeRectangle} from "olcs/lib/olcs/print/computeRectangle.js";
 

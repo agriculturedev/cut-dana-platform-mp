@@ -12,6 +12,8 @@
 - The following packages have been updated:
     - dependencies:
         - @masterportal/masterportalapi: 2.35.0 to 2.36.0 (This also raised ol to version 9.1.0)
+        - rbush: 2.0.2 to 3.0.1
+        - rbush-knn: 2.1.0 to 3.0.1
     - devDependencies:
         - @geoblocks/print: 0.7.4 to 0.7.8
 
