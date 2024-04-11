@@ -117,7 +117,7 @@ const getters = {
     wasDrawn (state) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
 
-        return entities.getById(state.currentModelId)?.wasDrawn;
+        return entities?.getById(state.currentModelId)?.wasDrawn;
     },
     getEntityType: () => (entity) => {
         if (entity.polygon) {
@@ -130,6 +130,64 @@ const getters = {
             return "model";
         }
         return undefined;
+    },
+    drawnEntities () {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            drawnEntitiesCollection = [],
+            jsonGlob = {
+                type: "FeatureCollection",
+                features: []
+            },
+            features = [];
+
+        entities.values.forEach(entity => {
+            if (!entity.model && !entity.cylinder && !entity.outline && !entity.label) {
+                drawnEntitiesCollection.push(entity);
+            }
+        });
+
+        drawnEntitiesCollection.forEach(entity => {
+            const geometry = entity.polygon ? entity.polygon : entity.polyline,
+                positions = entity.polygon ? entity.polygon.hierarchy.getValue().positions : entity.polyline.positions.getValue(),
+                color = geometry.material.color.getValue(),
+                outlineColor = geometry.outlineColor?.getValue(),
+                feature = {
+                    type: "Feature",
+                    properties: {},
+                    geometry: {
+                        type: entity.polygon ? "Polygon" : "Polyline",
+                        coordinates: [[]]
+                    }};
+
+            positions.forEach(position => {
+                const cartographic = Cesium.Cartographic.fromCartesian(position),
+                    longitude = Cesium.Math.toDegrees(cartographic.longitude),
+                    latitude = Cesium.Math.toDegrees(cartographic.latitude),
+                    altitude = entity.polygon ? geometry.height.getValue() : cartographic.height,
+                    coordXY = [Number(longitude), Number(latitude), Number(altitude)];
+
+                feature.geometry.coordinates[0].push(coordXY);
+            });
+
+            feature.properties.name = entity.name;
+            feature.properties.clampToGround = entity.clampToGround;
+            feature.properties.color = color;
+
+            if (entity.polygon) {
+                feature.properties.rectangle = entity.polygon?.rectangle;
+                feature.properties.outlineColor = outlineColor;
+                feature.properties.extrudedHeight = geometry.extrudedHeight.getValue();
+            }
+            else if (entity.polyline) {
+                feature.properties.width = geometry.width.getValue();
+            }
+
+            features.push(feature);
+        });
+
+        jsonGlob.features = features;
+
+        return jsonGlob;
     }
 };
 

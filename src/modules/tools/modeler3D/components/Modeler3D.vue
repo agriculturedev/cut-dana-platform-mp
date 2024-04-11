@@ -119,6 +119,17 @@ export default {
                     this.setupNewEntity(newEntity);
                 }
             }
+        },
+        /**
+         * Moving the entity if there is no position with the entity.
+         * @param {Boolean} val - value to decide if to move the entity.
+         * @returns {void}
+         */
+        movingEntity (val) {
+            if (val) {
+                this.moveEntity();
+                this.setMovingEntity(!val);
+            }
         }
     },
     created () {
@@ -144,6 +155,7 @@ export default {
             }
             else {
                 this.resetModelEntity(oldEntity);
+                this.setCurrentView("import");
             }
             scene.requestRender();
             this.setCurrentModelPosition(null);
@@ -359,7 +371,11 @@ export default {
                         position = geometry.polygon ? geometry.polygon.hierarchy.getValue().positions[entity.positionIndex] : geometry.polyline.positions.getValue()[entity.positionIndex];
 
                     this.currentPosition = position;
-                    this.originalPosition = {entityId: entity.positionIndex, attachedEntityId: entity.attachedEntityId, position};
+                    this.originalPosition = {
+                        entityId: entity.positionIndex,
+                        attachedEntityId: entity.attachedEntityId,
+                        position
+                    };
 
                     this.setCylinderId(entity.id);
 
@@ -417,6 +433,10 @@ export default {
 
                 this.hiddenObjects.push({
                     name: gmlId
+                });
+                this.hiddenObjectsWithLayerId.push({
+                    name: gmlId,
+                    layerId: picked[0].tileset.layerReferenceId
                 });
             }
         },
@@ -493,9 +513,9 @@ export default {
                 this.movePolyline({entityId: this.currentModelId, position, anchor});
             }
             else {
-                const diff = Cesium.Cartesian3.subtract(position, anchor || entity.position.getValue(), new Cesium.Cartesian3());
+                const diff = Cesium.Cartesian3.subtract(position, anchor || entity?.position?.getValue() || position, new Cesium.Cartesian3());
 
-                entity.position = Cesium.Cartesian3.add(entity.position.getValue(), diff, new Cesium.Cartesian3());
+                entity.position = Cesium.Cartesian3.add(entity.position?.getValue() || position, diff, new Cesium.Cartesian3());
             }
             this.updatePositionUI();
         },
@@ -507,11 +527,21 @@ export default {
             if (!this.isDragging) {
                 return;
             }
-            const scene = mapCollection.getMap("3D").getCesiumScene();
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                scene = mapCollection.getMap("3D").getCesiumScene(),
+                entity = entities.getById(this.currentModelId);
 
             eventHandler?.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_UP);
             eventHandler?.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             this.setIsDragging(false);
+
+            if (this.importedEntities.length) {
+                const importedEntity = this.importedEntities.find(importEntity => importEntity.entityId === this.currentModelId);
+
+                if (importedEntity) {
+                    importedEntity.position = entity.position.getValue();
+                }
+            }
 
             if (this.cylinderId || this.wasDrawn) {
                 this.setCylinderId(null);
@@ -957,7 +987,6 @@ export default {
                 <component
                     :is="currentView"
                     v-if="currentView"
-                    @emit-move="moveEntity"
                 />
                 <div
                     v-if="!currentView"
@@ -1059,56 +1088,58 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-    @import "~/css/mixins.scss";
-    @import "~variables";
+@import "~/css/mixins.scss";
+@import "~variables";
 
-    .h-seperator {
-        margin:12px 0 12px 0;
-        border: 1px solid #DDDDDD;
+.h-seperator {
+    margin: 12px 0 12px 0;
+    border: 1px solid #DDDDDD;
+}
+
+.nav-link {
+    font-size: $font_size_big;
+}
+
+.accordion-button {
+    font-size: 0.95rem;
+}
+
+.cta {
+    margin-bottom: 12px;
+}
+
+h2 {
+    font-size: $font_size_big;
+    font-weight: bold;
+    text-transform: none;
+    margin: 0 0 6px 0;
+}
+
+.primary-button-wrapper {
+    color: $white;
+    background-color: $secondary_focus;
+    display: block;
+    text-align: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    margin: 12px 0 0 0;
+    width: 100%;
+    font-size: $font_size_big;
+
+    &:focus {
+        @include primary_action_focus;
     }
 
-    .nav-link {
-        font-size: $font_size_big;
+    &:hover {
+        @include primary_action_hover;
     }
+}
 
-    .accordion-button {
-        font-size: 0.95rem;
-    }
+.form-switch {
+    font-size: $font_size_big;
+}
 
-    .cta {
-        margin-bottom:12px;
-    }
-
-    h2 {
-        font-size: $font_size_big;
-        font-weight: bold;
-        text-transform: none;
-        margin: 0 0 6px 0;
-    }
-
-    .primary-button-wrapper {
-        color: $white;
-        background-color: $secondary_focus;
-        display: block;
-        text-align:center;
-        padding: 8px 12px;
-        cursor: pointer;
-        margin:12px 0 0 0;
-        width: 100%;
-        font-size: $font_size_big;
-        &:focus {
-            @include primary_action_focus;
-        }
-        &:hover {
-            @include primary_action_hover;
-        }
-    }
-
-    .form-switch {
-        font-size: $font_size_big;
-    }
-
-    .nav-tabs {
-        margin-bottom: 1em;
-    }
+.nav-tabs {
+    margin-bottom: 1em;
+}
 </style>

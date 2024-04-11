@@ -83,12 +83,14 @@ const Button3dView = Backbone.View.extend(/** @lends Button3dView.prototype */{
             this.$("#button3D").addClass("toggleButtonPressed");
             this.$("#3d-titel-open").hide();
             this.$("#3d-titel-close").show();
+            this.model.setButtonTitle("2D");
         }
         else {
             // 3d open
             this.$("#button3D").removeClass("toggleButtonPressed");
             this.$("#3d-titel-close").hide();
             this.$("#3d-titel-open").show();
+            this.model.setButtonTitle("3D");
         }
     },
     /**

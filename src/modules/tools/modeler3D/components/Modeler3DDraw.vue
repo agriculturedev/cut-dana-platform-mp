@@ -31,20 +31,53 @@ export default {
     },
     data () {
         return {
-            clampToGround: true,
             currentPosition: null,
             shapeId: null,
             undonePointInfo: null,
             lastAddedPosition: null,
-            dimensions: true,
-            undoneLabelInfo: null,
+            areaLabelId: null,
             labelList: [],
+            undoneLabelInfo: null,
             isStandardRectangle: false
         };
     },
     computed: {
         ...mapGetters("Tools/Modeler3D", Object.keys(getters)),
-        ...mapGetters("Maps", ["mouseCoordinate"])
+        ...mapGetters("Maps", ["mouseCoordinate"]),
+        clampToGround: {
+            /**
+             * Getter for the computed property clampToGround.
+             * @returns {Boolean} if it is clamped to ground.
+             */
+            get () {
+                return this.$store.state.Tools.Modeler3D.clampToGround;
+            },
+            /**
+             * Setter for the computed property clampToGround.
+             * @param {Boolean} value set value.
+             * @returns {void}
+             */
+            set (value) {
+                this.setClampToGround(value);
+            }
+        },
+        dimensions: {
+            /**
+             * Getter for the computed property dimensions.
+             * @returns {Boolean} if the dimensions are shown.
+             */
+            get () {
+                return this.$store.state.Tools.Modeler3D.dimensions;
+            },
+            /**
+             * Setter for the computed property dimensions.
+             * @param {Boolean} value set value.
+             * @returns {void}
+             */
+            set (value) {
+                this.setDimensions(value);
+            }
+        }
     },
     methods: {
         ...mapActions("Tools/Modeler3D", Object.keys(actions)),
@@ -575,65 +608,10 @@ export default {
         },
         /**
          * Exports all drawn entities to single GeoJSON file.
-         * @param {Event} event changed mouse position event
          * @returns {void}
          */
         exportToGeoJson () {
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                drawnEntitiesCollection = [],
-                jsonGlob = {
-                    type: "FeatureCollection",
-                    features: []
-                },
-                features = [];
-
-            entities.values.forEach(entity => {
-                if (!entity.model && !entity.cylinder && !entity.outline) {
-                    drawnEntitiesCollection.push(entity);
-                }
-            });
-
-            drawnEntitiesCollection.forEach(entity => {
-                const geometry = entity.polygon ? entity.polygon : entity.polyline,
-                    positions = entity.polygon ? entity.polygon.hierarchy.getValue().positions : entity.polyline.positions.getValue(),
-                    color = geometry.material.color.getValue(),
-                    outlineColor = geometry.outlineColor?.getValue(),
-                    feature = {
-                        type: "Feature",
-                        properties: {},
-                        geometry: {
-                            type: entity.polygon ? "Polygon" : "Polyline",
-                            coordinates: [[]]
-                        }};
-
-                positions.forEach(position => {
-                    const cartographic = Cesium.Cartographic.fromCartesian(position),
-                        longitude = Cesium.Math.toDegrees(cartographic.longitude),
-                        latitude = Cesium.Math.toDegrees(cartographic.latitude),
-                        altitude = entity.polygon ? geometry.height.getValue() : cartographic.height,
-                        coordXY = [Number(longitude), Number(latitude), Number(altitude)];
-
-                    feature.geometry.coordinates[0].push(coordXY);
-                });
-
-                feature.properties.name = entity.name;
-                feature.properties.clampToGround = entity.clampToGround;
-                feature.properties.color = color;
-
-                if (entity.polygon) {
-                    feature.properties.outlineColor = outlineColor;
-                    feature.properties.extrudedHeight = geometry.extrudedHeight.getValue();
-                }
-                else if (entity.polyline) {
-                    feature.properties.width = geometry.width.getValue();
-                }
-
-                features.push(feature);
-            });
-
-            jsonGlob.features = features;
-
-            this.downloadGeoJson(JSON.stringify(jsonGlob));
+            this.downloadGeoJson(JSON.stringify(this.drawnEntities));
         },
         /**
          * Downloads the exported GeoJSON file
@@ -743,6 +721,7 @@ export default {
 
                 this.setSelectedDrawType("");
                 this.setSelectedDrawModelType("");
+                this.setMovingEntity(true);
             }
         },
         /**

@@ -70,50 +70,13 @@ export default {
             reader.readAsText(file);
         },
         /**
-         * Creates an entity from the processed gltf or glb.
-         * @param {Blob} blob - The GLTF or glb content.
-         * @param {String} fileName - The name of the file.
-         * @returns {void}
-         */
-        async createEntity (blob, fileName) {
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                lastElement = entities.values.filter(ent => !ent.cylinder && !ent.label).pop(),
-                lastId = lastElement?.id,
-                models = this.importedModels,
-                entity = new Cesium.Entity({
-                    id: lastId ? lastId + 1 : 1,
-                    name: fileName,
-                    clampToGround: true,
-                    position: Cesium.Cartesian3.fromDegrees(9, 53, 0),
-                    model: new Cesium.ModelGraphics({
-                        uri: URL.createObjectURL(blob)
-                    })
-                });
-
-            entities.add(entity);
-
-            this.setUseAnchorMove(false);
-            this.setCurrentModelId(entity.id);
-            this.$emit("emit-move");
-
-            models.push({
-                id: entity.id,
-                name: fileName,
-                show: true,
-                edit: false,
-                heading: 0
-            });
-            this.setImportedModels(models);
-            this.setIsLoading(false);
-        },
-        /**
          * Handles the processing of GLTF or GLB content.
          * @param {Blob} blob - The GLTF or GLB content.
          * @param {String} fileName - The name of the file.
          * @returns {void}
          */
         async handleGltfFile (blob, fileName) {
-            await this.createEntity(blob, fileName);
+            await this.createEntity({blob: blob, fileName: fileName});
         },
         /**
          * Handles the processing of OBJ content.
@@ -130,7 +93,7 @@ export default {
             gltfExporter.parse(objData, async (model) => {
                 const blob = new Blob([model], {type: "model/gltf+json"});
 
-                await this.createEntity(blob, fileName);
+                await this.createEntity({blob: blob, fileName: fileName});
             }, (error) => {
                 console.error("Error exporting OBJ to GLTF:", error);
                 this.setIsLoading(false);
@@ -151,71 +114,11 @@ export default {
             exporter.parse(collada.scene, async (gltfData) => {
                 const blob = new Blob([gltfData], {type: "model/gltf-binary"});
 
-                await this.createEntity(blob, fileName);
+                await this.createEntity({blob: blob, fileName: fileName});
             }, (error) => {
                 console.error("Error exporting DAE to GLTF:", error);
                 this.setIsLoading(false);
             }, {binary: true});
-        },
-        /**
-         * Handles the processing of GeoJSON content.
-         * @param {String} content - The GeoJSON content.
-         * @param {String} fileName - The name of the file.
-         * @returns {void}
-         */
-        handleGeoJsonFile (content) {
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                geojson = JSON.parse(content);
-
-            geojson.features.forEach(feature => {
-                const properties = feature.properties,
-                    color = properties.color,
-                    outlineColor = properties.outlineColor,
-                    coordinates = feature.geometry.coordinates[0],
-                    lastElement = entities.values.slice().pop(),
-                    lastId = lastElement?.id,
-                    entity = new Cesium.Entity({
-                        id: lastId ? lastId + 1 : 1,
-                        name: properties.name,
-                        wasDrawn: true,
-                        clampToGround: properties.clampToGround
-                    });
-
-                if (feature.geometry.type === "Polygon") {
-                    entity.polygon = {
-                        material: new Cesium.ColorMaterialProperty(
-                            new Cesium.Color(color.red, color.green, color.blue, color.alpha)
-                        ),
-                        outline: true,
-                        outlineColor: new Cesium.Color(outlineColor.red, outlineColor.green, outlineColor.blue, outlineColor.alpha),
-                        outlineWidth: 1,
-                        height: coordinates[0][2],
-                        extrudedHeight: properties.extrudedHeight,
-                        shadows: Cesium.ShadowMode.ENABLED,
-                        hierarchy: new Cesium.PolygonHierarchy(coordinates.map(point => Cesium.Cartesian3.fromDegrees(point[0], point[1])))
-                    };
-                }
-                else if (feature.geometry.type === "Polyline") {
-                    entity.polyline = {
-                        material: new Cesium.ColorMaterialProperty(
-                            new Cesium.Color(color.red, color.green, color.blue, color.alpha)
-                        ),
-                        width: properties.width,
-                        positions: coordinates.map(point => Cesium.Cartesian3.fromDegrees(point[0], point[1], point[2]))
-                    };
-                }
-
-                entities.add(entity);
-                this.drawnModels.push({
-                    id: entity.id,
-                    name: entity.name,
-                    show: true,
-                    edit: false
-                });
-            });
-
-            this.setCurrentView("draw");
-            this.setIsLoading(false);
         },
         /**
          * Toggles the visibility of a model entity.

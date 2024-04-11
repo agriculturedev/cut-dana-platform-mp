@@ -11,7 +11,7 @@ const Tool = Item.extend(/** @lends Tool.prototype */{
         deactivateGFI: false,
         renderToWindow: true,
         resizableWindow: false,
-        supportedIn3d: ["supplyCoord", "gfi", "wfsFeatureFilter", "searchByCoord", "legend", "contact", "saveSelection", "parcelSearch", "coordToolkit", "print", "measure"],
+        supportedIn3d: ["supplyCoord", "gfi", "wfsFeatureFilter", "searchByCoord", "legend", "contact", "saveSelection", "parcelSearch", "coordToolkit", "print", "measure", "sessionTool"],
         supportedOnlyIn3d: ["shadow", "modeler3D"],
         supportedInOblique: ["contact"],
         supportedOnlyInOblique: [],

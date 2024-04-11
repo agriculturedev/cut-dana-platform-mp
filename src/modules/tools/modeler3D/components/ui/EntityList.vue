@@ -92,6 +92,7 @@ export default {
                     <input
                         v-if="enableCheckboxes"
                         type="checkbox"
+                        :aria-label="object.id"
                         :value="object.id"
                         :checked="object.id === currentModelId"
                         class="checkbox-selected-entity"

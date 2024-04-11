@@ -152,6 +152,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         Modeler3D.actions.updatePositionUI = origUpdatePositionUI;
         Modeler3D.actions.editLayout = origEditLayout;
         store.commit("Tools/Modeler3D/setCurrentProjection", {id: "http://www.opengis.net/gml/srs/epsg.xml#25832", name: "EPSG:25832", projName: "utm", epsg: "EPSG:25832"});
+        store.commit("Tools/Modeler3D/setImportedEntities", []);
 
         sinon.restore();
         if (wrapper) {
@@ -364,6 +365,75 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
             wrapper.vm.depthString = "150.00";
 
             expect(updateRectangleDimensionsStub.called).to.be.true;
+        });
+        describe("resetImportedModels", () => {
+            it("should not reset the imported models", async () => {
+                wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+
+                const importedEntities = [
+                    {
+                        "blob": "",
+                        "blobType": "model/gltf-binary",
+                        "fileName": "Cottage",
+                        "entityId": 1,
+                        "rotation": 0,
+                        "scale": 1,
+                        "position": {
+                            "x": 3739809.3423645124,
+                            "y": 659051.6132088607,
+                            "z": 5107288.342735399
+                        }
+                    }
+                ];
+
+                store.commit("Tools/Modeler3D/setImportedEntities", importedEntities);
+                await wrapper.vm.$nextTick();
+
+                await wrapper.vm.resetImportedModels(importedEntities, "", 1, "rotation");
+                expect(wrapper.vm.importedEntities[0].rotation).to.be.equal(0);
+                expect(wrapper.vm.importedEntities[0].scale).to.be.equal(1);
+
+                await wrapper.vm.resetImportedModels(importedEntities, 0, "", "rotation");
+                expect(wrapper.vm.importedEntities[0].rotation).to.be.equal(0);
+                expect(wrapper.vm.importedEntities[0].scale).to.be.equal(1);
+
+                await wrapper.vm.resetImportedModels(importedEntities, 0, 1, 0);
+                expect(wrapper.vm.importedEntities[0].rotation).to.be.equal(0);
+                expect(wrapper.vm.importedEntities[0].scale).to.be.equal(1);
+
+                await wrapper.vm.resetImportedModels(importedEntities, 0, 1, "test");
+                expect(wrapper.vm.importedEntities[0].rotation).to.be.equal(0);
+                expect(wrapper.vm.importedEntities[0].scale).to.be.equal(1);
+            });
+
+            it("should reset the imported models", async () => {
+                wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+
+                const importedEntities = [
+                    {
+                        "blob": "",
+                        "blobType": "model/gltf-binary",
+                        "fileName": "Cottage",
+                        "entityId": 1,
+                        "rotation": 0,
+                        "scale": 1,
+                        "position": {
+                            "x": 3739809.3423645124,
+                            "y": 659051.6132088607,
+                            "z": 5107288.342735399
+                        }
+                    }
+                ];
+
+                store.commit("Tools/Modeler3D/setImportedEntities", importedEntities);
+                await wrapper.vm.$nextTick();
+
+                await wrapper.vm.resetImportedModels(importedEntities, 90, 1, "rotation");
+                expect(wrapper.vm.importedEntities[0].rotation).to.be.equal(90);
+
+                await wrapper.vm.resetImportedModels(importedEntities, 1.5, 1, "scale");
+                expect(wrapper.vm.importedEntities[0].scale).to.be.equal(1.5);
+            });
         });
     });
 });

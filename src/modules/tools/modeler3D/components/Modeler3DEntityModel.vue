@@ -89,6 +89,7 @@ export default {
                 }
                 this.setRotation(adjustedValue);
                 this.rotate();
+                this.resetImportedModels(this.importedEntities, adjustedValue, this.currentModelId, "rotation");
             }
         },
         scaleString: {
@@ -104,6 +105,7 @@ export default {
                 }
                 this.setScale(adjustedValue);
                 entities.getById(this.currentModelId).model.scale = this.scale;
+                this.resetImportedModels(this.importedEntities, adjustedValue, this.currentModelId, "scale");
             }
         },
         extrudedHeightString: {
@@ -236,6 +238,25 @@ export default {
             return drawName;
         }
     },
+    watch: {
+        currentModelId () {
+            if (!this.isApplyingState || this.isDragging || !this.importedEntities.length) {
+                return;
+            }
+            this.$nextTick(() => {
+                this.rotationString = this.rotation;
+                this.scaleString = String(this.scale);
+            });
+        }
+    },
+    mounted () {
+        if (this.isApplyingState && !this.isDragging && this.importedEntities.length) {
+            this.$nextTick(() => {
+                this.rotationString = this.rotation;
+                this.scaleString = String(this.scale);
+            });
+        }
+    },
     methods: {
         ...mapActions("Tools/Modeler3D", Object.keys(actions)),
         ...mapMutations("Tools/Modeler3D", Object.keys(mutations)),
@@ -340,6 +361,29 @@ export default {
             if (element) {
                 element.scrollIntoView({behavior: "smooth"});
             }
+        },
+        /**
+         * Resets the value of rotation and scale from imported models.
+         * @param {Object[]} importedEntities the imported entities.
+         * @param {Number} adjustedValue the adjusted value.
+         * @param {Number} currentModelId the current model id.
+         * @param {String} type the type of adjusted value.
+         * @returns {void}
+         */
+        resetImportedModels (importedEntities, adjustedValue, currentModelId, type) {
+            if (!importedEntities.length || typeof adjustedValue !== "number" || typeof currentModelId !== "number" || typeof type !== "string") {
+                return;
+            }
+
+            const clonedImportedEntities = importedEntities;
+
+            clonedImportedEntities.forEach(entity => {
+                if (entity?.entityId === currentModelId) {
+                    entity[type] = adjustedValue;
+                }
+            });
+
+            this.setImportedEntities(clonedImportedEntities);
         }
     }
 };

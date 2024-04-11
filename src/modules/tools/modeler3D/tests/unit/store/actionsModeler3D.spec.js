@@ -3,6 +3,8 @@ import sinon from "sinon";
 import actions from "../../../store/actionsModeler3D";
 import store from "../../../../../../app-store";
 import proj4 from "proj4";
+import blobHandler from "../../../utils/blob";
+import {nextTick} from "vue";
 
 describe("Actions", () => {
     let entity,
@@ -155,6 +157,17 @@ describe("Actions", () => {
             },
             Transforms: {
                 eastNorthUpToFixedFrame: () => ({x: 10, y: 20, z: 30})
+            },
+            Entity: class {
+                /**
+                 * Creates an entity.
+                 * @param {Object} options The options
+                 */
+                constructor (options) {
+                    return {
+                        ...options
+                    };
+                }
             },
             Matrix4: class {
                 /**
@@ -1115,6 +1128,161 @@ describe("Actions", () => {
             actions.removeLabels(_, entity);
 
             expect(entities.remove.callCount).to.equal(2);
+        });
+    });
+    describe("handleGeoJsonFile", () => {
+        it("should not commit anything if the given param is not a parsable json", () => {
+            const commit = sinon.spy(),
+                localTmpState = {drawnModels: []};
+
+            actions.handleGeoJsonFile({commit, state: localTmpState}, undefined);
+            expect(commit.callCount).to.be.equal(0);
+            actions.handleGeoJsonFile({commit, state: localTmpState}, null);
+            expect(commit.callCount).to.be.equal(0);
+            actions.handleGeoJsonFile({commit, state: localTmpState}, true);
+            expect(commit.callCount).to.be.equal(0);
+            actions.handleGeoJsonFile({commit, state: localTmpState}, false);
+            expect(commit.callCount).to.be.equal(0);
+            actions.handleGeoJsonFile({commit, state: localTmpState}, "12345");
+            expect(commit.callCount).to.be.equal(0);
+            actions.handleGeoJsonFile({commit, state: localTmpState}, 12345);
+            expect(commit.callCount).to.be.equal(0);
+        });
+        it("should not commit anything if the given param is valid json but has no features", () => {
+            const commit = sinon.spy(),
+                localTmpState = {drawnModels: []};
+
+            actions.handleGeoJsonFile({commit, state: localTmpState}, "{}");
+            expect(commit.callCount).to.be.equal(0);
+        });
+        it("should add entities for each feature", () => {
+            const json = {
+                    features: [
+                        {
+                            geometry: {coordinates: [0, 0]},
+                            properties: {
+                                color: "#000",
+                                outlineColor: "#000",
+                                clampToGround: true
+                            }
+                        }
+                    ]
+                },
+                localTestState = {
+                    drawnModels: []
+                };
+
+            actions.handleGeoJsonFile({commit: sinon.stub(), state: localTestState}, JSON.stringify(json));
+            expect(entities.values.length).to.be.equal(1);
+        });
+    });
+    describe("createEntities", () => {
+        it("should dispatch actions for each entity if it contains an blob", async () => {
+            const entityList = [
+                    {
+                        blob: new Blob()
+                    },
+                    {}
+                ],
+                dispatch = sinon.stub();
+
+            await actions.createEntities({dispatch}, entityList);
+            expect(dispatch.callCount).to.be.equal(1);
+        });
+        it("should dispatch twice actions for each entity if it contains an blob", async () => {
+            const entityList = [
+                    {
+                        blob: new Blob()
+                    },
+                    {
+                        blob: new Blob()
+                    }
+                ],
+                dispatch = sinon.spy();
+
+            await actions.createEntities({dispatch}, entityList);
+            expect(dispatch.callCount).to.be.equal(2);
+        });
+    });
+    describe("createEntity", () => {
+        it("should create an entity", async () => {
+            const commit = sinon.spy(),
+                localTestState = {
+                    importedModels: [],
+                    importedEntities: [],
+                    rotation: 0,
+                    scale: 1
+                },
+                blob = new Blob(),
+                blobBuffer = "bufferXY",
+                fileName = "foo";
+
+            sinon.stub(blobHandler, "blobToBase64").returns(blobBuffer);
+            await actions.createEntity({commit, state: localTestState}, {blob, fileName});
+            expect(entities.values.length).to.be.equal(1);
+        });
+        it("should create an entity with given position", async () => {
+            const commit = sinon.spy(),
+                localTestState = {
+                    importedModels: [],
+                    importedEntities: [],
+                    rotation: 0,
+                    scale: 1
+                },
+                blob = new Blob(),
+                blobBuffer = "bufferXY",
+                fileName = "foo",
+                position = {x: 11, y: 21, z: 31};
+
+            sinon.stub(blobHandler, "blobToBase64").returns(blobBuffer);
+            await actions.createEntity({commit, state: localTestState}, {blob, fileName, position});
+            expect(commit.getCalls().find(call => call.firstArg === "setImportedEntities").lastArg).to.deep.equal([
+                {
+                    blob: blobBuffer,
+                    blobType: blob.type,
+                    fileName,
+                    entityId: 1,
+                    rotation: localTestState.rotation,
+                    scale: localTestState.scale,
+                    position
+                }
+            ]);
+            expect(entities.values.length).to.be.equal(1);
+        });
+        it("should set rotation and scale", async () => {
+            const commit = sinon.spy(),
+                localTestState = {
+                    importedModels: [],
+                    importedEntities: [],
+                    rotation: 0,
+                    scale: 1
+                },
+                blob = new Blob(),
+                blobBuffer = "bufferXY",
+                fileName = "foo";
+
+            sinon.stub(blobHandler, "blobToBase64").returns(blobBuffer);
+            await actions.createEntity({commit, state: localTestState}, {blob, fileName, rotation: 10, scale: 2});
+            await nextTick();
+            expect(commit.getCalls().find(call => call.firstArg === "setRotation").lastArg).to.be.equal(10);
+            expect(commit.getCalls().find(call => call.firstArg === "setScale").lastArg).to.be.equal(2);
+        });
+        it("should set isLoading", async () => {
+            const commit = sinon.spy(),
+                localTestState = {
+                    importedModels: [],
+                    importedEntities: [],
+                    rotation: 0,
+                    scale: 1
+                },
+                blob = new Blob(),
+                blobBuffer = "bufferXY",
+                fileName = "foo";
+
+            sinon.stub(blobHandler, "blobToBase64").returns(blobBuffer);
+            await actions.createEntity({commit, state: localTestState}, {blob, fileName, rotation: 10, scale: 2});
+            await nextTick();
+            expect(commit.getCalls().find(call => call.firstArg === "setIsLoading").lastArg).to.be.false;
         });
     });
 });

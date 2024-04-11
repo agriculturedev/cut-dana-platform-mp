@@ -448,6 +448,36 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             expect(hiddenObjects[0].name).to.be.equals("gmlId");
         });
 
+        it("selectObject picks object and adds it to hidden object with layer list", () => {
+            let hiddenObjects = [];
+            const pickObject = new global.Cesium.Cesium3DTileFeature({tileset: {}}),
+                tileSetModel = {
+                    hideObjects: sinon.stub()
+                },
+                radioStub = sinon.stub(Radio, "request").returns([tileSetModel]);
+
+            scene.drillPick = sinon.stub().returns([pickObject]);
+            global.Cesium.defined = sinon.stub().returns(true);
+            global.Cesium.defaultValue = sinon.stub().returns(false);
+            sinon.stub(getGfiFeaturesByTileFeatureModule, "getGfiFeaturesByTileFeature").returns([{
+                getProperties: () => ({
+                    gmlid: "gmlId"
+                })
+            }]);
+
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            wrapper.vm.selectObject(event);
+
+            hiddenObjects = store.state.Tools.Modeler3D.hiddenObjects;
+
+            expect(radioStub.called).to.be.true;
+            expect(getGfiFeaturesByTileFeatureModule.getGfiFeaturesByTileFeature.calledWith(pickObject));
+            expect(tileSetModel.hideObjects.calledWith(["gmlId"])).to.be.true;
+            expect(hiddenObjects.length).to.be.equals(1);
+            expect(hiddenObjects[0].name).to.be.equals("gmlId");
+            expect(store.state.Tools.Modeler3D.hiddenObjectsWithLayerId[0].name).to.be.equals("gmlId");
+        });
+
         it("showObject shows the hidden object and deletes it from list", () => {
             let hiddenObjects = [];
             const object = {
@@ -526,7 +556,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             store.commit("Tools/Modeler3D/setCylinderId", 2);
             store.commit("Tools/Modeler3D/setIsDragging", true);
             global.Cesium.defined = sinon.stub().returns(true);
-
             wrapper.vm.moveCylinder(event);
             expect(wrapper.vm.activeShapePoints[0]).to.eql({
                 x: 3739310.9273738265,
@@ -535,39 +564,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             });
         });
 
-        it("should perform actions when dragging a polygon", async () => {
-            const entity = entities.getById("entityId");
-
-            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entity.clampToGround = true;
-            entity.polygon = true;
-            entity.polyline = false;
-            store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
-            await wrapper.vm.$nextTick();
-            store.commit("Tools/Modeler3D/setCylinderId", 2);
-            store.commit("Tools/Modeler3D/setIsDragging", true);
-            global.Cesium.defined = sinon.stub().returns(true);
-
-            wrapper.vm.onMouseMove(event);
-            expect(Modeler3D.actions.movePolygon).to.be.called;
-            expect(Modeler3D.actions.updatePositionUI).to.be.called;
-        });
-        it("should perform actions when dragging a polyline", async () => {
-            const entity = entities.getById("entityId");
-
-            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entity.polygon = false;
-            entity.polyline = true;
-            store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
-            await wrapper.vm.$nextTick();
-            store.commit("Tools/Modeler3D/setCylinderId", 2);
-            store.commit("Tools/Modeler3D/setIsDragging", true);
-            global.Cesium.defined = sinon.stub().returns(true);
-
-            wrapper.vm.onMouseMove(event);
-            expect(Modeler3D.actions.movePolyline).to.be.called;
-            expect(Modeler3D.actions.updatePositionUI).to.be.called;
-        });
         it("should perform actions when dragging of a cylinder is finished", async () => {
             const entity = entities.getById("entityId");
 
@@ -685,6 +681,249 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             wrapper.vm.generateOutlines(entity);
 
             expect(entities.add.callCount).to.equal(2);
+        });
+
+        it("should perform actions when dragging a polygon", async () => {
+            const entity = entities.getById("entityId");
+
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            entity.clampToGround = true;
+            entity.polygon = true;
+            entity.polyline = false;
+            store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
+            await wrapper.vm.$nextTick();
+            store.commit("Tools/Modeler3D/setCylinderId", 2);
+            store.commit("Tools/Modeler3D/setIsDragging", true);
+            global.Cesium.defined = sinon.stub().returns(true);
+
+            wrapper.vm.onMouseMove(event);
+            expect(Modeler3D.actions.movePolyline).to.not.be.called;
+            expect(Modeler3D.actions.updatePositionUI).to.be.called;
+        });
+        it("should perform actions when dragging a polyline", async () => {
+            const entity = entities.getById("entityId");
+
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            entity.polygon = false;
+            entity.polyline = true;
+            store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
+            await wrapper.vm.$nextTick();
+            store.commit("Tools/Modeler3D/setCylinderId", 2);
+            store.commit("Tools/Modeler3D/setIsDragging", true);
+            global.Cesium.defined = sinon.stub().returns(true);
+
+            wrapper.vm.onMouseMove(event);
+            expect(Modeler3D.actions.movePolyline).to.be.called;
+            expect(Modeler3D.actions.updatePositionUI).to.be.called;
+        });
+        it("should perform actions when dragging of a cylinder is finished", async () => {
+            const entity = entities.getById("entityId");
+
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            entity.polygon = false;
+            entity.polyline = false;
+            store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
+            await wrapper.vm.$nextTick();
+            store.commit("Tools/Modeler3D/setCylinderId", 2);
+            store.commit("Tools/Modeler3D/setIsDragging", true);
+
+            wrapper.vm.onMouseUp(event);
+            expect(store.state.Tools.Modeler3D.isDragging).to.be.false;
+            expect(store.state.Tools.Modeler3D.cylinderId).to.eql(null);
+            expect(document.getElementById("map").style.cursor).to.equal("grab");
+        });
+        it("should perform actions when dragging of a drawn object is finished", async () => {
+            const entity = entities.getById("entityId");
+
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            entity.polygon = false;
+            entity.polyline = false;
+            store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
+            await wrapper.vm.$nextTick();
+            store.commit("Tools/Modeler3D/setIsDragging", true);
+
+            wrapper.vm.onMouseUp(event);
+            expect(store.state.Tools.Modeler3D.isDragging).to.be.false;
+            expect(document.getElementById("map").style.cursor).to.equal("grab");
+        });
+        it("should highlight a drawn polygon", async () => {
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+
+            const entity = entities.getById("entityId"),
+                generateOutlinesStub = sinon.stub(wrapper.vm, "generateOutlines");
+
+            entity.polygon = {outline: true, outlineColor: "white", material: {
+                color: "RED"
+            }};
+            entity.wasDrawn = true;
+            store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
+            await wrapper.vm.$nextTick();
+            store.commit("Tools/Modeler3D/setIsDragging", true);
+
+            wrapper.vm.highlightEntity(entity);
+
+            expect(generateOutlinesStub.called).to.be.true;
+        });
+        it("should highlight a drawn polyline", async () => {
+            const entity = entities.getById("entityId");
+
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            entity.polyline = {material: {
+                color: "white"
+            }};
+            entity.wasDrawn = true;
+
+            wrapper.vm.highlightEntity(entity);
+            await wrapper.vm.$nextTick();
+            expect(entity.originalColor).to.eql("white");
+            expect(entity.polyline.material.color).to.eql(
+                global.Cesium.Color.fromAlpha(global.Cesium.Color.fromCssColorString("RED"), parseFloat(1.0))
+            );
+        });
+        it("should handle the mouse move event for the pov cylinder", async () => {
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            store.commit("Tools/Modeler3D/setCylinderId", 2);
+            await wrapper.vm.$nextTick();
+
+            wrapper.vm.moveHandler();
+            expect(document.body.style.cursor).to.equal("copy");
+            expect(wrapper.vm.currentCartesian).to.eql({
+                x: 3739310.9273738265,
+                y: 659341.4057539968,
+                z: 5107613.232959453
+            });
+        });
+
+        it("should undo the last non-drawn entity movement when CTRL+Z is pressed", async () => {
+            entities.values.push({id: "TestModel", position: {x: 200, y: 300, z: 400}});
+
+            await wrapper.vm.applyEntityMovement({entityId: "TestModel", position: {x: 100, y: 200, z: 300}});
+
+            const entity = entities.getById("TestModel");
+
+            expect(entity.position).to.eql({x: 100, y: 200, z: 300});
+        });
+
+        it("should redo the last undone non-drawn entity movement when CTRL+Y is pressed", async () => {
+            entities.values.push({id: "TestModel", position: {x: 100, y: 200, z: 300}});
+            wrapper.vm.undonePosition = {entityId: "TestModel", position: {x: 200, y: 300, z: 400}};
+
+            await wrapper.vm.applyEntityMovement(wrapper.vm.undonePosition);
+
+            const entity = entities.getById("TestModel");
+
+            expect(entity.position).to.eql({x: 200, y: 300, z: 400});
+        });
+
+        it("should generate outlines for the given entity", () => {
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            const entity = {
+                polygon: {
+                    hierarchy: {
+                        getValue: sinon.stub().returns({
+                            positions: [1, 2, 3]
+                        })
+                    }
+                }
+            };
+
+            entities.add = sinon.spy();
+
+            wrapper.vm.generateOutlines(entity);
+
+            expect(entities.add.callCount).to.equal(2);
+        });
+        it("onMouseUp should do nothing if isDragging is false", () => {
+            Modeler3D.mutations.setIsDragging = sinon.spy();
+            Modeler3D.state.isDragging = false;
+            store = new Vuex.Store({
+                namespaces: true,
+                modules: {
+                    Tools: {
+                        namespaced: true,
+                        modules: {
+                            Modeler3D
+                        }
+                    },
+                    Maps: {
+                        namespaced: true,
+                        getters: mockMapGetters
+                    }
+                },
+                getters: {
+                    namedProjections: () => namedProjections
+                },
+                state: {
+                    configJson: mockConfigJson
+                }
+
+            });
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            wrapper.vm.isDragging = false;
+            wrapper.vm.onMouseUp();
+            expect(Modeler3D.mutations.setIsDragging).to.not.be.called;
+        });
+        it("onMouseUp should call expected functions if isDragging is true", () => {
+            Modeler3D.mutations.setIsDragging = sinon.spy();
+            Modeler3D.state.isDragging = true;
+            store = new Vuex.Store({
+                namespaces: true,
+                modules: {
+                    Tools: {
+                        namespaced: true,
+                        modules: {
+                            Modeler3D
+                        }
+                    },
+                    Maps: {
+                        namespaced: true,
+                        getters: mockMapGetters
+                    }
+                },
+                getters: {
+                    namedProjections: () => namedProjections
+                },
+                state: {
+                    configJson: mockConfigJson
+                }
+
+            });
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            wrapper.vm.onMouseUp();
+            expect(Modeler3D.mutations.setIsDragging).to.be.called;
+        });
+        it("onMouseUp should update the position of expected importedEntity", () => {
+            Modeler3D.state.isDragging = true;
+            Modeler3D.state.importedEntities = [{
+                entityId: 2,
+                position: "foo"
+            }];
+            Modeler3D.state.currentModelId = 2;
+            store = new Vuex.Store({
+                namespaces: true,
+                modules: {
+                    Tools: {
+                        namespaced: true,
+                        modules: {
+                            Modeler3D
+                        }
+                    },
+                    Maps: {
+                        namespaced: true,
+                        getters: mockMapGetters
+                    }
+                },
+                getters: {
+                    namedProjections: () => namedProjections
+                },
+                state: {
+                    configJson: mockConfigJson
+                }
+
+            });
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            wrapper.vm.onMouseUp();
+            expect(Modeler3D.state.importedEntities[0].position).to.be.equal("position2");
         });
     });
 });

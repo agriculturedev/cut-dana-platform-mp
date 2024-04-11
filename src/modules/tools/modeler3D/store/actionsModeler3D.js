@@ -2,11 +2,224 @@ import crs from "@masterportal/masterportalapi/src/crs";
 import store from "../../../../app-store";
 import {adaptCylinderToGround, adaptCylinderToEntity, calculateRotatedPointCoordinates} from "../utils/draw";
 import {convertColor} from "../../../../utils/convertColor";
+import blobHandler from "../utils/blob";
+import {nextTick} from "vue";
 
 const actions = {
     /**
+     * Handles the processing of GeoJSON content.
+     * @param {Object} context - The context of the Vuex module.
+     * @param {String} content - The GeoJSON content.
+     * @returns {void}
+     */
+    handleGeoJsonFile ({commit, state}, content) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            clonedDrawnModels = [...state.drawnModels];
+        let geojson;
+
+        try {
+            geojson = JSON.parse(content);
+        }
+        catch ({message}) {
+            console.error("Error while trying to parse the given content:", message);
+            return;
+        }
+        if (!Array.isArray(geojson?.features)) {
+            return;
+        }
+
+        geojson.features.forEach(feature => {
+            const properties = feature.properties,
+                color = properties.color,
+                outlineColor = properties.outlineColor,
+                coordinates = feature.geometry.coordinates[0],
+                lastElement = entities.values.slice().pop(),
+                lastId = lastElement?.id,
+                entity = new Cesium.Entity({
+                    id: lastId ? lastId + 1 : 1,
+                    name: properties.name,
+                    wasDrawn: true,
+                    clampToGround: properties.clampToGround
+                });
+
+            if (feature.geometry.type === "Polygon") {
+                entity.polygon = {
+                    material: new Cesium.ColorMaterialProperty(
+                        new Cesium.Color(color.red, color.green, color.blue, color.alpha)
+                    ),
+                    outline: true,
+                    outlineColor: new Cesium.Color(outlineColor.red, outlineColor.green, outlineColor.blue, outlineColor.alpha),
+                    outlineWidth: 1,
+                    height: coordinates[0][2],
+                    extrudedHeight: properties.extrudedHeight,
+                    shadows: Cesium.ShadowMode.ENABLED,
+                    hierarchy: new Cesium.PolygonHierarchy(coordinates.map(point => Cesium.Cartesian3.fromDegrees(point[0], point[1])))
+                };
+            }
+            else if (feature.geometry.type === "Polyline") {
+                entity.polyline = {
+                    material: new Cesium.ColorMaterialProperty(
+                        new Cesium.Color(color.red, color.green, color.blue, color.alpha)
+                    ),
+                    width: properties.width,
+                    positions: coordinates.map(point => Cesium.Cartesian3.fromDegrees(point[0], point[1], point[2]))
+                };
+            }
+
+            entities.add(entity);
+            if (feature.geometry.type === "Polygon") {
+                entity.polygon.rectangle = properties.rectangle;
+            }
+            clonedDrawnModels.push({
+                id: entity.id,
+                name: entity.name,
+                show: true,
+                edit: false
+            });
+        });
+
+        commit("setDrawnModels", clonedDrawnModels);
+        commit("setCurrentView", "draw");
+        commit("setIsLoading", false);
+    },
+    /**
+     * Creates an entity for each element in the given list.
+     * @param {Object} context - The context of the Vuex module.
+     * @param {Object[]} entityList List of entities to create.
+     * @returns {void}
+     */
+    async createEntities ({dispatch}, entityList) {
+        if (!Array.isArray(entityList) || !entityList.length) {
+            return;
+        }
+
+        for (let i = 0; i < entityList.length; i++) {
+            let blob = entityList[i]?.blob;
+
+            if (!(blob instanceof Blob)) {
+                try {
+                    blob = await blobHandler.b64toBlob(blob, entityList[i]?.blobType);
+                }
+                catch ({message}) {
+                    console.error("Error while parsing base64 into blob:", message);
+                    return;
+                }
+            }
+            await dispatch("createEntity", {blob, fileName: entityList[i].fileName, position: entityList[i].position, rotation: entityList[i].rotation, scale: entityList[i].scale});
+        }
+    },
+    /**
+     * Creates an entity from the processed gltf or glb.
+     * @param {Object} context - The context of the Vuex module.
+     * @param {Blob} blob - The GLTF or glb content.
+     * @param {String} fileName - The name of the file.
+     * @param {Object} Position - The position object of entity.
+     * @param {Number} rotation - The rotation of entity.
+     * @param {Number} scale - The scale of entity.
+     * @returns {void}
+     */
+    async createEntity ({commit, state}, {blob, fileName, position, rotation, scale}) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            lastElement = entities.values.filter(ent => !ent.cylinder && !ent.label).pop(),
+            lastId = lastElement?.id,
+            clonedModels = [...state.importedModels],
+            options = {
+                id: lastId ? lastId + 1 : 1,
+                name: fileName,
+                clampToGround: true,
+                model: new Cesium.ModelGraphics({
+                    uri: URL.createObjectURL(blob)
+                })
+            },
+            clonedEntities = [...state.importedEntities],
+            blobBuffer = await blobHandler.blobToBase64(blob);
+        let entity = null;
+
+        if (position) {
+            options.position = new Cesium.Cartesian3(position.x, position.y, position.z);
+        }
+        entity = new Cesium.Entity(options);
+        entities.add(entity);
+        commit("setUseAnchorMove", false);
+
+        clonedEntities.push({
+            blob: blobBuffer,
+            blobType: blob?.type,
+            fileName,
+            entityId: entity.id,
+            rotation: state.rotation,
+            scale: state.scale,
+            position
+        });
+
+        if (!position) {
+            commit("setMovingEntity", true);
+        }
+        commit("setImportedEntities", clonedEntities);
+
+
+        clonedModels.push({
+            id: entity.id,
+            name: fileName,
+            show: true,
+            edit: false,
+            heading: 0
+        });
+
+        commit("setImportedModels", clonedModels);
+        commit("setCurrentModelId", entity.id);
+        nextTick(() => {
+            if (typeof rotation === "number") {
+                commit("setRotation", rotation);
+            }
+
+            if (typeof scale === "number") {
+                commit("setScale", scale);
+            }
+        });
+
+        commit("setIsLoading", false);
+    },
+    /**
+     * Action to hide entities.
+     * @param {Object} context - The context of the Vuex module.
+     * @param {Object[]} hiddenObjects - The hidden objects with layer id and gml id.
+     * @returns {void}
+     */
+    hideEntities ({commit, state}, hiddenObjects) {
+        if (!Array.isArray(hiddenObjects) || !hiddenObjects.length) {
+            return;
+        }
+
+        const clonedStateHiddenObjects = [...state.hiddenObjects],
+            clonedHiddenObjectsWithLayerId = [...state.hiddenObjectsWithLayerId];
+
+
+        hiddenObjects.forEach(object => {
+            if (!object.name) {
+                return;
+            }
+            const tileSetModels = state.updateAllLayers || typeof object.layerId !== "string" ?
+                Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D"}) :
+                Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D", id: object.layerId});
+
+            tileSetModels.forEach(model => model.hideObjects([object.name], state.updateAllLayers));
+
+            clonedStateHiddenObjects.push({
+                name: object.name
+            });
+
+            clonedHiddenObjectsWithLayerId.push({
+                name: object.name,
+                layerId: object.layerId
+            });
+        });
+
+        commit("setHiddenObjects", clonedStateHiddenObjects);
+        commit("setHiddenObjectsWithLayerId", clonedHiddenObjectsWithLayerId);
+    },
+    /**
      * Action to delete an entity.
-     *
      * @param {Object} context - The context of the Vuex module.
      * @param {string} id - The ID of the entity to delete.
      * @returns {void}
@@ -505,8 +718,40 @@ const actions = {
         labelEntities.forEach(label => {
             entities.remove(label);
         });
-    }
+    },
+    /**
+     * Resets the state to the original status.
+     * Deletes all the entities.
+     * @param {Object} context - The context of the Vuex module.
+     * @returns {void}
+     */
+    resetAll ({commit, state}) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            tileSetModels = Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D"});
 
+        entities.removeAll();
+        state.hiddenObjects.forEach(object => {
+            tileSetModels[0].showObjects([object.name]);
+        });
+        commit("setDrawnModels", []);
+        commit("setImportedModels", []);
+        commit("setHiddenObjects", []);
+        commit("setHiddenObjectsWithLayerId", []);
+        commit("setClampToGround", true);
+        commit("setDimensions", true);
+        commit("setSelectedDrawType", "");
+        commit("setCurrentLayout", {
+            fillColor: [255, 255, 255],
+            fillTransparency: 0,
+            strokeColor: [0, 0, 0],
+            strokeWidth: 1,
+            extrudedHeight: 20
+        });
+        commit("setHideObjects", true);
+        commit("setPovActive", false);
+        commit("setScale", 1);
+        commit("setCurrentModelId", null);
+    }
 };
 
 export default actions;

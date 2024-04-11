@@ -45,6 +45,9 @@
  * @property {String}       selectedFillColor - selected fill color for drawing 3d object
  * @property {String}       selectedOutlineColor - selected outline color for drawing 3d object
  * @property {Boolean}      updateAllLayers - if hiding objects should update all layers
+ * @property {Boolean}      clampToGround - if it is set to clamp to ground
+ * @property {Boolean}      dimensions - if the dimensions are shown
+ * @property {Object[]}     importedEntities - the imported entities
  */
 
 export default {
@@ -77,6 +80,7 @@ export default {
     gmlIdPath: "gmlid",
     height: 0,
     hiddenObjects: [],
+    hiddenObjectsWithLayerId: [],
     hideObjects: true,
     highlightStyle: {
         silhouetteColor: "#E20D0F",
@@ -104,6 +108,8 @@ export default {
     selectedOutlineColor: "",
     updateAllLayers: true,
     useAnchorMove: true,
+    importedEntities: [],
+    isApplyingState: false,
 
     // defaults for config.json parameters
     icon: "bi-bounding-box",
@@ -111,5 +117,8 @@ export default {
     name: "common:menu.tools.modeler3D",
     onlyDesktop: true,
     renderToWindow: false,
-    resizableWindow: true
+    resizableWindow: true,
+    clampToGround: true,
+    dimensions: true,
+    movingEntity: false
 };
