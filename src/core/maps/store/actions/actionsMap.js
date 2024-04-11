@@ -67,13 +67,18 @@ export default {
      * @returns {OLCesium} - ol cesium map.
      */
     createMap3D ({rootState}) {
-        return api.map.createMap({
+        const map = api.map.createMap({
             cesiumParameter: parseCesiumParameters(rootState.urlParams),
             map2D: mapCollection.getMap("2D"),
             shadowTime: function () {
                 return this.time || Cesium.JulianDate.fromDate(new Date());
             }
         }, "3D");
+
+        // Vue shall not observe the map, see vue.runtime.esm.js function observe
+        map.__v_skip = true;
+
+        return map;
     },
 
     ...actionsMapAttributesMapper,
