@@ -38,8 +38,11 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         },
         entities = {
             getById: () => entity,
-            values: [{id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}}],
-            add: () => entity
+            values: [],
+            add: () => entity,
+            remove: (val) => {
+                entities.values.splice(entities.values.indexOf(val), 1);
+            }
         },
         map3D = {
             id: "1",
@@ -79,6 +82,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         mapCollection.addMap(map3D, "3D");
 
         entities.add = sinon.stub();
+        entities.values = [{id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}}];
 
         scene = {
             camera: {
@@ -152,6 +156,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         store.commit("Tools/Modeler3D/setActive", true);
         store.commit("Tools/Modeler3D/setCurrentView", "draw");
         store.commit("Tools/Modeler3D/setCylinderId", "FloatingPointId");
+        store.commit("Tools/Modeler3D/setIsDrawing", false);
     });
 
     afterEach(() => {
@@ -160,7 +165,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         if (wrapper) {
             wrapper.destroy();
         }
-        entities.values = [{id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}}];
         global.URL = globalURL;
     });
 
@@ -240,6 +244,44 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             expect(scene.sampleHeight.called).to.be.false;
             expect(scene.globe.pick.called).to.be.false;
             expect(wrapper.vm.activeShapePoints).to.have.lengthOf(2);
+        });
+
+        it("should undo the last geometry position when CTRL+Z is pressed", () => {
+            store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300}, {x: 200, y: 300, z: 400}, {x: 300, y: 400, z: 500}, {x: 400, y: 500, z: 600}]);
+            store.commit("Tools/Modeler3D/setIsDrawing", true);
+            entities.values.push(
+                {id: "FloatingPointId2", positionIndex: 1, cylinder: {length: 4}},
+                {id: "FloatingPointId3", position: {
+                    getValue: () => {
+                        return {x: 200, y: 300, z: 400};
+                    }
+                }, positionIndex: 2, cylinder: {length: {getValue: () => 4}}},
+                {id: "currentFloatingPoint", positionIndex: 3, cylinder: {length: 4}});
+
+            wrapper.vm.undoGeometryPosition();
+
+            expect(wrapper.vm.activeShapePoints).to.have.lengthOf(3);
+            expect(entities.values).to.have.lengthOf(3);
+            expect(entities.values[2].id).to.equal("currentFloatingPoint");
+        });
+
+        it("should redo the last geometry position when CTRL+Y is pressed", () => {
+            store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300}, {x: 200, y: 300, z: 400}, {x: 300, y: 400, z: 500}, {x: 400, y: 500, z: 600}]);
+            store.commit("Tools/Modeler3D/setIsDrawing", true);
+            entities.values.push(
+                {id: "FloatingPointId2", positionIndex: 1, cylinder: {length: 4}},
+                {id: "FloatingPointId3", position: {
+                    getValue: () => {
+                        return {x: 300, y: 400, z: 500};
+                    }
+                }, positionIndex: 2, cylinder: {length: {getValue: () => 4}}},
+                {id: "currentFloatingPoint", positionIndex: 3, cylinder: {length: 4}});
+
+            wrapper.vm.undoGeometryPosition();
+            wrapper.vm.redoGeometryPosition();
+
+            expect(wrapper.vm.activeShapePoints).to.have.lengthOf(4);
+            expect(wrapper.vm.activeShapePoints[2]).to.eql({x: 300, y: 400, z: 500});
         });
 
         it("should export the GeoJson", () => {

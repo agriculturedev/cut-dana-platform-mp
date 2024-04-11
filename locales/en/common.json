@@ -701,7 +701,7 @@
                         "beginModelling": "Model 3D Object",
                         "clampToGround": "Align to Terrain Model",
                         "color": "Color",
-                        "controlInfo": "Click with the left mouse button to set points. Use the right mouse button or a double click to finish drawing. The last point can be deleted with CTRL+Z",
+                        "controlInfo": "Click with the left mouse button to set points. Use the right mouse button or a double click to finish drawing. The last placed point can be undone by pressing CTRL+Z and redone by pressing CTRL+Y",
                         "drawing": "Drawing",
                         "drawName": "Name",
                         "drawnModels": "Drawn Models:",
