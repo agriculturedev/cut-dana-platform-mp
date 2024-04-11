@@ -24,7 +24,8 @@ export default {
             clampToGround: true,
             currentPosition: null,
             shapeId: null,
-            lastAddedPosition: null
+            lastAddedPosition: null,
+            undonePointInfo: null
         };
     },
     computed: {
@@ -208,8 +209,7 @@ export default {
 
             currentFloatingPoint.positionIndex = undonePositionIndex + 1;
 
-            this.activeShapePoints.push(currentFloatingPoint.position.getValue());
-            this.activeShapePoints.splice(undonePositionIndex, 1, this.undonePointInfo.position);
+            this.activeShapePoints.splice(undonePositionIndex, 0, this.undonePointInfo.position);
 
             this.createCylinder(this.undonePointInfo);
             this.setCylinderId(currentFloatingPoint.id);

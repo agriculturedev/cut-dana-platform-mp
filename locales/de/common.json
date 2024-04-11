@@ -703,7 +703,7 @@
                         "beginModelling": "3D Objekt modellieren",
                         "clampToGround": "Am Höhenmodell orientieren",
                         "color": "Farbe",
-                        "controlInfo": "Klicken Sie mit der linken Maustaste um Punkte zu setzen. Mit der rechten Maustaste oder einem Doppelklick beenden Sie das Zeichnen. Mit Strg+Z können Sie den letzten Punkt löschen.",
+                        "controlInfo": "Klicken Sie mit der linken Maustaste um Punkte zu setzen. Mit der rechten Maustaste oder einem Doppelklick beenden Sie das Zeichnen. Sie können den zuletzt platzierten Punkt mit Strg+Z entfernen und mit Strg+Y wieder hinzufügen.",
                         "drawing": "Zeichnung",
                         "drawName": "Name",
                         "drawnModels": "Gezeichnete Modelle:",
