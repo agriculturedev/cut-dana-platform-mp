@@ -171,14 +171,16 @@ export default {
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
-                    <input
+                    <span
                         :id="'text-fill-transparency-' + circleType + '-' + layoutKey"
-                        type="text"
+                        :key="layoutKey"
+                        class="iconLabel"
                         :title="`${currentLayout[layoutKey]}%`"
-                        :value="`${currentLayout[layoutKey]}%`"
-                        disabled="true"
-                        @click="showTransparency = !showTransparency"
+                        role="button"
+                        tabIndex="0"
                     >
+                        {{ `${currentLayout[layoutKey]}%` }}
+                    </span>
                 </label>
                 <label
                     v-else-if="layoutKey === 'strokeWidth'"
@@ -188,14 +190,16 @@ export default {
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
-                    <input
+                    <span
                         :id="'text-stroke-width-' + circleType + '-' + layoutKey"
-                        type="text"
+                        :key="layoutKey"
+                        class="iconLabel"
                         :title="`${currentLayout[layoutKey]}px`"
-                        :value="`${currentLayout[layoutKey]}px`"
-                        disabled="true"
-                        @click="showStrokeWidth = !showStrokeWidth"
+                        role="button"
+                        tabIndex="0"
                     >
+                        {{ `${currentLayout[layoutKey]}px` }}
+                    </span>
                 </label>
                 <label
                     v-else-if="layoutKey === 'extrudedHeight'"
@@ -205,14 +209,16 @@ export default {
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
-                    <input
+                    <span
                         :id="'text-extruded-height-' + circleType + '-' + layoutKey"
-                        type="text"
+                        :key="layoutKey"
+                        class="iconLabel"
                         :title="`${currentLayout[layoutKey]}m`"
-                        :value="`${currentLayout[layoutKey]}m`"
-                        disabled="true"
-                        @click="showExtrudedHeight = !showExtrudedHeight"
+                        role="button"
+                        tabIndex="0"
                     >
+                        {{ `${currentLayout[layoutKey]}m` }}
+                    </span>
                 </label>
             </button>
         </div>
@@ -310,6 +316,12 @@ export default {
             &:hover {
                 color: $white;
             }
+        }
+
+        .iconLabel {
+            font-size: 0.58rem;
+            width: 3rem;
+            text-align: center;
         }
 
         input[type="text"] {
