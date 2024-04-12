@@ -27,19 +27,14 @@ export default {
      * interaction created by this tool.
      * @returns {void}
      */
-    createDrawInteraction ({state, dispatch, commit, rootGetters, rootState, getters}) {
+    createDrawInteraction ({state, dispatch, commit, rootGetters, getters}) {
         dispatch("removeDrawInteraction");
 
         let interaction = null;
 
         if (rootGetters["Maps/is3D"]) {
             dispatch("deleteFeatures");
-            interaction = makeDraw3d(
-                mapCollection.getMap("3D"),
-                rootGetters["Maps/projectionCode"],
-                unlistener => commit("addUnlistener", unlistener),
-                rootState._store
-            );
+            interaction = makeDraw3d();
         }
         else {
             if (getters.unlisteners.length) {

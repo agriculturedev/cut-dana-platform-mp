@@ -183,6 +183,7 @@ export default {
                                 id="measure-tool-unit-select"
                                 ref="measure-tool-unit-select"
                                 class="font-arial form-select form-select-sm float-start"
+                                :disabled="is3DMode()"
                                 :value="selectedGeometry === 'LineString' ? selectedLineStringUnit : selectedPolygonUnit"
                                 @change="setSelectedUnit($event.target.value)"
                             >

@@ -13,6 +13,8 @@
 - New parameter `renderIn3d` for overviewMap. Enables the overviewMap in 3d mode.
 
 ### Changed
+- Measure module:
+  - 3d functions have been completely reworked.
 - The following packages have been updated:
     - dependencies:
         - @masterportal/masterportalapi: 2.35.0 to 2.36.0 (This also raised ol to version 9.1.0)
