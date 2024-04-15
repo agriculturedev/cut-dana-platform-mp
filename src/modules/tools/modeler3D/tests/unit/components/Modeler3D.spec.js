@@ -42,36 +42,40 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             ["EPSG:8395", "+title=EPSG: 8395 +proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +datum=GRS80 +units=m +no_defs"],
             ["EPSG:4326", "+title=WGS 84 (long/lat) +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"]
         ],
-        entityList = [
-            {
-                id: "entityId",
-                position: {getValue: () => "position1"},
-                rotation: 0,
-                model: {
-                    color: null,
-                    silhouetteColor: null,
-                    silhouetteSize: 0,
-                    colorBlendAmount: 0
-                }
-            },
-            {
-                id: 2,
-                position: {getValue: () => "position2"},
-                rotation: 0,
-                model: {
-                    color: null,
-                    silhouetteColor: "white",
-                    silhouetteSize: 10,
-                    colorBlendAmount: 2
-                },
-                cylinder: {length: 4}
-            }
-        ],
         entities = {
             getById: (val) => {
-                return entityList.find(x => x.id === val);
+                return entities.values.find(x => x.id === val);
             },
-            values: [{id: "FloatingPointId", positionIndex: 0, polygon: {length: 4}}]
+            values: [
+                {
+                    id: "FloatingPointId",
+                    positionIndex: 0,
+                    polygon: {length: 4}
+                },
+                {
+                    id: "entityId",
+                    position: {getValue: () => "position1"},
+                    rotation: 0,
+                    model: {
+                        color: null,
+                        silhouetteColor: null,
+                        silhouetteSize: 0,
+                        colorBlendAmount: 0
+                    }
+                },
+                {
+                    id: 2,
+                    position: {getValue: () => "position2"},
+                    rotation: 0,
+                    model: {
+                        color: null,
+                        silhouetteColor: "white",
+                        silhouetteSize: 10,
+                        colorBlendAmount: 2
+                    },
+                    cylinder: {length: 4}
+                }
+            ]
         },
         pickRayResult = {
             origin: {},
@@ -145,7 +149,19 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
                 return new global.Cesium.Entity("entityId");
             },
             Cartesian3: {
-                equals: () => false
+                equals: () => false,
+                add: (pos1, pos2, res) => {
+                    res.x = pos1.x + pos2.x;
+                    res.y = pos1.y + pos2.y;
+                    res.z = pos1.z + pos2.z;
+                    return res;
+                },
+                divideByScalar: (pos, scalar, res) => {
+                    res.x = pos.x / scalar;
+                    res.y = pos.y / scalar;
+                    res.z = pos.z / scalar;
+                    return res;
+                }
             },
             Cartographic: {
                 fromDegrees: () => ({
@@ -198,6 +214,37 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
 
         });
         crs.registerProjections(namedProjections);
+
+        entities.values = [
+            {
+                id: "FloatingPointId",
+                positionIndex: 0,
+                polygon: {length: 4}
+            },
+            {
+                id: "entityId",
+                position: {getValue: () => "position1"},
+                rotation: 0,
+                model: {
+                    color: null,
+                    silhouetteColor: null,
+                    silhouetteSize: 0,
+                    colorBlendAmount: 0
+                }
+            },
+            {
+                id: 2,
+                position: {getValue: () => "position2"},
+                rotation: 0,
+                model: {
+                    color: null,
+                    silhouetteColor: "white",
+                    silhouetteSize: 10,
+                    colorBlendAmount: 2
+                },
+                cylinder: {length: 4}
+            }
+        ];
 
         store.commit("Tools/Modeler3D/setActive", true);
         store.commit("Tools/Modeler3D/setCurrentView", "import");
@@ -299,7 +346,9 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.highlightEntity.calledWith(entityList[0]));
+            const entity = entities.getById("entityId");
+
+            expect(wrapper.vm.highlightEntity.calledWith(entity));
             expect(store.state.Tools.Modeler3D.currentModelPosition).to.eql("position1");
             expect(Modeler3D.actions.updateUI.called).to.be.true;
         });
@@ -315,10 +364,12 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             store.commit("Tools/Modeler3D/setCurrentModelId", null);
             await wrapper.vm.$nextTick();
 
-            expect(entityList[1].model.color).to.be.equals("#ffffff");
-            expect(entityList[1].model.silhouetteColor).to.be.null;
-            expect(entityList[1].model.silhouetteSize).to.be.equals(0);
-            expect(entityList[1].model.colorBlendAmount).to.be.equals(0);
+            const entity = entities.getById(2);
+
+            expect(entity.model.color).to.be.equals("#ffffff");
+            expect(entity.model.silhouetteColor).to.be.null;
+            expect(entity.model.silhouetteSize).to.be.equals(0);
+            expect(entity.model.colorBlendAmount).to.be.equals(0);
 
             expect(scene.requestRender.called).to.be.true;
             expect(store.state.Tools.Modeler3D.currentModelPosition).to.be.null;
@@ -449,8 +500,10 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
         });
 
         it("should update the position when moving a cylinder with clampToGround set to true", async () => {
+            const entity = entities.getById("entityId");
+
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entityList[0].clampToGround = true;
+            entity.clampToGround = true;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             await wrapper.vm.$nextTick();
             store.commit("Tools/Modeler3D/setCylinderId", 2);
@@ -462,8 +515,10 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
         });
 
         it("should update the position when moving a cylinder with clampToGround set to false", async () => {
+            const entity = entities.getById("entityId");
+
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entityList[0].clampToGround = false;
+            entity.clampToGround = false;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             await wrapper.vm.$nextTick();
             store.commit("Tools/Modeler3D/setCylinderId", 2);
@@ -479,10 +534,12 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
         });
 
         it("should perform actions when dragging a polygon", async () => {
+            const entity = entities.getById("entityId");
+
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entityList[0].clampToGround = true;
-            entityList[0].polygon = true;
-            entityList[0].polyline = false;
+            entity.clampToGround = true;
+            entity.polygon = true;
+            entity.polyline = false;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             await wrapper.vm.$nextTick();
             store.commit("Tools/Modeler3D/setCylinderId", 2);
@@ -494,9 +551,11 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             expect(Modeler3D.actions.updatePositionUI).to.be.called;
         });
         it("should perform actions when dragging a polyline", async () => {
+            const entity = entities.getById("entityId");
+
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entityList[0].polygon = false;
-            entityList[0].polyline = true;
+            entity.polygon = false;
+            entity.polyline = true;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             await wrapper.vm.$nextTick();
             store.commit("Tools/Modeler3D/setCylinderId", 2);
@@ -508,9 +567,11 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             expect(Modeler3D.actions.updatePositionUI).to.be.called;
         });
         it("should perform actions when dragging of a cylinder is finished", async () => {
+            const entity = entities.getById("entityId");
+
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entityList[0].polygon = false;
-            entityList[0].polyline = false;
+            entity.polygon = false;
+            entity.polyline = false;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             wrapper.vm.removeInputActions = sinon.spy();
             await wrapper.vm.$nextTick();
@@ -524,13 +585,14 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             expect(document.body.style.cursor).to.equal("auto");
         });
         it("should perform actions when dragging of a drawn object is finished", async () => {
+            const entity = entities.getById("entityId");
+
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entityList[0].polygon = false;
-            entityList[0].polyline = false;
+            entity.polygon = false;
+            entity.polyline = false;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             wrapper.vm.removeInputActions = sinon.spy();
             await wrapper.vm.$nextTick();
-            store.commit("Tools/Modeler3D/setWasDrawn", true);
             store.commit("Tools/Modeler3D/setIsDragging", true);
 
             wrapper.vm.onMouseUp(event);
@@ -539,39 +601,42 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             expect(document.body.style.cursor).to.equal("auto");
         });
         it("should highlight a drawn polygon", async () => {
+            const entity = entities.getById("entityId");
+
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entityList[0].polygon = {outline: true, outlineColor: "white", material: {
+            entity.polygon = {outline: true, outlineColor: "white", material: {
                 color: "RED"
             }};
-            entityList[0].wasDrawn = true;
+            entity.wasDrawn = true;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             await wrapper.vm.$nextTick();
-            store.commit("Tools/Modeler3D/setWasDrawn", true);
             store.commit("Tools/Modeler3D/setIsDragging", true);
 
-            wrapper.vm.highlightEntity(entityList[0]);
-            expect(entityList[0].originalColor).to.eql(entityList[0].polygon.material.color);
-            expect(entityList[0].originalOutlineColor).to.eql(entityList[0].polygon.outlineColor);
-            expect(entityList[0].polygon.material.color).to.eql(
+            wrapper.vm.highlightEntity(entity);
+
+            expect(entity.originalColor).to.eql(entity.polygon.material.color);
+            expect(entity.originalOutlineColor).to.eql(entity.polygon.outlineColor);
+            expect(entity.polygon.material.color).to.eql(
                 global.Cesium.Color.fromAlpha(global.Cesium.Color.fromCssColorString("RED"), parseFloat(1.0))
             );
-            expect(entityList[0].polygon.outline).to.be.true;
-            expect(entityList[0].polygon.outlineColor).to.eql(global.Cesium.Color.fromCssColorString("white"));
+            expect(entity.polygon.outline).to.be.true;
+            expect(entity.polygon.outlineColor).to.eql(global.Cesium.Color.fromCssColorString("white"));
         });
         it("should highlight a drawn polyline", async () => {
+            const entity = entities.getById("entityId");
+
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-            entityList[0].polyline = {material: {
+            entity.polyline = {material: {
                 color: "RED"
             }};
-            entityList[0].wasDrawn = true;
+            entity.wasDrawn = true;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
             await wrapper.vm.$nextTick();
-            store.commit("Tools/Modeler3D/setWasDrawn", true);
             store.commit("Tools/Modeler3D/setIsDragging", true);
 
-            wrapper.vm.highlightEntity(entityList[0]);
-            expect(entityList[0].originalColor).to.eql(entityList[0].polyline.material.color);
-            expect(entityList[0].polyline.material.color).to.eql(
+            wrapper.vm.highlightEntity(entity);
+            expect(entity.originalColor).to.eql(entity.polyline.material.color);
+            expect(entity.polyline.material.color).to.eql(
                 global.Cesium.Color.fromAlpha(global.Cesium.Color.fromCssColorString("RED"), parseFloat(1.0))
             );
         });
@@ -587,6 +652,33 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
                 y: 659341.4057539968,
                 z: 5107613.232959453
             });
+        });
+
+        it("should undo the last non-drawn entity movement when CTRL+Z is pressed", (done) => {
+            entities.values.push({id: "TestModel", position: {x: 200, y: 300, z: 400}});
+
+            wrapper.vm.applyEntityMovement({entityId: "TestModel", position: {x: 100, y: 200, z: 300}});
+
+            setTimeout(() => {
+                const entity = entities.getById("TestModel");
+
+                expect(entity.position).to.eql({x: 100, y: 200, z: 300});
+                done();
+            }, 10);
+        });
+
+        it("should redo the last undone non-drawn entity movement when CTRL+Y is pressed", (done) => {
+            entities.values.push({id: "TestModel", position: {x: 100, y: 200, z: 300}});
+            wrapper.vm.undonePosition = {entityId: "TestModel", position: {x: 200, y: 300, z: 400}};
+
+            wrapper.vm.applyEntityMovement(wrapper.vm.undonePosition);
+
+            setTimeout(() => {
+                const entity = entities.getById("TestModel");
+
+                expect(entity.position).to.eql({x: 200, y: 300, z: 400});
+                done();
+            }, 10);
         });
     });
 });
