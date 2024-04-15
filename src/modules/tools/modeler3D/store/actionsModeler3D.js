@@ -244,9 +244,10 @@ const actions = {
      * @param {object} positionObj - The position options to create the cylinder with
      * @returns {void}
     */
-    createCylinder ({commit, state}, {position = new Cesium.Cartesian3(), posIndex, length}) {
+    createCylinder ({commit, state}, {position = new Cesium.Cartesian3(), posIndex, length, entityId = state.currentModelId}) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             cylinder = entities.add({
+                attachedEntityId: entityId,
                 position: position,
                 positionIndex: posIndex,
                 cylinder: {
@@ -308,14 +309,14 @@ const actions = {
      * @param {object} moveOptions - Contains the polyline and new position it shall be moved to.
      * @returns {void}
     */
-    movePolyline ({state}, {entityId, position}) {
+    movePolyline ({state, getters}, {entityId, position}) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(entityId);
 
         if (entity?.polyline?.positions && position) {
             const positions = entity.polyline.positions.getValue(),
-                boundingSphereCenter = Cesium.BoundingSphere.fromPoints(positions).center,
-                positionDelta = Cesium.Cartesian3.subtract(position, boundingSphereCenter, new Cesium.Cartesian3());
+                center = getters.getCenterFromGeometry(entity),
+                positionDelta = Cesium.Cartesian3.subtract(position, center, new Cesium.Cartesian3());
 
             positions.forEach((pos, index) => {
                 Cesium.Cartesian3.add(pos, positionDelta, pos);
