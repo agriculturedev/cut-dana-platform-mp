@@ -7,6 +7,9 @@
 ### __Breaking Changes__
 
 ### Added
+- Modeler3D:
+  - Set points while drawing can be undone with CTRL + Z and redone with CTRL + Y
+  - The movement of objects can be undone with CTRL + Z and redone with CTRL + Y
 
 ### Changed
 - The following packages have been updated:
