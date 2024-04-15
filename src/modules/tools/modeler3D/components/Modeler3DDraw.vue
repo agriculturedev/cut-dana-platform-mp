@@ -171,7 +171,7 @@ export default {
             this.activeShapePoints.push(this.currentPosition);
         },
         /**
-         * Called on CTRL + Y/Z. Deletes the last set geometry position.
+         * Called on CTRL + Z. Deletes the last set geometry position.
          * When no positions were set, the function is escaped to avoid errors.
          * @returns {void}
          */
@@ -195,7 +195,7 @@ export default {
             this.activeShapePoints.splice(lastPositionIndex, 1);
         },
         /**
-         * Called on CTRL + Y/Z. Redoes the last undone geometry position.
+         * Called on CTRL + Y. Redoes the last undone geometry position.
          * When no positions were undone, the function is escaped to avoid errors.
          * @returns {void}
          */

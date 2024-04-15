@@ -3,7 +3,7 @@ import {generateSimpleGetters} from "../../../../app-store/utils/generators";
 import modeler3DState from "./stateModeler3D";
 import {convertSexagesimalFromDecimal, convertSexagesimalToDecimal} from "../../../../utils/convertSexagesimalCoordinates";
 
-const getters = {
+const getter = {
     ...generateSimpleGetters(modeler3DState),
 
     // NOTE overwrite getters here if you need a special behaviour in a getter
@@ -83,6 +83,8 @@ const getters = {
     },
     /**
      * Returns the center cartesian position of a given polygon
+     * @param {Object} state state of this tool
+     * @param {Object} getters getters of this tool
      * @param {Cesium.Entity} polygon the polygon
      * @returns {Cesium.Cartesian3} the Cartesian center position
      */
@@ -103,8 +105,8 @@ const getters = {
         }
 
         const center = positions.reduce(
-            (sum, position) => {
-                Cesium.Cartesian3.add(sum, position, sum);
+            (sum, point) => {
+                Cesium.Cartesian3.add(sum, point, sum);
                 return sum;
             },
             {x: 0, y: 0, z: 0}
@@ -121,4 +123,4 @@ const getters = {
     }
 };
 
-export default getters;
+export default getter;

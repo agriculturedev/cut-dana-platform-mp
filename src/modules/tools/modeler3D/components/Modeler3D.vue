@@ -30,7 +30,10 @@ export default {
             currentPosition: null,
             activeTabClass: "active",
             currentCartesian: null,
-            originalCursorStyle: null
+            originalCursorStyle: null,
+            originalPosition: null,
+            undonePosition: null,
+            lastAction: null
         };
     },
     computed: {
@@ -83,9 +86,11 @@ export default {
                 eventHandler.setInputAction(this.selectObject, Cesium.ScreenSpaceEventType.LEFT_CLICK);
                 eventHandler.setInputAction(this.moveEntity, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
                 eventHandler.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                document.addEventListener("keydown", this.catchUndoRedo);
             }
             else {
                 eventHandler.destroy();
+                document.removeEventListener("keydown", this.catchUndoRedo);
             }
         },
         /**
@@ -129,13 +134,13 @@ export default {
                 }
                 if (newEntity) {
                     if (newEntity.wasDrawn) {
+                        this.generateCylinders();
+
                         if (newEntity.polygon) {
-                            this.generateCylinders();
                             this.setActiveShapePoints(newEntity.polygon.hierarchy.getValue().positions);
                             newEntity.polygon.hierarchy = new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(this.activeShapePoints), false);
                         }
                         else if (newEntity.polyline) {
-                            this.generateCylinders();
                             this.setActiveShapePoints(newEntity.polyline.positions.getValue());
                             newEntity.polyline.positions = new Cesium.CallbackProperty(() => this.activeShapePoints);
                         }
@@ -303,13 +308,14 @@ export default {
                         position = geometry.polygon ? geometry.polygon.hierarchy.getValue().positions[entity.positionIndex] : geometry.polyline.positions.getValue()[entity.positionIndex];
 
                     this.currentPosition = position;
+                    this.originalPosition = {entityId: entity.positionIndex, attachedEntityId: entity.attachedEntityId, position};
 
                     entity.position = geometry.clampToGround ?
                         new Cesium.CallbackProperty(() => adaptCylinderToGround(entity, this.currentPosition), false) :
                         new Cesium.CallbackProperty(() => adaptCylinderToEntity(geometry, entity, this.currentPosition), false);
                     eventHandler.setInputAction(this.moveCylinder, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
                 }
-                else {
+                else if (entity?.wasDrawn) {
                     entities.values.filter(ent => ent.cylinder).forEach((cyl, index) => {
                         this.cylinderPosition[index] = cyl.position.getValue();
 
@@ -318,8 +324,15 @@ export default {
                             new Cesium.CallbackProperty(() => adaptCylinderToEntity(entity, cyl, this.cylinderPosition[index]), false);
                     });
 
+                    this.originalPosition = {entityId: entity.id, position: this.getCenterFromGeometry(entity)};
+
                     eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
                 }
+                else {
+                    this.originalPosition = entity ? {entityId: entity.id, position: entity.position.getValue()} : null;
+                    eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                }
+
                 eventHandler.setInputAction(this.onMouseUp, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
             }
         },
@@ -470,6 +483,85 @@ export default {
             this.setHideObjects(this.originalHideOption);
 
             document.body.style.cursor = "auto";
+        },
+        /**
+         * Called on every keypress to catch CTRL + Z/Y to undo or redo the last movement action.
+         * @param {Event} event keypress event
+         * @returns {void}
+         */
+        catchUndoRedo (event) {
+            if (event.ctrlKey && event.key === "z" && this.originalPosition) {
+                this.lastAction = "undo";
+                this.applyEntityMovement(this.originalPosition);
+                this.originalPosition = null;
+                event.preventDefault();
+            }
+            else if (event.ctrlKey && event.key === "y" && this.undonePosition) {
+                this.lastAction = "redo";
+                this.applyEntityMovement(this.undonePosition);
+                this.undonePosition = null;
+                event.preventDefault();
+            }
+        },
+        /**
+         * Applies the movement of an entity based on the provided object to redo or undo a movement command.
+         * @param {Object} entityObject - The object containing the entity ID and the new position.
+         * @returns {void}
+         */
+        applyEntityMovement (entityObject) {
+            if (!entityObject) {
+                return;
+            }
+
+            this.setCurrentModelId(entityObject.attachedEntityId ? entityObject.attachedEntityId : entityObject.entityId);
+
+            // setTimeout is needed to wait for the cylinders to be created, otherwise the wrong entity is returned
+            setTimeout(() => {
+                const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                    movedEntity = entityObject.attachedEntityId ? entities.values.find(val => val.positionIndex === entityObject.entityId) : entities.getById(entityObject.entityId);
+
+                if (!movedEntity) {
+                    return;
+                }
+
+                if (this.lastAction === "undo") {
+                    this.undonePosition = {entityId: movedEntity.id, position: movedEntity.wasDrawn ? this.getCenterFromGeometry(movedEntity) : movedEntity.position.getValue()};
+                }
+                else if (this.lastAction === "redo") {
+                    this.originalPosition = {entityId: movedEntity.id, position: movedEntity.wasDrawn ? this.getCenterFromGeometry(movedEntity) : movedEntity.position.getValue()};
+                }
+
+                if (movedEntity.cylinder) {
+                    const attachedEntity = entities.getById(entityObject.attachedEntityId);
+
+                    this.undonePosition.attachedEntityId = entityObject.attachedEntityId;
+
+                    movedEntity.position = attachedEntity.clampToGround ?
+                        adaptCylinderToGround(movedEntity, entityObject.position) :
+                        adaptCylinderToEntity(attachedEntity, movedEntity, entityObject.position);
+
+                    this.activeShapePoints.splice(movedEntity.positionIndex, 1, entityObject.position);
+                }
+                else if (movedEntity.wasDrawn) {
+                    const cylinders = entities.values.filter(ent => ent.cylinder);
+
+                    if (movedEntity.polygon) {
+                        this.movePolygon(entityObject);
+                    }
+                    else if (movedEntity.polyline) {
+                        this.movePolyline(entityObject);
+                    }
+
+                    cylinders.forEach((cyl) => {
+                        cyl.position = movedEntity?.clampToGround ?
+                            adaptCylinderToGround(cyl, this.cylinderPosition[cyl.positionIndex]) :
+                            adaptCylinderToEntity(movedEntity, cyl, this.cylinderPosition[cyl.positionIndex]);
+                    });
+                }
+                else {
+                    movedEntity.position = entityObject.position;
+                }
+            }, entityObject.attachedEntityId ? 200 : 0);
         },
         /**
          * Removes the input actions related to mouse move and left double click events.
