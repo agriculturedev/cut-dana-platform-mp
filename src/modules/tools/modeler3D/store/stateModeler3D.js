@@ -33,6 +33,8 @@
  * @property {Boolean}      isDrawing- true if drawing is active
  * @property {Boolean}      isLoading- true if loading of imported model is active
  * @property {String}       name - Module name
+ * @property {String}       newFillColor - selected fill color for drawn entity
+ * @property {String}       newStrokeColor - selected outline color for drawn entity
  * @property {Float}        opacity - selected opactiy for drawing model
  * @property {Boolean}      povActive- true if switch for pov view is active
  * @property {Object[]}     projections - all available projections
@@ -86,6 +88,8 @@ export default {
     isDrawing: false,
     isLoading: false,
     lineWidth: 2,
+    newFillColor: "",
+    newStrokeColor: "",
     opacity: 1,
     povActive: false,
     projections: [],

@@ -38,6 +38,11 @@ export default {
             type: Boolean,
             default: true,
             required: false
+        },
+        type: {
+            type: String,
+            default: "text",
+            required: false
         }
     },
     emits: ["input", "increment", "increment-shift", "decrement", "decrement-shift"]
@@ -52,6 +57,7 @@ export default {
         <label
             :class="widthClasses[0] + ' col-form-label'"
             :for="title + '-field'"
+            :style="type === 'color' ? 'pointer-events: none' : ''"
         >
             {{ label }}
         </label>
@@ -60,7 +66,7 @@ export default {
                 :id="title + '-field'"
                 class="form-control form-control-sm"
                 :class="{'position-input': buttons || keepHeight}"
-                type="text"
+                :type="type"
                 :disabled="disabled"
                 :value="value"
                 @input="$emit('input', $event.target.value)"

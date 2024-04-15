@@ -148,6 +148,7 @@ describe("Actions", () => {
     afterEach(() => {
         entity = undefined;
         sinon.restore();
+
     });
     describe("deleteEntity", () => {
         it("should delete the entity from list and entityCollection", () => {
@@ -686,6 +687,88 @@ describe("Actions", () => {
             actions.movePolygon({dispatch, getters, state}, {entityId: state.currentModelId, position});
 
             expect(dispatch.calledWith("transformFromCartesian", {x: 50, y: 50, z: 50})).to.be.true;
+        });
+    });
+
+    describe("editLayout", () => {
+        it("should edit polygon fill color", () => {
+            const state = {
+                currentModelId: 1,
+                newFillColor: "#ff0000"
+            };
+
+            entity = {
+                id: 1,
+                polygon: { },
+                originalColor: {red: 0, green: 0, blue: 0, alpha: 1}
+            };
+
+            global.Cesium = {
+                Color: {
+                    fromBytes: sinon.stub().returns({
+                        withAlpha: sinon.stub().returns({
+                            red: 1, green: 0, blue: 0, alpha: 1
+                        })
+                    })
+                },
+                ColorMaterialProperty:
+                    sinon.stub()
+            };
+
+            actions.editLayout({state}, "fillColor");
+
+            expect(entities.getById.calledWith(1)).to.be.true;
+            expect(entity.originalColor).eql({red: 1, green: 0, blue: 0, alpha: 1});
+        });
+        it("should edit polygon stroke color", () => {
+            const state = {
+                currentModelId: 1,
+                newStrokeColor: "#ff0000"
+            };
+
+            entity = {
+                id: 1,
+                polygon: { },
+                originalOutlineColor: {red: 0, green: 0, blue: 0}
+            };
+
+            global.Cesium = {
+                Color: {
+                    fromBytes: sinon.stub().returns({
+                        red: 1, green: 0, blue: 0
+                    })
+                }
+            };
+
+            actions.editLayout({state}, "strokeColor");
+
+            expect(entities.getById.calledWith(1)).to.be.true;
+            expect(entity.originalOutlineColor).eql({red: 1, green: 0, blue: 0});
+        });
+        it("should edit polyline stroke color", () => {
+            const state = {
+                currentModelId: 1,
+                newStrokeColor: "#ff0000"
+            };
+
+            entity = {
+                id: 1,
+                polyline: {material: {}},
+                originalColor: {red: 0, green: 0, blue: 0}
+            };
+
+            global.Cesium = {
+                Color: {
+                    fromBytes: sinon.stub().returns({
+                        red: 1, green: 0, blue: 0
+                    })
+                }
+            };
+
+            actions.editLayout({state}, "strokeColor");
+
+            expect(entities.getById.calledWith(1)).to.be.true;
+            expect(entity.originalColor).eql({red: 1, green: 0, blue: 0});
         });
     });
 });

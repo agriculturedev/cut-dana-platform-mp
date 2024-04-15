@@ -1,6 +1,7 @@
 import crs from "@masterportal/masterportalapi/src/crs";
 import store from "../../../../app-store";
 import {adaptCylinderToGround, adaptCylinderToEntity} from "../utils/draw";
+import {convertColor} from "../../../../utils/convertColor";
 
 const actions = {
     /**
@@ -323,6 +324,37 @@ const actions = {
                 Cesium.Cartesian3.add(pos, positionDelta, pos);
                 state.cylinderPosition[index] = pos;
             });
+        }
+    },
+    /**
+     * Edits the layout of the currently selected entity.
+     * @param {object} context - The context of the Vuex module.
+     * @param {String} keyword - The keyword defines which part of the layout is being edited.
+     * @returns {void}
+     */
+    editLayout ({state}, keyword) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            entity = entities?.getById(state.currentModelId);
+
+        if (keyword === "fillColor" && entity.polygon) {
+            const alpha = entity?.originalColor.alpha ? entity?.originalColor.alpha : entity?.originalColor.getValue().alpha,
+                newFillColor = Cesium.Color.fromBytes(...convertColor(state.newFillColor, "rgb")).withAlpha(alpha);
+
+            entity.polygon.material = new Cesium.ColorMaterialProperty(newFillColor);
+
+            entity.originalColor = newFillColor;
+        }
+        else if (keyword === "strokeColor") {
+            const newStrokeColor = Cesium.Color.fromBytes(...convertColor(state.newStrokeColor, "rgb"));
+
+            if (entity.polygon) {
+                entity.polygon.outlineColor = newStrokeColor;
+                entity.originalOutlineColor = newStrokeColor;
+            }
+            else if (entity.polyline) {
+                entity.polyline.material.color = newStrokeColor;
+                entity.originalColor = newStrokeColor;
+            }
         }
     }
 };

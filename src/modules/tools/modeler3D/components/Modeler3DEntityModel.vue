@@ -7,6 +7,8 @@ import EntityAttribute from "./ui/EntityAttribute.vue";
 import EntityAttributeSlider from "./ui/EntityAttributeSlider.vue";
 import {adaptCylinderToEntity, adaptCylinderToGround} from "../utils/draw";
 
+import {convertColor} from "../../../../utils/convertColor";
+
 export default {
     name: "Modeler3DEntityModel",
     components: {
@@ -41,6 +43,12 @@ export default {
                 entity = entities.getById(this.currentModelId);
 
             return Boolean(entity?.polyline && entity?.wasDrawn);
+        },
+        showFillColor: function () {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                entity = entities.getById(this.currentModelId);
+
+            return Boolean(entity?.polygon && entity?.wasDrawn);
         },
         /**
          * The rotation angle of the entity.
@@ -138,11 +146,40 @@ export default {
                 this.setHeight(this.formatCoord(value));
                 this.updateEntityPosition();
             }
+        },
+        editedFillColor: {
+            get () {
+                const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                    entity = entities?.getById(this.currentModelId),
+                    color = entity?.originalColor.getValue(),
+                    colorToByte = [Cesium.Color.floatToByte(color.red), Cesium.Color.floatToByte(color.green), Cesium.Color.floatToByte(color.blue)];
+
+                return convertColor(colorToByte, "hex");
+            },
+            set (value) {
+                this.setNewFillColor(value);
+                this.editLayout("fillColor");
+            }
+        },
+        editedStrokeColor: {
+            get () {
+                const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                    entity = entities?.getById(this.currentModelId),
+                    outlineColor = entity.polygon ? entity?.originalOutlineColor.getValue() : entity?.originalColor.getValue(),
+                    colorToByte = [Cesium.Color.floatToByte(outlineColor.red), Cesium.Color.floatToByte(outlineColor.green), Cesium.Color.floatToByte(outlineColor.blue)];
+
+                return convertColor(colorToByte, "hex");
+            },
+            set (value) {
+                this.setNewStrokeColor(value);
+                this.editLayout("strokeColor");
+            }
         }
     },
     methods: {
         ...mapActions("Tools/Modeler3D", Object.keys(actions)),
         ...mapMutations("Tools/Modeler3D", Object.keys(mutations)),
+        convertColor,
 
         /**
          * Called if selection of projection changed. Sets the current projection to state and updates the UI.
@@ -414,6 +451,28 @@ export default {
                 :width-classes="['col-md-8', 'col-md-4']"
                 @increment="lineWidthString = (lineWidth + 1).toFixed(2)"
                 @decrement="lineWidthString = (lineWidth - 1).toFixed(2)"
+            />
+        </div>
+        <div v-if="showFillColor">
+            <div class="h-seperator" />
+            <EntityAttribute
+                v-model="editedFillColor"
+                title="fill-color"
+                :label="$t('modules.tools.modeler3D.draw.captions.fillColor')"
+                :width-classes="['col-md-8', 'col-md-3']"
+                :buttons="false"
+                type="color"
+            />
+        </div>
+        <div v-if="wasDrawn">
+            <div class="h-seperator" />
+            <EntityAttribute
+                v-model="editedStrokeColor"
+                title="stroke-color"
+                :label="$t('modules.tools.modeler3D.draw.captions.strokeColor')"
+                :width-classes="['col-md-8', 'col-md-3']"
+                :buttons="false"
+                type="color"
             />
         </div>
         <div class="h-seperator" />

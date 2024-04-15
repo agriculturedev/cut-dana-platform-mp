@@ -58,11 +58,11 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
             },
             getCesiumScene: () => scene
         };
-
     let store,
         wrapper,
         origUpdateEntityPosition,
-        origUpdatePositionUI;
+        origUpdatePositionUI,
+        origEditLayout;
 
     beforeEach(() => {
         mapCollection.clear();
@@ -92,7 +92,8 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
                 headingPitchRollQuaternion: sinon.stub().returns(22)
             }
         };
-
+        origEditLayout = Modeler3D.actions.editLayout;
+        Modeler3D.actions.editLayout = sinon.spy();
         origUpdateEntityPosition = Modeler3D.actions.updateEntityPosition;
         origUpdatePositionUI = Modeler3D.actions.updatePositionUI;
         Modeler3D.actions.updateEntityPosition = sinon.spy();
@@ -140,6 +141,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
     afterEach(() => {
         Modeler3D.actions.updateEntityPosition = origUpdateEntityPosition;
         Modeler3D.actions.updatePositionUI = origUpdatePositionUI;
+        Modeler3D.actions.editLayout = origEditLayout;
         store.commit("Tools/Modeler3D/setCurrentProjection", {id: "http://www.opengis.net/gml/srs/epsg.xml#25832", name: "EPSG:25832", projName: "utm", epsg: "EPSG:25832"});
 
         sinon.restore();
@@ -274,6 +276,25 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
             expect(store.state.Tools.Modeler3D.extrudedHeight).to.eql(25);
             expect(entities.values[0].cylinder.length).to.eql(30);
             expect(entities.values[0].position).to.eql({x: 10, y: 20, z: 30});
+        });
+
+        it("updates the new fill color of the polygon", () => {
+            entity.originalColor = {red: 0, green: 0, blue: 0, alpha: 1};
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper.vm.editedFillColor = "#ff0000";
+
+            expect(store.state.Tools.Modeler3D.newFillColor).to.eql("#ff0000");
+            expect(Modeler3D.actions.editLayout.called).to.be.true;
+            expect(Modeler3D.actions.editLayout.firstCall.args[1]).to.eql("fillColor");
+        });
+
+        it("updates the new stroke color of the polygon", () => {
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper.vm.editedStrokeColor = "#ff0000";
+
+            expect(store.state.Tools.Modeler3D.newStrokeColor).to.eql("#ff0000");
+            expect(Modeler3D.actions.editLayout.called).to.be.true;
+            expect(Modeler3D.actions.editLayout.firstCall.args[1]).to.eql("strokeColor");
         });
 
         it("rotates the entity model based on input", () => {
