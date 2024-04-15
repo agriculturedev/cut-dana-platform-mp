@@ -735,6 +735,7 @@ The attribute overviewMap may be of type boolean or object. If of type boolean, 
 |baselayer|no|LayerId||_Deprecated in 3.0.0. Please use `layerId` instead._ Allows using a different layer for the overview map element. The value must be an id from the `services.json` used in the portal's `config.js` parameter `layerConf`.|
 |layerId|no|LayerId||Allows using a different layer for the overview map element. The value must be an id from the `services.json` used in the portal's `config.js` parameter `layerConf`.|
 |isInitOpen|no|Boolean|true|Defines whether the overview map is initially closed or opened.|
+|renderIn3d|no|Boolean|false|Defines whether the overview map is available in 3D mode.|
 
 **Example using type object overviewMap**
 

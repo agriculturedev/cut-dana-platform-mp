@@ -10,6 +10,7 @@
 - Modeler3D:
   - Set points while drawing can be undone with CTRL + Z and redone with CTRL + Y
   - The movement of objects can be undone with CTRL + Z and redone with CTRL + Y
+- New parameter `renderIn3d` for overviewMap. Enables the overviewMap in 3d mode.
 
 ### Changed
 - The following packages have been updated:

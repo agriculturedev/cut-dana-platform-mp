@@ -3,6 +3,7 @@ import mutations from "./mutationsControls";
 import attributions from "./attributions/store/indexAttributions";
 import backForward from "./backForward/store/indexBackForward";
 import orientation from "./orientation/store/indexOrientation";
+import overviewMap from "./overviewMap/store/indexOverviewMap";
 import AttributionsItem from "./attributions/components/AttributionsItem.vue";
 import BackForward from "./backForward/components/BackForward.vue";
 import FullScreen from "./fullScreen/components/FullScreen.vue";
@@ -25,7 +26,8 @@ export default {
     modules: {
         attributions,
         backForward,
-        orientation
+        orientation,
+        overviewMap
     },
     // initial state - information on all controls that are not addons.
     state: {

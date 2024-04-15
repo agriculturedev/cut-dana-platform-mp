@@ -10,7 +10,7 @@ import store from "../../../../app-store/index";
  * @param {?Number} resolution resolution to be set, if any @deprecated
  * @returns {module:ol/View} prepared view for overview map
  */
-export function getOverviewMapView (map, resolution) {
+function getOverviewMapView (map, resolution) {
     const view = map.getView();
 
     return new View({
@@ -24,7 +24,7 @@ export function getOverviewMapView (map, resolution) {
  * @param {String} id id of layer to use from services.json
  * @returns {?module:ol/layer/Image} image layer
  */
-export function getOverviewMapLayer (id) {
+function getOverviewMapLayer (id) {
     const layerId = id || getInitialVisibleBaseLayerId(),
         ovmLayer = layerId ? getOvmLayer(layerId) : null;
 
@@ -98,3 +98,8 @@ function getWmsParameters (model) {
         }
     };
 }
+
+export default {
+    getOverviewMapView,
+    getOverviewMapLayer
+};

@@ -12,6 +12,12 @@ import mutations from "../store/mutationsModeler3D";
 import crs from "@masterportal/masterportalapi/src/crs";
 import getGfiFeatures from "../../../../api/gfi/getGfiFeaturesByTileFeature";
 import {adaptCylinderToGround, adaptCylinderToEntity, adaptCylinderUnclamped} from "../utils/draw";
+import VectorLayer from "ol/layer/Vector.js";
+import VectorSource from "ol/source/Vector.js";
+import Feature from "ol/Feature.js";
+import {Point} from "ol/geom.js";
+import {Fill, Style, Circle} from "ol/style.js";
+
 
 let eventHandler = null;
 
@@ -159,6 +165,7 @@ export default {
         ...mapActions("Tools/Modeler3D", Object.keys(actions)),
         ...mapMutations("Tools/Modeler3D", Object.keys(mutations)),
         ...mapMutations("Tools/Gfi", {setGfiActive: "setActive"}),
+        ...mapMutations("controls/overviewMap/", ["setOverviewLayer"]),
 
         /**
          * Initializes the projections to select. If projection EPSG:4326 is available same is added in decimal-degree.
@@ -650,8 +657,24 @@ export default {
                 destination = new Cesium.Cartographic(
                     Cesium.Math.toRadians(transformedCoordinates[0]),
                     Cesium.Math.toRadians(transformedCoordinates[1])
-                );
+                ),
+                tmplayer = new VectorLayer({
+                    id: "overview-map-3d",
+                    name: "overview-map-3d",
+                    source: new VectorSource(),
+                    alwaysOnTop: true
+                }),
+                feature = new Feature({
+                    id: "newSipederDiperFeature",
+                    geometry: new Point(this.clickCoordinate)
+                });
 
+            feature.setStyle(new Style({
+                image: new Circle({
+                    radius: 5,
+                    fill: new Fill({color: "rgba(255,0,0, 1)"})
+                })
+            }));
             this.originalCursorStyle = document.body.style.cursor;
             this.currentCartesian = Cesium.Cartographic.toCartesian(currentPosition);
             destination.height = this.altitude + 1.80;
@@ -665,6 +688,9 @@ export default {
                 },
                 complete: () => {
                     document.body.style.cursor = "none";
+
+                    tmplayer.getSource().addFeature(feature);
+                    this.setOverviewLayer(tmplayer);
                 }
             });
             eventHandler.setInputAction((movement) => {
@@ -685,6 +711,7 @@ export default {
             }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             scene.screenSpaceCameraController.enableZoom = false;
             scene.screenSpaceCameraController.enableRotate = false;
+
             document.addEventListener("keydown", this.escapeKeyHandler);
         },
         /**
@@ -693,22 +720,24 @@ export default {
          * @returns {void}
          */
         escapeKeyHandler (e) {
+            if (e.code !== "Escape") {
+                return;
+            }
             const scene = mapCollection.getMap("3D").getCesiumScene();
 
-            if (e.code === "Escape") {
-                scene.camera.flyTo({
-                    destination: this.currentCartesian,
-                    complete: () => {
-                        scene.screenSpaceCameraController.enableZoom = true;
-                        scene.screenSpaceCameraController.enableRotate = true;
+            scene.camera.flyTo({
+                destination: this.currentCartesian,
+                complete: () => {
+                    scene.screenSpaceCameraController.enableZoom = true;
+                    scene.screenSpaceCameraController.enableRotate = true;
 
-                        eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-                        document.removeEventListener("keydown", this.escapeKeyHandler);
-                        document.body.style.cursor = this.originalCursorStyle;
-                        this.changeCursor();
-                    }
-                });
-            }
+                    eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                    document.removeEventListener("keydown", this.escapeKeyHandler);
+                    document.body.style.cursor = this.originalCursorStyle;
+                    this.changeCursor();
+                    this.setOverviewLayer(undefined);
+                }
+            });
         },
         resetPov () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;

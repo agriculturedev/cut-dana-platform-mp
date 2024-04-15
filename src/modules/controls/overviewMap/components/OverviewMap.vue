@@ -1,10 +1,11 @@
 <script>
 import {OverviewMap} from "ol/control.js";
-import {mapGetters} from "vuex";
-import {getOverviewMapLayer, getOverviewMapView} from "./utils";
+import {mapGetters, mapMutations} from "vuex";
+import utils from "./utils";
 import ControlIcon from "../../ControlIcon.vue";
 import TableStyleControl from "../../TableStyleControl.vue";
 import uiStyle from "../../../../utils/uiStyle";
+import isObject from "../../../../utils/isObject";
 
 /**
  * Overview control that shows a mini-map to support a user's
@@ -37,6 +38,10 @@ export default {
         isInitOpen: {
             type: Boolean,
             default: true
+        },
+        renderIn3d: {
+            type: Boolean,
+            default: false
         }
     },
     data: function () {
@@ -49,6 +54,7 @@ export default {
     computed: {
         ...mapGetters(["uiStyle"]),
         ...mapGetters("Maps", ["mode"]),
+        ...mapGetters("controls/overviewMap", ["overviewLayer"]),
 
         component () {
             return uiStyle.getUiStyle() === "TABLE" ? TableStyleControl : ControlIcon;
@@ -61,41 +67,99 @@ export default {
         /**
          * Checks the mapMode for 2D or 3D.
          * @param {Boolean} value mode of the map
+         * @param {Boolean} oldValue old mode of the map
          * @returns {void}
          */
-        mode (value) {
-            this.visibleInMapMode = value !== "3D";
+        mode (value, oldValue) {
+            if (oldValue === "3D" && value === "2D" && this.renderIn3d) {
+                const {baseLayer, baseView} = this.prepareOverViewMap(this.layerId || this.baselayer);
+
+                this.createOverViewMap(baseLayer, baseView);
+            }
+            this.visibleInMapMode = value !== "3D" || this.renderIn3d;
+        },
+
+        /**
+         * Watch for changes on the layer state of the overviewMap.
+         * @param {ol/Layer} layer The ol layer.
+         * @returns {void}
+         */
+        overviewLayer (layer) {
+            const {baseLayer, baseView} = this.prepareOverViewMap(this.layerId || this.baselayer);
+
+            this.createOverViewMap(baseLayer, baseView, layer);
         }
     },
     created () {
         this.checkModeVisibility();
     },
     mounted () {
-        const id = this.layerId || this.baselayer,
-            layer = getOverviewMapLayer(id),
-            map = mapCollection.getMap("2D"),
-            view = getOverviewMapView(map, this.resolution);
+        const {baseLayer, baseView} = this.prepareOverViewMap(this.layerId || this.baselayer);
 
-        // try to display overviewMap layer in all available resolutions
-        layer.setMaxResolution(view.getMaxResolution());
-        layer.setMinResolution(view.getMinResolution());
+        this.createOverViewMap(baseLayer, baseView);
+    },
+    methods: {
+        ...mapMutations("controls/overviewMap", ["setZoomLevel"]),
+        /**
+         * Prepares the layer for the overviewMap.
+         * @param {Number|String} layerId The layer id for the overviewMap.
+         * @param {ol/Layer} additionalLayer A layer which should be displayed on top of the base overview layer.
+         * @returns {Object} the prepared baseLayer and baseView.
+         */
+        prepareOverViewMap (layerId, additionalLayer) {
+            if (typeof layerId !== "number" && typeof layerId !== "string") {
+                return {};
+            }
+            const baseLayer = utils.getOverviewMapLayer(layerId),
+                map = this.mode === "3D" ? mapCollection.getMap(this.mode).getOlMap() : mapCollection.getMap(this.mode),
+                baseView = utils.getOverviewMapView(map, this.resolution);
 
-        if (layer) {
+            // try to display overviewMap layer in all available resolutions
+            baseLayer.setMaxResolution(baseView.getMaxResolution());
+            baseLayer.setMinResolution(baseView.getMinResolution());
+            if (additionalLayer) {
+                additionalLayer.setMaxResolution(baseView.getMaxResolution());
+                additionalLayer.setMinResolution(baseView.getMinResolution());
+            }
+
+            return {
+                baseLayer,
+                baseView
+            };
+        },
+        /**
+         * Creates an overview map and removes existing one.
+         * @param {ol/Layer} baseLayer The base layer for the overview map.
+         * @param {ol/View} baseView The view of the base layer.
+         * @param {ol/Layer} additionalLayer A layer which should be displayed on top of the base overview layer.
+         * @returns {void}
+         */
+        createOverViewMap (baseLayer, baseView, additionalLayer) {
+            if (!isObject(baseLayer) || !isObject(baseView)) {
+                return;
+            }
+
+            if (this.overviewMap) {
+                mapCollection.getMap("2D").removeControl(this.overviewMap);
+            }
+
             this.overviewMap = new OverviewMap({
-                layers: [layer],
-                view,
-                collapsible: false,
+                layers: additionalLayer ? [baseLayer, additionalLayer] : [baseLayer],
+                view: baseView,
+                collapsible: true,
+                collapsed: false,
                 // OverviewMap can only be produced in "mounted" when "target" is available already
                 target: "overviewmap-wrapper"
             });
-        }
 
-        // if initially open, add control now that available
-        if (this.open && this.overviewMap !== null) {
-            map.addControl(this.overviewMap);
-        }
-    },
-    methods: {
+            // if initially open, add control now that available
+            if (this.open && this.overviewMap !== null) {
+                mapCollection.getMap("2D").addControl(this.overviewMap);
+                if (document.getElementsByClassName("ol-overviewmap-box")[0]) {
+                    document.getElementsByClassName("ol-overviewmap-box")[0].style.display = additionalLayer ? "none" : "";
+                }
+            }
+        },
         /**
          * Toggles the visibility of the mini-map.
          * @returns {void}
@@ -111,7 +175,7 @@ export default {
          * @returns {void}
          */
         checkModeVisibility () {
-            this.visibleInMapMode = this.mode !== "3D";
+            this.visibleInMapMode = this.mode !== "3D" || this.renderIn3d;
         }
     }
 };
