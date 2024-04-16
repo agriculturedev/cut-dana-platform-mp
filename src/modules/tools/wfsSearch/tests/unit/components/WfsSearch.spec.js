@@ -19,6 +19,8 @@ describe("src/modules/tools/wfsSearch/components/WfsSearch.vue", () => {
         store,
         placingPointMarkerSpy,
         placingPolygonMarkerSpy,
+        removePolygonMarkerSpy,
+        resetResult,
         setCenterSpy,
         setZoomLevelSpy,
         zoomToExtentSpy;
@@ -35,6 +37,8 @@ describe("src/modules/tools/wfsSearch/components/WfsSearch.vue", () => {
 
         placingPointMarkerSpy = sinon.spy();
         placingPolygonMarkerSpy = sinon.spy();
+        removePolygonMarkerSpy = sinon.spy();
+        resetResult = sinon.spy();
         setCenterSpy = sinon.spy();
         setZoomLevelSpy = sinon.spy();
         zoomToExtentSpy = sinon.spy();
@@ -59,7 +63,8 @@ describe("src/modules/tools/wfsSearch/components/WfsSearch.vue", () => {
                     actions: {
                         removePointMarker: sinon.stub(),
                         placingPointMarker: placingPointMarkerSpy,
-                        placingPolygonMarker: placingPolygonMarkerSpy
+                        placingPolygonMarker: placingPolygonMarkerSpy,
+                        removePolygonMarker: removePolygonMarkerSpy
                     }
                 },
                 Maps: {
@@ -155,6 +160,13 @@ describe("src/modules/tools/wfsSearch/components/WfsSearch.vue", () => {
 
         expect(resetButton.exists()).to.be.true;
         expect(resetButton.text()).to.equal("common:modules.tools.wfsSearch.resetButton");
+
+        it("resets the UI, if the button is clicked", () => {
+            expect(removePolygonMarkerSpy.calledOnce).to.be.true;
+            expect(wrapper.find("#tool-wfsSearch-field-input").exists()).to.be.true;
+            expect(wrapper.find("#tool-wfsSearch-field-input").exists()).to.equal("");
+            expect(resetResult.calledOnce).to.be.true;
+        });
     });
     it("renders an input element of type submit to search", () => {
         store.commit("Tools/WfsSearch/setInstances", instances);
