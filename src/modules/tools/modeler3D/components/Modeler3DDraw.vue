@@ -176,7 +176,7 @@ export default {
          * @returns {void}
          */
         undoGeometryPosition () {
-            if (!this.isDrawing || this.activeShapePoints.length < 1) {
+            if (!this.isDrawing || this.activeShapePoints.length <= 1) {
                 return;
             }
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,

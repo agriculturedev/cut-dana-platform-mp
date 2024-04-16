@@ -513,7 +513,7 @@ export default {
                 return;
             }
 
-            this.setCurrentModelId(entityObject.attachedEntityId ? entityObject.attachedEntityId : entityObject.entityId);
+            this.setCurrentModelId(entityObject.attachedEntityId || entityObject.entityId);
 
             // setTimeout is needed to wait for the cylinders to be created, otherwise the wrong entity is returned
             setTimeout(() => {
@@ -560,6 +560,10 @@ export default {
                 }
                 else {
                     movedEntity.position = entityObject.position;
+                }
+
+                if (this.isDragging) {
+                    this.onMouseUp();
                 }
             }, entityObject.attachedEntityId ? 200 : 0);
         },
