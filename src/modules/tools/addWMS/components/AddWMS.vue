@@ -206,13 +206,18 @@ export default {
                 });
             }
             else {
-                const datasets = [];
+                const datasets = [],
+                    metadataSource = object?.MetadataURL?.[0];
 
-                if (object?.MetadataURL?.[0].OnlineResource) {
+                if (metadataSource) {
+                    const {OnlineResource: csw_url} = metadataSource,
+                        md_id = new URLSearchParams(new URL(csw_url.toLowerCase()).search).get("id");
+
                     datasets.push({
                         customMetadata: true,
-                        csw_url: object.MetadataURL[0].OnlineResource,
-                        attributes: {}
+                        csw_url: csw_url,
+                        attributes: {},
+                        md_id: md_id
                     });
                 }
                 Radio.trigger("Parser", "addLayer", object.Title, this.getParsedTitle(object.Title), parentId, level, object.Name, this.wmsUrl, this.version, {

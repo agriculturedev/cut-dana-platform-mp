@@ -51,6 +51,8 @@
 
 ### Fixed
 - Issue #1174: Draw: the outer outline color of the double circle is drawn as selected.
+- addWMS:
+  - Now displays metadata correctly when adding a WMS layer, if "cswId" is specified in the configuration.
 
 ---
 
