@@ -34,6 +34,8 @@
         - rbush-knn: 2.1.0 to 3.0.1
     - devDependencies:
         - @geoblocks/print: 0.7.4 to 0.7.8
+- The version of node was updated to `^16.13.2 || ^18.16.0 || ^20.12.2`.
+- The version of npm was updated to `^8.1.2 || ^9.5.1 || ^10.5.0`
 
 ### Deprecated
 
