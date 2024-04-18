@@ -736,6 +736,7 @@ The attribute overviewMap may be of type boolean or object. If of type boolean, 
 |layerId|no|LayerId||Allows using a different layer for the overview map element. The value must be an id from the `services.json` used in the portal's `config.js` parameter `layerConf`.|
 |isInitOpen|no|Boolean|true|Defines whether the overview map is initially closed or opened.|
 |renderIn3d|no|Boolean|false|Defines whether the overview map is available in 3D mode.|
+|boxBorderColor|no|String|"#E3E3E3"|Sets the border color of mini overview map box.|
 
 **Example using type object overviewMap**
 

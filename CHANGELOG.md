@@ -10,7 +10,9 @@
 - Modeler3D:
   - Set points while drawing can be undone with CTRL + Z and redone with CTRL + Y
   - The movement of objects can be undone with CTRL + Z and redone with CTRL + Y
-- New parameter `renderIn3d` for overviewMap. Enables the overviewMap in 3d mode.
+- overviewMap:
+  - Adds New parameter `renderIn3d` for overviewMap. Enables the overviewMap in 3d mode.
+  - Adds New parameter `boxBorderColor` for overviewMap. Enables to configure the border color of mini overview map box.
 - WFST-Tool: Added WFS-T improvements
   - correct transactionFeature properties order
   - input validation

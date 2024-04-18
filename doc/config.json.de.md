@@ -702,6 +702,7 @@ Das Attribut overviewMap kann vom Typ Boolean oder Object sein. Wenn es vom Typ 
 |layerId|nein|LayerId||Über den Parameter layerId kann ein anderer Layer für die Overviewmap verwendet werden. Hier muss eine Id aus der services.json angegeben werden die in der config.js des Portals, im Parameter layerConf steht.|
 |isInitOpen|nein|Boolean|true|Legt fest, ob die OverviewMap beim Start dargestellt oder verborgen sein soll.|
 |renderIn3d|nein|Boolean|false|Legt fest, ob die OverviewMap im 3D Modus vefügbar ist.|
+|boxBorderColor|nein|String|"#E3E3E3"|Legt die Farbe des Rahmens der mini OverviewMap-Box fest.|
 
 **Beispiel overviewmap als Object:**
 ```

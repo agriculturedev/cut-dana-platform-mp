@@ -42,6 +42,10 @@ export default {
         renderIn3d: {
             type: Boolean,
             default: false
+        },
+        boxBorderColor: {
+            type: String,
+            default: "#{$light_grey}"
         }
     },
     data: function () {
@@ -201,42 +205,45 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-    /* .ol-overviewmap has fixed height in openlayers css;
-     * measured this value for 12px space between control contents */
-    .space-above {
-        margin-top: 136px;
-    }
+/* .ol-overviewmap has fixed height in openlayers css;
+ * measured this value for 12px space between control contents */
+.space-above {
+    margin-top: 136px;
+}
 </style>
 
 <style lang="scss">
-    /* ⚠️ unscoped css, extend with care;
-     * control (.ol-overviewmap) is out of scope;
-     * overriding with global rule that avoids leaks
-     * by using local id #overviewmap-wrapper */
+/* ⚠️ unscoped css, extend with care;
+ * control (.ol-overviewmap) is out of scope;
+ * overriding with global rule that avoids leaks
+ * by using local id #overviewmap-wrapper */
 
-    @import "~variables";
-    $box-shadow: 0 6px 12px $shadow;
+@import "~variables";
 
-    #overviewmap-wrapper {
-        position: relative;
+$box-shadow: 0 6px 12px $shadow;
 
-        .ol-overviewmap {
-            left: auto;
-            right: 100%;
+#overviewmap-wrapper {
+    position: relative;
+
+    .ol-overviewmap {
+        left: auto;
+        right: 100%;
+        box-shadow: $box-shadow;
+        border: 0;
+
+        .ol-overviewmap-box {
+            border: 2px solid;
+            border-color: v-bind(boxBorderColor);
+        }
+
+        .ol-overviewmap-map {
             box-shadow: $box-shadow;
-            border: 0;
-
-            .ol-overviewmap-box {
-                border: 2px solid $light_grey;
-            }
-
-            .ol-overviewmap-map {
-                box-shadow: $box-shadow;
-                width: 200px;
-            }
+            width: 200px;
         }
     }
-    .hideButton {
-        display: none;
-    }
+}
+
+.hideButton {
+    display: none;
+}
 </style>
