@@ -28,7 +28,9 @@ export default {
             labelId: null,
             lastAddedPosition: null,
             dimensions: true,
-            areaLabelId: null
+            areaLabelId: null,
+            labelList: [],
+            undoneLabelInfo: null
         };
     },
     computed: {
@@ -77,10 +79,12 @@ export default {
         catchUndoRedo (event) {
             if (event.ctrlKey && event.key === "z") {
                 this.undoGeometryPosition();
+                this.undoLabelPosition();
                 event.preventDefault();
             }
             else if (event.ctrlKey && event.key === "y") {
                 this.redoGeometryPosition();
+                this.redoLabelPosition();
                 event.preventDefault();
             }
         },
@@ -129,7 +133,7 @@ export default {
                     const shape = entities.getById(this.shapeId),
                         labelId = entities.getById(this.areaLabelId);
 
-                    if (shape?.polygon) {
+                    if (shape?.polygon && this.labelList.length !== 0) {
                         this.calculateDistances();
                         const area = calculatePolygonArea(shape);
 
@@ -171,6 +175,7 @@ export default {
             }
             entity = entities.getById(this.shapeId);
             this.addLabel("distance");
+            this.labelList.push(entities.getById(this.labelId));
 
             if (this.clampToGround) {
                 floatingPoint.position = adaptCylinderToGround(floatingPoint, this.currentPosition);
@@ -239,6 +244,59 @@ export default {
             this.undonePointInfo = null;
         },
         /**
+         * Called on CTRL + Z and deletes the last label position, if dimensions is true.
+         * @returns {void}
+         */
+        undoLabelPosition () {
+            if (!this.isDrawing || this.labelList.length < 1 || !this.dimensions) {
+                return;
+            }
+
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                lastLabelPositionIndex = this.labelList.length === 1 ? this.labelList.length - 1 : this.labelList.length - 2,
+                lastLabel = this.labelList[lastLabelPositionIndex]?.id,
+                areaLabel = entities.values.find(lab => lab.id === this.areaLabelId),
+                currentLabel = entities.values.find(lab => lab.id === lastLabel);
+
+            this.undoneLabelInfo = {
+                position: this.labelList[lastLabelPositionIndex].position,
+                text: this.labelList[lastLabelPositionIndex].label.text
+            };
+
+            if (this.labelList.length === 1) {
+                entities.remove(currentLabel);
+                areaLabel.label.show = false;
+            }
+            entities.remove(currentLabel);
+
+            this.labelList.splice(lastLabelPositionIndex, 1);
+        },
+        /**
+         * Called on CTRL + Y and redoes the last undone label, if dimensions is true.
+         * @returns {void}
+         */
+        redoLabelPosition () {
+            if (!this.isDrawing || !this.undoneLabelInfo || !this.dimensions) {
+                return;
+            }
+
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                undoneLabelPositionIndex = this.labelList.length === 0 ? null : this.labelList.length - 1,
+                lastLabel = this.labelList.length === 0 ? null : this.labelList[undoneLabelPositionIndex]?.id,
+                currentLabel = this.labelList.length === 0 ? null : entities.values.find(lab => lab?.id === lastLabel),
+                areaLabel = entities.values.find(lab => lab.id === this.areaLabelId);
+
+            this.addLabel("distance", this.undoneLabelInfo);
+            if (this.labelList.length === 0) {
+                areaLabel.label.show = true;
+                areaLabel.label.text = "0 m²";
+            }
+
+            this.labelList.splice(undoneLabelPositionIndex, 0, entities.getById(this.labelId));
+            this.labelId = currentLabel !== null ? currentLabel.id : this.labelId;
+            this.undoneLabelInfo = null;
+        },
+        /**
          * Called on mouse rightclick. Completes the polygon when there are at least 3 corners or deletes it when it has less.
          * @returns {void}
          */
@@ -265,6 +323,7 @@ export default {
             this.setActiveShapePoints([]);
             this.removeCylinders();
             this.removeLabel();
+            this.labelList = [];
             this.currentPosition = null;
             this.shapeId = null;
             this.setIsDrawing(false);
@@ -462,9 +521,10 @@ export default {
         /**
          * Creates the label in the EntityCollection depending on "distance" or "area" type.
          * @param {String} type - label type can be "distance" or "area".
+         * @param {Object} labelInfo - set specific text and position. Default is false.
          * @returns {void}
          */
-        addLabel (type) {
+        addLabel (type, labelInfo = false) {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 lastElement = entities.values.filter(ent => !ent.cylinder).pop(),
                 lastId = lastElement ? lastElement.id : undefined,
@@ -473,10 +533,10 @@ export default {
 
             if (type === "distance") {
                 label = {
-                    position: this.currentPosition,
+                    position: !labelInfo ? this.currentPosition : labelInfo.position,
                     id: labelId,
                     label: {
-                        text: "text",
+                        text: !labelInfo ? "text" : labelInfo.text,
                         wasDrawn: true,
                         fillColor: Cesium.Color.BLACK,
                         font: "10px",
@@ -484,7 +544,7 @@ export default {
                         backgroundColor: Cesium.Color.fromCssColorString("#DCE2F3"),
                         style: Cesium.LabelStyle.FILL,
                         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        show: false
+                        show: !labelInfo ? false : this.dimensions
                     }
                 };
                 entities.add(label);

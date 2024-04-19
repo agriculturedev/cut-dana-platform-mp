@@ -341,6 +341,89 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             expect(wrapper.vm.activeShapePoints[2]).to.eql({x: 300, y: 400, z: 500});
         });
 
+        it("should undo the last label when CTRL+Z is pressed", async () => {
+            store.commit("Tools/Modeler3D/setIsDrawing", true);
+            const mockLabel1 =
+                {
+                    position: {x: 100, y: 200, z: 300},
+                    id: "2",
+                    label: {
+                        text: "text1",
+                        show: false
+                    }
+                },
+                mockLabel2 =
+                {
+                    position: {x: 400, y: 500, z: 300},
+                    id: "3",
+                    label: {
+                        text: "text2",
+                        show: false
+                    }
+                },
+                mockLabel3 =
+                {
+                    position: {x: 400, y: 500, z: 300},
+                    id: "4",
+                    label: {
+                        text: "text3",
+                        show: false
+                    }
+                };
+
+            entities.values.push(mockLabel1, mockLabel2, mockLabel3);
+            await wrapper.setData({labelList: [mockLabel1, mockLabel2, mockLabel3]});
+            await wrapper.setData({dimensions: true});
+            wrapper.vm.undoLabelPosition();
+            wrapper.vm.$nextTick();
+
+            expect(wrapper.vm.labelList).to.have.lengthOf(2);
+            expect(entities.values).to.have.lengthOf(3);
+            expect(entities.values[2].id).to.equal("4");
+        });
+
+        it("should redo the last label when CTRL+Y is pressed", async () => {
+            store.commit("Tools/Modeler3D/setIsDrawing", true);
+            const mockLabel1 =
+                {
+                    position: {x: 100, y: 200, z: 300},
+                    id: "2",
+                    label: {
+                        text: "text1",
+                        show: false
+                    }
+                },
+                mockLabel2 =
+                {
+                    position: {x: 400, y: 500, z: 300},
+                    id: "3",
+                    label: {
+                        text: "text2",
+                        show: false
+                    }
+                },
+                mockLabel3 =
+                {
+                    position: {x: 400, y: 500, z: 300},
+                    id: "4",
+                    label: {
+                        text: "text3",
+                        show: false
+                    }
+                };
+
+            entities.values.push(mockLabel1, mockLabel2, mockLabel3);
+            await wrapper.setData({labelList: [mockLabel1, mockLabel2, mockLabel3]});
+            await wrapper.setData({dimensions: true});
+            wrapper.vm.undoLabelPosition();
+            wrapper.vm.$nextTick();
+            wrapper.vm.redoLabelPosition();
+            wrapper.vm.$nextTick();
+
+            expect(wrapper.vm.labelList).to.have.lengthOf(3);
+            expect(entities.values[2].position).to.deep.equal({x: 400, y: 500, z: 300});
+        });
+
         it("should export the GeoJson", () => {
             entities.values = [
                 {
