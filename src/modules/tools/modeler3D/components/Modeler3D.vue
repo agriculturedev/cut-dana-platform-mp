@@ -714,15 +714,15 @@ export default {
             scene.screenSpaceCameraController.enableZoom = false;
             scene.screenSpaceCameraController.enableRotate = false;
 
-            document.addEventListener("keydown", this.escapeKeyHandler);
+            document.addEventListener("keydown", this.escapePedView);
         },
         /**
-         * Handles the Escape key press to reset the camera perspective.
-         * @param {KeyboardEvent} e - The event object for the keyboard event.
+         * Reset the camera perspective.
+         * @param {KeyboardEvent} e - The event object for the keyboard event or undefined.
          * @returns {void}
          */
-        escapeKeyHandler (e) {
-            if (e.code !== "Escape") {
+        escapePedView (e) {
+            if (typeof e !== "undefined" && e.code !== "Escape") {
                 return;
             }
             const scene = mapCollection.getMap("3D").getCesiumScene();
@@ -734,7 +734,7 @@ export default {
                     scene.screenSpaceCameraController.enableRotate = true;
 
                     eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-                    document.removeEventListener("keydown", this.escapeKeyHandler);
+                    document.removeEventListener("keydown", this.escapePedView);
                     document.body.style.cursor = this.originalCursorStyle;
                     this.changeCursor();
                     this.setOverviewLayer(undefined);
@@ -763,6 +763,7 @@ export default {
             if (id === "povActiveSwitch") {
                 if (this.povActive) {
                     this.resetPov();
+                    this.escapePedView(undefined);
                 }
                 else {
                     this.setPovActive(true);
