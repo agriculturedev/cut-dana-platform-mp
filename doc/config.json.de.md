@@ -3483,6 +3483,7 @@ Das ShadowTool bietet eine Oberfläche zur Definition einer Zeitangabe. Über Sl
 |Name|Verpflichtend|Typ|Default|Beschreibung|Expert|
 |----|-------------|---|-------|------------|------|
 |name|ja|String|"translate#common:menu.tools.statisticDashboard"|Der Name des StatisticDashboard Werkzeug.|false|
+|subtitle|nein|String|"common:modules.tools.statisticDashboard.headings.mrhstatistics"|Der Untertitle zu zeigen|false|
 |icon|nein|String|"bi-speedometer"|Das Icon des Tools.|false|
 |colorScheme|ja|**[colorScheme](#markdown-header-portalconfigmenutoolstatisticDashboardcolorScheme)**|""|Definiert die Farben der Features in statisticdashboard.|false|
 |active|nein|Boolean|false|Wenn `true`, wird das Tool nach der Initialisierung des Portals geöffnet.|false|
@@ -3493,6 +3494,7 @@ Das ShadowTool bietet eine Oberfläche zur Definition einer Zeitangabe. Über Sl
 ```json
 {
     "name": "translate#common:menu.tools.statisticDashboard",
+    "subtitle": "common:modules.tools.statisticDashboard.headings.mrhstatistics",
     "icon": "bi-speedometer",
     "colorScheme": {
         "referenceRegion": [155, 155, 155, 0.7],

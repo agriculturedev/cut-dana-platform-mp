@@ -3540,6 +3540,7 @@ The shadow tool provides a UI element to define a point in time by using sliders
 |Name|Required|Type|Default|Description|Expert|
 |----|--------|----|-------|-----------|------|
 |name|yes|String|"translate#common:menu.tools.statisticDashboard"|The Name of the Tool.|false|
+|subtitle|no|String|"common:modules.tools.statisticDashboard.headings.mrhstatistics"|The subtitle to display|false|
 |icon|no|String|"bi-speedometer"|The icon of the Tool|false|
 |colorScheme|yes|**[colorScheme](#markdown-header-portalconfigmenutoolstatisticDashboardcolorScheme)**|""|Defines the colours of the features in statisticdashboard.|false|
 |active|no|Boolean|false|If `true`, the tool is open after initializing the portal.|false|
@@ -3550,6 +3551,7 @@ The shadow tool provides a UI element to define a point in time by using sliders
 ```json
 {
     "name": "translate#common:menu.tools.statisticDashboard",
+    "subtitle": "common:modules.tools.statisticDashboard.headings.mrhstatistics",
     "icon": "bi-speedometer",
     "colorScheme": {
         "referenceRegion": [155, 155, 155, 0.7],

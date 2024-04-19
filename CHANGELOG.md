@@ -17,6 +17,7 @@
   - correct transactionFeature properties order
   - input validation
   - gfiAttributes nested object handling
+- StatisticDashboard: New parameter subtitle to display the configurable subtitle
 
 ### Changed
 - Measure module:

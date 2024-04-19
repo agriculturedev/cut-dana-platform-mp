@@ -4,6 +4,7 @@
  * @property {Boolean} active If true, SaveSelection will be rendered.
  * @property {String} id Id of the Contact component.
  * @property {String} name Displayed as the title. (config-param)
+ * @property {String} subtitle Displayed as the subtitle. (config-param)
  * @property {String} icon Icon next to the title. (config-param)
  * @property {Boolean} renderToWindow If true, tool is rendered in a window, else in the sidebar. (config-param)
  * @property {Boolean} resizableWindow If true, window is resizable. (config-param)
@@ -18,6 +19,7 @@ const state = {
     active: false,
     id: "statisticDashboard",
     name: "common:modules.tools.StatisticDashboard.title",
+    subtitle: "common:modules.tools.statisticDashboard.headings.mrhstatistics",
     icon: "bi-speedometer",
     renderToWindow: false,
     resizableWindow: true,

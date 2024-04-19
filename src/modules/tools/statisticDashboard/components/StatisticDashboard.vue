@@ -872,7 +872,7 @@ export default {
             <div class="row justify-content-between">
                 <div class="col-md-12 d-flex align-items-center">
                     <h4 class="mb-0">
-                        {{ $t("common:modules.tools.statisticDashboard.headings.mrhstatistics") }}
+                        {{ $t(subtitle) }}
                     </h4>
                     <div
                         v-if="getMetadataLink()"
