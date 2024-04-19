@@ -689,33 +689,58 @@ export default {
                     heading: scene.camera.heading
                 },
                 complete: () => {
-                    document.body.style.cursor = "none";
-
                     tmplayer.getSource().addFeature(feature);
                     this.setOverviewLayer(tmplayer);
                 }
             });
-            eventHandler.setInputAction((movement) => {
-                const deltaY = -movement.endPosition.y + movement.startPosition.y,
-                    deltaX = movement.endPosition.x - movement.startPosition.x,
 
-                    sensitivity = 0.002,
-                    pitch = Cesium.Math.clamp(scene.camera.pitch + sensitivity * deltaY, -Cesium.Math.PI_OVER_TWO, Cesium.Math.PI_OVER_TWO),
-                    heading = scene.camera.heading + sensitivity * deltaX;
-
-                scene.camera.setView({
-                    orientation: {
-                        pitch: pitch,
-                        roll: 0,
-                        heading: heading
-                    }
-                });
-            }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+            this.movePovCamera(scene.camera);
             scene.screenSpaceCameraController.enableZoom = false;
             scene.screenSpaceCameraController.enableRotate = false;
 
             document.addEventListener("keydown", this.escapePedView);
         },
+
+        /**
+         * Use the mouse to move the camera to a pedestrian's point of view while holding down the left mouse button.
+         * @param {Cesium.Camera} camera - A cesium camera.
+         * @returns {void}
+         */
+        movePovCamera (camera) {
+            let startMousePosition,
+                mousePosition,
+                letUsMove;
+
+            eventHandler.setInputAction((movement) => {
+                letUsMove = true;
+                mousePosition = startMousePosition = Cesium.Cartesian3.clone(movement.position);
+            }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+
+            eventHandler.setInputAction(() => {
+                letUsMove = false;
+            }, Cesium.ScreenSpaceEventType.LEFT_UP);
+
+            eventHandler.setInputAction((movement) => {
+                if (letUsMove) {
+                    mousePosition = movement.endPosition;
+                    const deltaY = -mousePosition.y + startMousePosition.y,
+                        deltaX = mousePosition.x - startMousePosition.x,
+
+                        sensitivity = 0.002,
+                        pitch = Cesium.Math.clamp(camera.pitch + sensitivity * deltaY, -Cesium.Math.PI_OVER_TWO, Cesium.Math.PI_OVER_TWO),
+                        heading = camera.heading + sensitivity * deltaX;
+
+                    camera.setView({
+                        orientation: {
+                            pitch: pitch,
+                            roll: 0,
+                            heading: heading
+                        }
+                    });
+                }
+            }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+        },
+
         /**
          * Reset the camera perspective.
          * @param {KeyboardEvent} e - The event object for the keyboard event or undefined.

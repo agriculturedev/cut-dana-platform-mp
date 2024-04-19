@@ -728,7 +728,7 @@
                         "hideObjectInfo": "Existing buildings can be deactivated in their representation, allowing you to place imported elements on the corresponding property.<br><br>To activate this function, click Enable and click on the desired objects to deactivate them in the view.<br><br>All hidden objects appear in a list and can be reactivated there.",
                         "hideSwitchLabel": "Hide Buildings with Mouse Click",
                         "pov": "Jump to Pedestrian View",
-                        "povInfo": "Here you have the option to take the perspective of pedestrians and look around the city.<br><br>Navigate to the desired position. Once you set the cylinder on the map with a mouse click, you will enter the pedestrian view at that location.<br><br>You can change your field of view with mouse movements. To return to the starting position, press the Escape key (ESC).",
+                        "povInfo": "Here you have the option to take the perspective of pedestrians and look around the city.<br><br>Navigate to the desired position. Once you set the cylinder on the map with a mouse click, you will enter the pedestrian view at that location.<br><br>You can change your field of view by moving the mouse and holding down the left mouse button. To return to the starting position, press the Escape key (ESC).",
                         "povTitle": "Pedestrian Perspective",
                         "visibilityTitle": "Visibility Options"
                     }
