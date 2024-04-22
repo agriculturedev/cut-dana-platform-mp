@@ -20,6 +20,10 @@
 - StatisticDashboard: New parameter subtitle to display the configurable subtitle
 
 ### Changed
+- Modeler3D:
+  - Importers are now lazy loaded according to file type to enhance load times.
+  - GLB files can now be imported.
+  - Filesize limit has been removed.
 - Measure module:
   - 3d functions have been completely reworked.
 - The following packages have been updated:

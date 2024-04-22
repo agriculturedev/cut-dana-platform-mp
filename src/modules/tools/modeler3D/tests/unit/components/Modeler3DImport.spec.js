@@ -123,6 +123,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DImport.vue", () => {
         store.commit("Tools/Modeler3D/setActive", true);
         store.commit("Tools/Modeler3D/setIsLoading", false);
         store.commit("Tools/Modeler3D/setDrawnModels", []);
+        store.commit("Tools/Modeler3D/setImportedModels", []);
     });
 
     afterEach(() => {
@@ -140,25 +141,25 @@ describe("src/modules/tools/modeler3D/components/Modeler3DImport.vue", () => {
 
         expect(toolModeler3DImportWrapper.exists()).to.be.true;
     });
-    it("handles OBJ file correctly", () => {
+    it("handles OBJ file correctly", async () => {
         const fileContent = "dummy obj file content",
             fileName = "example.obj",
 
             objLoaderStub = sinon.stub(OBJLoader.prototype, "parse").returns(fileContent);
 
         wrapper = mount(Modeler3DImportComponent, {store, localVue});
-        wrapper.vm.handleObjFile(fileContent, fileName);
+        await wrapper.vm.handleObjFile(fileContent, fileName);
 
         expect(objLoaderStub.calledOnce).to.be.true;
     });
-    it("should handle DAE file correctly", () => {
+    it("should handle DAE file correctly", async () => {
         wrapper = mount(Modeler3DImportComponent, {store, localVue});
         const fileContent = "dummy dae file content",
             fileName = "example.dae",
 
-            colladaLoaderStub = sinon.stub(ColladaLoader.prototype, "load");
+            colladaLoaderStub = sinon.stub(ColladaLoader.prototype, "parse").returns(fileContent);
 
-        wrapper.vm.handleDaeFile(fileContent, fileName);
+        await wrapper.vm.handleDaeFile(fileContent, fileName);
         expect(colladaLoaderStub.calledOnce).to.be.true;
     });
     it("handles GeoJSON file correctly", () => {
@@ -193,22 +194,24 @@ describe("src/modules/tools/modeler3D/components/Modeler3DImport.vue", () => {
     });
     it("displays the list of successfully imported models", async () => {
         wrapper = mount(Modeler3DImportComponent, {store, localVue});
+        let importedModelList = null;
         const importedModels = [
-                {
-                    id: "1",
-                    name: "Model 1",
-                    show: true
-                },
-                {
-                    id: "2",
-                    name: "Model 2",
-                    show: true
-                }
-            ],
-            importedModelList = wrapper.find("#successfully-imported-models");
+            {
+                id: "1",
+                name: "Model 1",
+                show: true
+            },
+            {
+                id: "2",
+                name: "Model 2",
+                show: true
+            }
+        ];
 
         store.commit("Tools/Modeler3D/setImportedModels", importedModels);
         await wrapper.vm.$nextTick();
+
+        importedModelList = wrapper.find("#successfully-imported-models");
 
         expect(importedModelList.exists()).to.be.true;
     });

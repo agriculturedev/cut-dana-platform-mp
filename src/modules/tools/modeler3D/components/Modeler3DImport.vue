@@ -6,9 +6,6 @@ import {mapActions, mapGetters, mapMutations} from "vuex";
 import actions from "../store/actionsModeler3D";
 import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
-import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
-import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
-import {ColladaLoader} from "three/examples/jsm/loaders/ColladaLoader.js";
 import {GLTFExporter} from "three/examples/jsm/exporters/GLTFExporter.js";
 import store from "../../../../app-store";
 
@@ -36,21 +33,14 @@ export default {
             const reader = new FileReader(),
                 file = files[0],
                 fileName = file.name.split(".")[0],
-                fileExtension = file.name.split(".").pop(),
-                fileSizeMB = file.size / (1024 * 1024),
-                maxFileSizeMB = 100;
+                fileExtension = file.name.split(".").pop();
 
-            if (fileSizeMB > maxFileSizeMB) {
-                store.dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.modeler3D.import.alertingMessages.fileSizeError"), {root: true});
-                return;
-            }
+            this.setIsLoading(true);
 
-            if (fileExtension === "gltf") {
+            if (fileExtension === "gltf" || fileExtension === "glb") {
                 this.handleGltfFile(file, fileName);
                 return;
             }
-
-            this.setIsLoading(true);
 
             reader.onload = (event) => {
                 if (fileExtension === "obj") {
@@ -73,20 +63,15 @@ export default {
                 this.setIsLoading(false);
             };
 
-            if (fileExtension === "dae") {
-                reader.readAsDataURL(file);
-            }
-            else {
-                reader.readAsText(file);
-            }
+            reader.readAsText(file);
         },
         /**
-         * Handles the processing of GLTF content.
-         * @param {Blob} blob - The GLTF content.
+         * Creates an entity from the processed gltf or glb.
+         * @param {Blob} blob - The GLTF or glb content.
          * @param {String} fileName - The name of the file.
          * @returns {void}
          */
-        handleGltfFile (blob, fileName) {
+        async createEntity (blob, fileName) {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 lastElement = entities.values.slice().pop(),
                 lastId = lastElement?.id,
@@ -95,9 +80,9 @@ export default {
                     id: lastId ? lastId + 1 : 1,
                     name: fileName,
                     clampToGround: true,
-                    model: {
+                    model: new Cesium.ModelGraphics({
                         uri: URL.createObjectURL(blob)
-                    }
+                    })
                 });
 
             this.setCurrentModelId(entity.id);
@@ -116,22 +101,34 @@ export default {
             this.setIsLoading(false);
         },
         /**
+         * Handles the processing of GLTF or GLB content.
+         * @param {Blob} blob - The GLTF or GLB content.
+         * @param {String} fileName - The name of the file.
+         * @returns {void}
+         */
+        async handleGltfFile (blob, fileName) {
+            await this.createEntity(blob, fileName);
+        },
+        /**
          * Handles the processing of OBJ content.
          * @param {String} content - The OBJ content.
          * @param {String} fileName - The name of the file.
          * @returns {void}
          */
-        handleObjFile (content, fileName) {
-            const objLoader = new OBJLoader(),
+        async handleObjFile (content, fileName) {
+            const {OBJLoader} = await import("three/examples/jsm/loaders/OBJLoader.js"),
+                objLoader = new OBJLoader(),
                 objData = objLoader.parse(content),
                 gltfExporter = new GLTFExporter();
 
-            gltfExporter.parse(objData, (gltfData) => {
-                const gltfJson = JSON.stringify(gltfData),
-                    blob = new Blob([gltfJson], {type: "model/gltf+json"});
+            gltfExporter.parse(objData, async (model) => {
+                const blob = new Blob([model], {type: "model/gltf+json"});
 
-                this.handleGltfFile(blob, fileName);
-            });
+                await this.createEntity(blob, fileName);
+            }, (error) => {
+                console.error("Error exporting OBJ to GLTF:", error);
+                this.setIsLoading(false);
+            }, {binary: true});
         },
         /**
          * Handles the processing of a DAE file.
@@ -139,23 +136,20 @@ export default {
          * @param {String} fileName - The name of the file.
          * @returns {void}
          */
-        handleDaeFile (content, fileName) {
-            const colladaLoader = new ColladaLoader();
+        async handleDaeFile (content, fileName) {
+            const {ColladaLoader} = await import("three/examples/jsm/loaders/ColladaLoader.js"),
+                colladaLoader = new ColladaLoader(),
+                exporter = new GLTFExporter(),
+                collada = colladaLoader.parse(content);
 
-            colladaLoader.load(content, (collada) => {
-                const exporter = new GLTFExporter();
+            exporter.parse(collada.scene, async (gltfData) => {
+                const blob = new Blob([gltfData], {type: "model/gltf-binary"});
 
-                exporter.parse(collada.scene, (gltfData) => {
-                    const gltfLoader = new GLTFLoader();
-
-                    gltfLoader.parse(gltfData, "", () => {
-                        const gltfJson = JSON.stringify(gltfData),
-                            blob = new Blob([gltfJson], {type: "model/gltf+json"});
-
-                        this.handleGltfFile(blob, fileName);
-                    });
-                });
-            });
+                await this.createEntity(blob, fileName);
+            }, (error) => {
+                console.error("Error exporting DAE to GLTF:", error);
+                this.setIsLoading(false);
+            }, {binary: true});
         },
         /**
          * Handles the processing of GeoJSON content.
