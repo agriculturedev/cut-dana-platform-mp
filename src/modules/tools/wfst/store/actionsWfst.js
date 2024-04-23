@@ -7,6 +7,8 @@ import {getComponent} from "../../../../utils/getComponent";
 import loader from "../../../../utils/loaderOverlay";
 import getProxyUrl from "../../../../utils/getProxyUrl";
 import wfs from "@masterportal/masterportalapi/src/layer/wfs";
+import MultiPolygon from "ol/geom/MultiPolygon.js";
+import prepareMultiPolygonCoords from "../utils/prepareMultiPolygonCoords";
 
 let drawInteraction,
     drawLayer,
@@ -39,27 +41,25 @@ const actions = {
      * Prepares everything so that the user can interact with features or draw features
      * to be able to send a transaction to the service.
      *
-     * @param {("LineString"|"Point"|"Polygon"|"delete"|"update")} interaction Identifier of the selected interaction.
+     * @param {("LineString"|"Point"|"Polygon"|"MultiPolygon"|"delete"|"update")} interaction Identifier of the selected interaction.
      * @returns {void}
      */
     async prepareInteraction ({commit, dispatch, getters, rootGetters}, interaction) {
         dispatch("clearInteractions");
-        const {currentInteractionConfig, currentLayerId, currentLayerIndex, layerInformation, featureProperties, toggleLayer} = getters,
+        const {currentLayerId, currentLayerIndex, layerInformation, featureProperties, toggleLayer} = getters,
             // NOTE: As this is a rootGetter, the naming scheme is used like this.
             // eslint-disable-next-line new-cap
             sourceLayer = rootGetters["Maps/getLayerById"]({layerId: currentLayerId}),
             shouldValidateForm = featureProperties.find(featProp => featProp.type !== "geometry" && featProp.required);
 
-        if (interaction === "LineString" || interaction === "Point" || interaction === "Polygon") {
+        if (interaction === "LineString" || interaction === "Point" || interaction === "Polygon" || interaction === "MultiPolygon") {
             commit("setSelectedInteraction", "insert");
             drawLayer = await dispatch("Maps/addNewLayerIfNotExists", {layerName: "tool/wfsTransaction/vectorLayer"}, {root: true});
 
             const {style} = layerInformation[currentLayerIndex],
                 drawOptions = {
                     source: drawLayer.getSource(),
-                    // TODO: It would generally be really cool to be able to actually draw Multi-X geometries
-                    //  and not just have this as a fix for services only accepting Multi-X geometries
-                    type: (currentInteractionConfig[interaction].multi ? "Multi" : "") + interaction,
+                    type: interaction,
                     geometryName: featureProperties.find(({type}) => type === "geometry")?.key
                 };
 
@@ -92,7 +92,9 @@ const actions = {
                     }, {root: true});
                     return;
                 }
-                dispatch("Maps/removeInteraction", drawInteraction, {root: true});
+                if (interaction !== "MultiPolygon") {
+                    dispatch("Maps/removeInteraction", drawInteraction, {root: true});
+                }
                 dispatch("Maps/addInteraction", modifyInteraction, {root: true});
                 dispatch("Maps/addInteraction", translateInteraction, {root: true});
             });
@@ -120,7 +122,9 @@ const actions = {
                     condition: e => primaryAction(e) && platformModifierKeyOnly(e)
                 });
 
-                dispatch("Maps/removeInteraction", selectInteraction, {root: true});
+                if (event.target.getArray()?.[0]?.get("geom")?.getType() !== "MultiPolygon") {
+                    dispatch("Maps/removeInteraction", selectInteraction, {root: true});
+                }
                 dispatch("Maps/addInteraction", modifyInteraction, {root: true});
                 dispatch("Maps/addInteraction", translateInteraction, {root: true});
                 commit(
@@ -190,9 +194,13 @@ const actions = {
      */
     async save ({dispatch, getters}) {
         let featureWithProperties = null;
-        const feature = modifyFeature ? modifyFeature : drawLayer.getSource().getFeatures()[0],
+        const polygonFeature = modifyFeature ? modifyFeature : drawLayer.getSource().getFeatures()?.[0],
             {currentLayerIndex, featureProperties, layerInformation, selectedInteraction, layerIds} = getters,
-            error = getters.savingErrorMessage(feature),
+            error = getters.savingErrorMessage(polygonFeature),
+            multiPolygonFeatures = modifyFeature
+                ? modifyFeature
+                : drawLayer?.getSource()?.getFeatures().filter(feature => feature.getGeometry().getType() === "MultiPolygon"),
+            multiPolygonGeometry = new MultiPolygon([]),
             currentLayerId = layerIds[currentLayerIndex],
             geometryFeature = modifyFeature
                 ? Radio
@@ -201,7 +209,7 @@ const actions = {
                     .getSource()
                     .getFeatures()
                     .find((workFeature) => workFeature.getId() === modifyFeatureSaveId)
-                : feature;
+                : polygonFeature;
 
         if (error.length > 0) {
             dispatch("Alerting/addSingleAlert", {
@@ -213,11 +221,15 @@ const actions = {
             return;
         }
 
+        if (multiPolygonFeatures.length > 1) {
+            multiPolygonGeometry.setCoordinates(prepareMultiPolygonCoords(multiPolygonFeatures));
+        }
+
         featureWithProperties = await addFeaturePropertiesToFeature(
             {
-                id: feature.getId() || modifyFeatureSaveId,
-                geometryName: feature.getGeometryName(),
-                geometry: geometryFeature.getGeometry()
+                id: polygonFeature.getId() || modifyFeatureSaveId,
+                geometryName: polygonFeature.getGeometryName(),
+                geometry: multiPolygonFeatures.length > 1 ? multiPolygonGeometry : geometryFeature.getGeometry()
             },
             featureProperties,
             selectedInteraction === "selectedUpdate",

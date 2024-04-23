@@ -20,8 +20,8 @@ const getters = {
         let editUsed = false;
 
         // TODO: These iterations can be simplified as soon v3.0.0 is on the horizon
-        ["LineString", "Point", "Polygon", "edit", "update", "delete"].forEach(val => {
-            const isGeometryConfiguration = ["LineString", "Point", "Polygon"].includes(val);
+        ["LineString", "Point", "Polygon", "MultiPolygon", "edit", "update", "delete"].forEach(val => {
+            const isGeometryConfiguration = ["LineString", "Point", "Polygon", "MultiPolygon"].includes(val);
             let interactionConfiguration,
                 layerConfiguration = null;
 

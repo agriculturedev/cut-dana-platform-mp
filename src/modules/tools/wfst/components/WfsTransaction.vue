@@ -216,8 +216,8 @@ export default {
                                         :key="`${property.key}-input`"
                                         class="form-control"
                                         :class="{
-                                            'form-control__valid': property.valid === true,
-                                            'form-control__invalid': property.valid === false
+                                            'form-control__valid': property.required && property.valid === true,
+                                            'form-control__invalid': property.required && property.valid === false
                                         }"
                                         :step="property.type === 'decimal' ? getDecimalStep(property.type, property.value) : null"
                                         :title="property.required && !property.valid ? $t(`common:modules.tools.wfsTransaction.mandatoryInputError.${getInputType(property.type)}`): ''"

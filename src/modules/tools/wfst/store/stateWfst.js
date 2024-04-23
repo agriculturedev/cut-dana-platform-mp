@@ -52,6 +52,7 @@
  * @property {(ButtonConfig[]|Boolean)} lineButton Configuration of the different layers whether they should display the button to add lines.
  * @property {(ButtonConfig[]|Boolean)} pointButton Configuration of the different layers whether they should display the button to add points.
  * @property {(ButtonConfig[]|Boolean)} polygonButton Configuration of the different layers whether they should display the button to add polygons.
+ * @property {(ButtonConfig[]|Boolean)} multipolygonButton Configuration of the different layers whether they should display the button to add polygons.
  * @property {(ButtonConfig[]|Boolean)} update Whether the features of the WFS-T layers should be to be updated.
  * @property {Boolean} useProxy Whether a proxy should be used for requests. Deprecated in v3.0.0.
  * @property {Boolean} toggleLayer Whether the already added features should be displayed while inserting new features.
@@ -80,6 +81,7 @@ const state = {
     lineButton: [],
     pointButton: [],
     polygonButton: [],
+    multipolygonButton: [],
     useProxy: false,
     toggleLayer: false,
     // Actual state

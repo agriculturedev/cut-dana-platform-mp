@@ -1043,7 +1043,8 @@
                     "delete": "Geometrie löschen",
                     "line": "Linie erfassen",
                     "point": "Punkt erfassen",
-                    "polygon": "Fläche erfassen"
+                    "polygon": "Fläche erfassen",
+                    "multipolygon": "Flächen erfassen"
                 },
                 "error": {
                     "allLayersNotSelected": "Es wurde kein für dieses Werkzeug konfigurierter WFS-T Layer im Themenbaum aktiviert.",

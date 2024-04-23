@@ -1042,7 +1042,8 @@
                     "delete": "Delete geometry",
                     "line": "Add line",
                     "point": "Add point",
-                    "polygon": "Add area"
+                    "polygon": "Add area",
+                    "multipolygon": "Add areas"
                 },
                 "error": {
                     "allLayersNotSelected": "No for this tool configured WFS-T layer has been set to visible in the layer tree.",

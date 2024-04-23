@@ -17,6 +17,12 @@ export const defaultInteractionConfig = {
             multi: false,
             text: "common:modules.tools.wfsTransaction.interactionSelect.polygon"
         },
+        MultiPolygon: {
+            available: false,
+            icon: "bi-hexagon-fill",
+            multi: true,
+            text: "common:modules.tools.wfsTransaction.interactionSelect.multipolygon"
+        },
         update: {
             available: false,
             icon: "bi-pencil-square",
