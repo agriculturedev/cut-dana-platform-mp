@@ -811,4 +811,113 @@ describe("Actions", () => {
             expect(state.activeShapePoints[3]).to.eql({x: 10, y: 20, z: 30});
         });
     });
+
+    describe("rotateDrawnEntity", () => {
+        const result = [{x: 10, y: 20, z: 30}, {x: 10, y: 20, z: 30}, {x: 10, y: 20, z: 30}];
+        let commit, state, position, posIndex, length;
+
+        beforeEach(() => {
+            commit = sinon.spy();
+            state = {
+                currentModelId: 1,
+                drawRotation: 10,
+                cylinderId: null,
+                activeShapePoints: [{x: 10, y: 20, z: 30}, {x: 20, y: 30, z: 10}, {x: 30, y: 10, z: 20}]
+            };
+            position = {x: 10, y: 20, z: 30};
+            posIndex = 1;
+            length = 25;
+
+            entity = {
+                id: 1,
+                lastRotationAngle: 0
+            };
+
+            entities.values = [
+                {
+                    id: 1,
+                    cylinder: {length: {_value: 10}},
+                    positionIndex: 0
+                },
+                {
+                    id: 2,
+                    cylinder: {length: {_value: 10}},
+                    positionIndex: 1
+                },
+                {
+                    id: 3,
+                    cylinder: {length: {_value: 10}},
+                    positionIndex: 2
+                }
+            ];
+            entities.values.add = sinon.stub().returns({
+                id: "cylId",
+                position: position,
+                positionIndex: posIndex,
+                cylinder: {
+                    length: length
+                }
+            });
+
+            getters = {
+                getCenterFromGeometry: sinon.stub().returns({x: 50, y: 50, z: 50})
+            };
+
+            global.Cesium = {
+                Transforms: {
+                    eastNorthUpToFixedFrame: sinon.stub().returns()
+                },
+                Math: {
+                    toRadians: () => 10
+                },
+                Cartographic: {
+                    toCartesian: () => ({x: 10, y: 20, z: 30}),
+                    fromCartesian: () => ({longitude: 0.17443853256965697, latitude: 0.9346599366554966, height: 6.134088691520464})
+                },
+                Cartesian3: function () {
+                    return {
+                        x: 10,
+                        y: 20,
+                        z: 30
+                    };
+                },
+                Matrix4: function () {
+                    return {
+                        0: 1, 1: 0, 2: 0, 3: 0,
+                        4: 0, 5: 1, 6: 0, 7: 0,
+                        8: 0, 9: 0, 10: 1, 11: 0,
+                        12: 0, 13: 0, 14: 0, 15: 1
+                    };
+                },
+                PolygonHierarchy: function () {
+                    return {
+                        getValue: () => ({
+                            positions: [
+                                {x: 10, y: 20, z: 30},
+                                {x: 20, y: 30, z: 10},
+                                {x: 30, y: 10, z: 20}
+                            ]
+                        })
+                    };
+                }
+            };
+            global.Cesium.Matrix4.inverse = sinon.stub().returns(new Cesium.Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+            global.Cesium.Matrix4.multiplyByPoint = sinon.stub().returns({x: 10, y: 20, z: 30});
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+        it("should commit setActiveShapePoints", () => {
+            actions.rotateDrawnEntity({state, getters, commit});
+
+            expect(commit.calledWith("setActiveShapePoints", result)).to.be.true;
+        });
+
+        it("should set the lastRotationAngle", () => {
+            actions.rotateDrawnEntity({state, getters, commit});
+
+            expect(entity.lastRotationAngle).to.eql(10);
+        });
+    });
 });

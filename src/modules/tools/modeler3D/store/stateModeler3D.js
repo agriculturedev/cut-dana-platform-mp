@@ -14,6 +14,7 @@
  * @property {Object[]}     cylinderPosition - an array of all active cylinder positions
  * @property {Boolean}      deactivateGFI - if true, component activation deactivates gfi component
  * @property {String}       drawName name of drawing model
+ * @property {Number}       drawRotation angle of a selected drawn entity
  * @property {Object[]}     drawnModels - a list of currently active drawn models
  * @property {String[]}     drawTypes - an array of supported draw types
  * @property {Number}       extrudedHeight height in meters for drawing model
@@ -72,6 +73,7 @@ export default {
     drawName: "",
     drawnModels: [],
     drawModelTypes: ["rectangle"],
+    drawRotation: 0,
     drawTypes: ["line", "polygon", "rectangle"],
     extrudedHeight: 20,
     gmlIdPath: "gmlid",

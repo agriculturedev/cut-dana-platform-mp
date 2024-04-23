@@ -53,7 +53,7 @@ export default {
             return Boolean(entity?.polygon && entity?.wasDrawn);
         },
         /**
-         * The rotation angle of the entity.
+         * The rotation angle of the imported entity.
          * @type {string}
          * @name rotationString
          * @memberof Modeler3DEntityModel
@@ -175,6 +175,24 @@ export default {
             set (value) {
                 this.setNewStrokeColor(value);
                 this.editLayout("strokeColor");
+            }
+        },
+        drawRotationString: {
+            get () {
+                return this.drawRotation.toString();
+            },
+            set (value) {
+                let adjustedValue = Number(value) ? parseInt(value, 10) : 0;
+
+                if (adjustedValue < -180) {
+                    adjustedValue = -180;
+                }
+                else if (adjustedValue > 180) {
+                    adjustedValue = 180;
+                }
+
+                this.setDrawRotation(adjustedValue);
+                this.rotateDrawnEntity();
             }
         }
     },
@@ -429,11 +447,9 @@ export default {
             </div>
         </AccordionItem>
         <hr
-            v-if="!wasDrawn"
             class="m-0"
         >
         <AccordionItem
-            v-if="!wasDrawn"
             id="transformation-section"
             class="p-0"
             :title="$t('modules.tools.modeler3D.draw.captions.transformation')"
@@ -441,11 +457,31 @@ export default {
             :is-open="true"
         >
             <div
-                v-if="!wasDrawn"
                 id="container"
             >
                 <div class="row">
-                    <div class="col col-md-12">
+                    <div
+                        v-if="wasDrawn"
+                        class="col col-md-12"
+                    >
+                        <EntityAttribute
+                            v-model="drawRotationString"
+                            :label="$t('modules.tools.modeler3D.entity.captions.rotation') + ' [°]'"
+                            :width-classes="['col-md-8', 'col-md-3']"
+                            :buttons="false"
+                        />
+                        <EntityAttributeSlider
+                            v-model="drawRotationString"
+                            title="rotation"
+                            :label="$t('modules.tools.modeler3D.entity.captions.rotationSwitch')"
+                            @increment="val => drawRotationString = drawRotation + val"
+                            @decrement="val => drawRotationString = drawRotation - val"
+                        />
+                    </div>
+                    <div
+                        v-else
+                        class="col col-md-12"
+                    >
                         <EntityAttribute
                             id="rotation"
                             v-model="rotationString"

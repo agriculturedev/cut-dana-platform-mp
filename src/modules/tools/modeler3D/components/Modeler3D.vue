@@ -185,6 +185,8 @@ export default {
         setupNewEntity (newEntity) {
             if (newEntity.wasDrawn) {
                 this.generateCylinders();
+                newEntity.lastRotationAngle = 0;
+                this.setDrawRotation(0);
                 if (newEntity.polygon) {
                     this.setActiveShapePoints(newEntity.polygon.hierarchy.getValue().positions);
                     newEntity.polygon.hierarchy = new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(this.activeShapePoints), false);
@@ -954,7 +956,7 @@ export default {
                             href="#"
                             class="nav-link"
                             :class="[importTabClasses, {'disabled': isDrawing}]"
-                            @click.prevent="setCurrentView('import'), resetPov()"
+                            @click.prevent="setCurrentView('import')"
                         >{{ $t("modules.tools.modeler3D.nav.importTitle") }}</a>
                     </li>
                     <li
@@ -966,7 +968,7 @@ export default {
                             href="#"
                             class="nav-link"
                             :class="[drawTabClasses, {'disabled': isDrawing}]"
-                            @click.prevent="setCurrentView('draw'), resetPov()"
+                            @click.prevent="setCurrentView('draw')"
                         >{{ $t("modules.tools.modeler3D.nav.drawTitle") }}</a>
                     </li>
                     <li
@@ -978,7 +980,7 @@ export default {
                             href="#"
                             class="nav-link"
                             :class="[optionsTabClasses, {'disabled': isDrawing}]"
-                            @click.prevent="setCurrentView(''), resetPov()"
+                            @click.prevent="setCurrentView('')"
                         >{{ $t("modules.tools.modeler3D.nav.options") }}</a>
                     </li>
                 </ul>

@@ -7,6 +7,8 @@
 ### __Breaking Changes__
 
 ### Added
+- Modeler3D:
+  - Drawn entities can be rotated.
 
 ### Changed
 

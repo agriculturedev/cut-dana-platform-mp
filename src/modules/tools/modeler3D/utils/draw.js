@@ -71,3 +71,25 @@ export function calculatePolygonArea (entity) {
     }
     return Math.round(area * 100) / 100;
 }
+
+/**
+ * Calculates the coordinates of a rotated point by performing a 2D rotation around a 3D point.
+ * To transform without distortion, the coordinates are transferred to a local coordinate system
+ * and transferred back after the rotation.
+ * @param {object} angle - The angle.
+ * @param {object} center - The center point.
+ * @param {object} position - The position of the point.
+ * @returns {object} The rotated coordinates.
+ */
+export function calculateRotatedPointCoordinates ({angle, center, position}) {
+    const localToGlobal = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartographic.toCartesian(center)),
+        globalToLocal = Cesium.Matrix4.inverse(localToGlobal, new Cesium.Matrix4()),
+        localPosition = Cesium.Matrix4.multiplyByPoint(globalToLocal, position, new Cesium.Cartesian3()),
+        rotatedPosition = new Cesium.Cartesian3(
+            localPosition.x * Math.cos(angle) - localPosition.y * Math.sin(angle),
+            localPosition.x * Math.sin(angle) + localPosition.y * Math.cos(angle),
+            localPosition.z
+        );
+
+    return Cesium.Matrix4.multiplyByPoint(localToGlobal, rotatedPosition, new Cesium.Cartesian3());
+}

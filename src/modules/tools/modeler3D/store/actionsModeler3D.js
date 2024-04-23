@@ -1,6 +1,6 @@
 import crs from "@masterportal/masterportalapi/src/crs";
 import store from "../../../../app-store";
-import {adaptCylinderToGround, adaptCylinderToEntity} from "../utils/draw";
+import {adaptCylinderToGround, adaptCylinderToEntity, calculateRotatedPointCoordinates} from "../utils/draw";
 import {convertColor} from "../../../../utils/convertColor";
 
 const actions = {
@@ -371,6 +371,33 @@ const actions = {
                 adaptCylinderToGround(cyl, state.activeShapePoints[cyl.positionIndex]) :
                 adaptCylinderToEntity(entity, cyl, state.activeShapePoints[cyl.positionIndex]);
         });
+    },
+    /**
+     * Rotates the currently selected drawn entity.
+     * @param {object} context - The context of the Vuex module.
+     * @returns {void}
+     */
+    rotateDrawnEntity ({state, getters, commit}) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            entity = entities.getById(state.currentModelId),
+            angle = Cesium.Math.toRadians(entity.lastRotationAngle - state.drawRotation),
+            center = Cesium.Cartographic.fromCartesian(getters.getCenterFromGeometry(entity)),
+            newPositions = [];
+
+        state.activeShapePoints.forEach(position => {
+            const newPoint = calculateRotatedPointCoordinates({angle, center, position});
+
+            newPositions.push(newPoint);
+        });
+        commit("setActiveShapePoints", newPositions);
+        state.activeShapePoints.forEach((pos, index) => {
+            const cyl = entities.values.filter(ent => ent.cylinder).find(e => e.positionIndex === index);
+
+            cyl.position = entity.clampToGround ?
+                adaptCylinderToGround(cyl, pos) :
+                adaptCylinderToEntity(entity, cyl, pos);
+        });
+        entity.lastRotationAngle = state.drawRotation;
     }
 };
 
