@@ -3175,7 +3175,7 @@ Diese Zeichnungen können exportiert und georeferenziert wieder in die Karte gel
 
 |Name|Required|Type|Default|Description|Expert|
 |----|--------|----|-------|-----------|------|
-|gmlId|nein|String|"gmlid"|Bestimmen Sie den Pfad der GML ID im GFI für Gebäude in 3D Layern.|false|
+|gmlIdPath|nein|String|"gmlid"|Bestimmen Sie den Pfad der GML ID im GFI für Gebäude in 3D Layern.|false|
 |updateAllLayers|nein|Boolean|true|Bestimmen Sie, ob beim Ausblenden von Gebäuden, alle Layer aktualisiert werden sollen.|false|
 |highlightStyle|nein|**[highlightStyle](#markdown-header-portalconfigmenutoolmodeler3dhighlightstyle)**||Bestimmen Sie die Füllfarbe, Transparenz, Umrissfarbe und Umrissdicke.|false|
 
@@ -3185,7 +3185,7 @@ Diese Zeichnungen können exportiert und georeferenziert wieder in die Karte gel
 {
     "modeler3D": {
         "name": "translate#common:menu.tools.modeler3D",
-        "gmlId": "gmlId",
+        "gmlIdPath": "gmlId",
         "updateAllLayers": false,
         "highlightStyle": {
             "color": "#787777",

@@ -3233,7 +3233,7 @@ These drawings can be exported and loaded back georeferenced into the map.
 
 |Name|Required|Type|Default|Description|Expert|
 |----|--------|----|-------|-----------|------|
-|gmlId|no|String|"gmlid"|Specify the path to the GML ID in the GFI for buildings in 3D Layers.|false|
+|gmlIdPath|no|String|"gmlid"|Specify the path to the GML ID in the GFI for buildings in 3D Layers.|false|
 |updateAllLayers|no|Boolean|true|Specify, if all layers should be updated, when buildings are hidden.|false|
 |highlightStyle|no|**[highlightStyle](#markdown-header-portalconfigmenutoolmodeler3dhighlightstyle)**||Specify the fill color, alpha, outline color and outline width for highlighting entities.|false|
 
@@ -3243,7 +3243,7 @@ These drawings can be exported and loaded back georeferenced into the map.
 {
     "modeler3D": {
         "name": "translate#common:menu.tools.modeler3D",
-        "gmlId": "gmlId",
+        "gmlIdPath": "gmlId",
         "updateAllLayers": false,
         "highlightStyle": {
             "color": "#787777",
