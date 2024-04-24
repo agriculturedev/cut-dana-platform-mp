@@ -42,6 +42,7 @@
 ### Removed
 
 ### Fixed
+- Issue #1174: Draw: the outer outline color of the double circle is drawn as selected.
 
 ---
 
