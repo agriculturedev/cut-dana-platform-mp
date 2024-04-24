@@ -34,9 +34,31 @@ export default {
 </script>
 
 <template>
-    <div>
-        <div class="form-group form-group-sm row">
-            <div class="position-control">
+    <div class="container px-0 pt-0">
+        <div class="form-group form-group-sm row ms-0">
+            <label
+                class="col col-md-12 col-form-label px-0"
+                :for="title + '-switch'"
+            >
+                {{ label }}
+            </label>
+            <div class="col col-md-5 px-0">
+                <select
+                    :id="title + '-switch'"
+                    v-model="clickValue"
+                    class="form-select form-select-sm"
+                    aria-label="clickValue"
+                >
+                    <option
+                        v-for="val in dropdownValues"
+                        :key="val"
+                        :value="val"
+                    >
+                        {{ val }}
+                    </option>
+                </select>
+            </div>
+            <div class="position-control px-0  pt-4">
                 <button
                     class="btn btn-primary btn-sm"
                     @click="$emit('decrement', clickValue)"
@@ -64,30 +86,6 @@ export default {
                         class="bi bi-arrow-right"
                     />
                 </button>
-            </div>
-        </div>
-        <div class="form-group form-group-sm row">
-            <label
-                class="col-md-7 col-form-label"
-                :for="title + '-switch'"
-            >
-                {{ label }}
-            </label>
-            <div class="col-md-4">
-                <select
-                    :id="title + '-switch'"
-                    v-model="clickValue"
-                    class="form-select form-select-sm"
-                    aria-label="clickValue"
-                >
-                    <option
-                        v-for="val in dropdownValues"
-                        :key="val"
-                        :value="val"
-                    >
-                        {{ val }}
-                    </option>
-                </select>
             </div>
         </div>
     </div>

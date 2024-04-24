@@ -5,6 +5,7 @@ import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
 import EntityAttribute from "./ui/EntityAttribute.vue";
 import EntityAttributeSlider from "./ui/EntityAttributeSlider.vue";
+import AccordionItem from "./ui/AccordionItem.vue";
 import {adaptCylinderToEntity, adaptCylinderToGround} from "../utils/draw";
 
 import {convertColor} from "../../../../utils/convertColor";
@@ -13,7 +14,8 @@ export default {
     name: "Modeler3DEntityModel",
     components: {
         EntityAttribute,
-        EntityAttributeSlider
+        EntityAttributeSlider,
+        AccordionItem
     },
     computed: {
         ...mapGetters("Tools/Modeler3D", Object.keys(getters)),
@@ -267,215 +269,266 @@ export default {
 <template lang="html">
     <div id="modeler3D-entity-view">
         <p
-            class="cta"
-            v-html="$t('modules.tools.modeler3D.entity.captions.editInfo')"
-        />
-        <p
-            class="cta"
-            v-html="$t('modules.tools.modeler3D.entity.captions.pickupPlace')"
-        />
-        <p
             v-if="currentProjection.id === 'http://www.opengis.net/gml/srs/epsg.xml#4326'"
             id="projection-warning"
             class="cta red"
             v-html="$t('modules.tools.modeler3D.entity.captions.projectionInfo')"
         />
-        <div class="h-seperator" />
-        <EntityAttribute
-            v-model="nameString"
-            title="model-name"
-            :label="$t('modules.tools.modeler3D.entity.captions.modelName')"
-            :width-classes="['col-md-5', 'col-md-7']"
-            :buttons="false"
-        />
-        <div
+        <hr
             v-if="showPositioning"
-            class="h-seperator"
-        />
-        <div
-            v-if="showPositioning"
-            id="projection"
-            class="form-group form-group-sm row"
+            class="m-0"
         >
-            <label
-                class="col-md-5 col-form-label"
-                for="tool-edit-projection"
-            >
-                {{ $t("modules.tools.modeler3D.entity.projections.projection") }}
-            </label>
-            <div class="col-md-7">
-                <select
-                    class="form-select form-select-sm"
-                    aria-label="currentProjection"
-                    @change="selectionChanged($event)"
-                >
-                    <option
-                        v-for="(projection, i) in projections"
-                        :key="i"
-                        :value="projection.id"
-                        :SELECTED="projection.id === currentProjection.id"
+        <AccordionItem
+            v-if="showPositioning"
+            id="coordinates-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.draw.captions.coordinates')"
+            icon="bi bi-pin-map"
+            :is-open="true"
+        >
+            <div class="container p-0">
+                <div class="row">
+                    <div
+                        id="projection"
+                        class="col col-md form-group form-group-sm"
                     >
-                        {{ projection.title ? projection.title : projection.name }}
-                    </option>
-                </select>
-            </div>
-        </div>
-        <div
-            v-if="showPositioning"
-            id="position"
-        >
-            <div class="h-seperator" />
-            <EntityAttribute
-                v-model="eastingString"
-                title="easting"
-                :label="$t(getLabel('eastingLabel'))"
-                :width-classes="['col-md-5', 'col-md-7']"
-                :buttons="currentProjection.id !== 'http://www.opengis.net/gml/srs/epsg.xml#4326'"
-                @increment="eastingString = prettyCoord(coordinateEasting + coordAdjusted({shift: false, coordType: 'easting'}))"
-                @increment-shift="eastingString = prettyCoord(coordinateEasting + coordAdjusted({shift: true, coordType: 'easting'}))"
-                @decrement="eastingString = prettyCoord(coordinateEasting - coordAdjusted({shift: false, coordType: 'easting'}))"
-                @decrement-shift="eastingString = prettyCoord(coordinateEasting - coordAdjusted({shift: true, coordType: 'easting'}))"
-            />
-            <EntityAttribute
-                v-model="northingString"
-                title="northing"
-                :label="$t(getLabel('northingLabel'))"
-                :width-classes="['col-md-5', 'col-md-7']"
-                :buttons="currentProjection.id !== 'http://www.opengis.net/gml/srs/epsg.xml#4326'"
-                @increment="northingString = prettyCoord(coordinateNorthing + coordAdjusted({shift: false, coordType: 'northing'}))"
-                @increment-shift="northingString = prettyCoord(coordinateNorthing + coordAdjusted({shift: true, coordType: 'northing'}))"
-                @decrement="northingString = prettyCoord(coordinateNorthing - coordAdjusted({shift: false, coordType: 'northing'}))"
-                @decrement-shift="northingString = prettyCoord(coordinateNorthing - coordAdjusted({shift: true, coordType: 'northing'}))"
-            />
-            <EntityAttribute
-                v-model="heightString"
-                title="height"
-                :label="$t('modules.tools.modeler3D.entity.projections.height') + ' [m]'"
-                :width-classes="['col-md-5', 'col-md-6']"
-                :keep-height="true"
-                :buttons="!adaptToHeight"
-                :disabled="adaptToHeight"
-                :form-group="false"
-                @increment="heightString = prettyCoord(height + coordAdjusted({shift: false, coordType: 'height'}))"
-                @increment-shift="heightString = prettyCoord(height + coordAdjusted({shift: true, coordType: 'height'}))"
-                @decrement="heightString = prettyCoord(height - coordAdjusted({shift: false, coordType: 'height'}))"
-                @decrement-shift="heightString = prettyCoord(height - coordAdjusted({shift: true, coordType: 'height'}))"
-            />
-            <div
-                id="area"
-                class="row pt-2"
-            >
-                <label
-                    class="col col-md-5"
-                    for="displayArea"
-                >
-                    {{ $t("modules.tools.modeler3D.entity.projections.area") + " [m²]" }}
-                </label>
-                <div
-                    class="col col-md-5 displayArea"
-                >
-                    {{ area }}
+                        <label
+                            class="col col-md col-form-label"
+                            for="tool-edit-projection"
+                        >
+                            {{ $t("modules.tools.modeler3D.entity.projections.projection") }}
+                        </label>
+                        <div class="col col-md">
+                            <select
+                                class="form-select form-select-sm"
+                                aria-label="currentProjection"
+                                @change="selectionChanged($event)"
+                            >
+                                <option
+                                    v-for="(projection, i) in projections"
+                                    :key="i"
+                                    :value="projection.id"
+                                    :SELECTED="projection.id === currentProjection.id"
+                                >
+                                    {{ projection.title ? projection.title : projection.name }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div
+                        v-if="showPositioning"
+                        id="position"
+                    >
+                        <EntityAttribute
+                            id="easting"
+                            v-model="eastingString"
+                            title="easting"
+                            :label="$t(getLabel('eastingLabel'))"
+                            :width-classes="['col', 'col-md']"
+                            :buttons="currentProjection.id !== 'http://www.opengis.net/gml/srs/epsg.xml#4326'"
+                            @increment="eastingString = prettyCoord(coordinateEasting + coordAdjusted({shift: false, coordType: 'easting'}))"
+                            @increment-shift="eastingString = prettyCoord(coordinateEasting + coordAdjusted({shift: true, coordType: 'easting'}))"
+                            @decrement="eastingString = prettyCoord(coordinateEasting - coordAdjusted({shift: false, coordType: 'easting'}))"
+                            @decrement-shift="eastingString = prettyCoord(coordinateEasting - coordAdjusted({shift: true, coordType: 'easting'}))"
+                        />
+                        <EntityAttribute
+                            id="northing"
+                            v-model="northingString"
+                            title="northing"
+                            :label="$t(getLabel('northingLabel'))"
+                            :width-classes="['col', 'col-md']"
+                            :buttons="currentProjection.id !== 'http://www.opengis.net/gml/srs/epsg.xml#4326'"
+                            @increment="northingString = prettyCoord(coordinateNorthing + coordAdjusted({shift: false, coordType: 'northing'}))"
+                            @increment-shift="northingString = prettyCoord(coordinateNorthing + coordAdjusted({shift: true, coordType: 'northing'}))"
+                            @decrement="northingString = prettyCoord(coordinateNorthing - coordAdjusted({shift: false, coordType: 'northing'}))"
+                            @decrement-shift="northingString = prettyCoord(coordinateNorthing - coordAdjusted({shift: true, coordType: 'northing'}))"
+                        />
+                    </div>
                 </div>
             </div>
-            <div
-                id="adapt-check"
-                class="form-group form-group-sm row"
-            >
-                <div class="col-md-5" />
-                <label
-                    class="col-md-5 col-form-label"
-                    for="adaptHeightCheck"
-                >
-                    {{ $t("modules.tools.modeler3D.entity.projections.adaptToHeight") }}
-                </label>
-                <input
-                    id="adaptHeightCheck"
-                    class="form-check-input check-height"
-                    type="checkbox"
-                    :checked="adaptToHeight"
-                    @change="checkedAdapt($event.target.checked)"
-                >
-            </div>
-        </div>
-        <div
-            v-if="!wasDrawn"
-            id="rotation"
+        </AccordionItem>
+        <hr class="m-0">
+        <AccordionItem
+            v-if="showPositioning || showPositioning && wasDrawn || showExtrudedHeight"
+            id="dimensions-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.draw.captions.dimensions')"
+            icon="bi bi-rulers"
+            :is-open="true"
         >
-            <div class="h-seperator" />
-            <EntityAttribute
-                v-model="rotationString"
-                :label="$t('modules.tools.modeler3D.entity.captions.rotation') + ' [°]'"
-                :width-classes="['col-md-8', 'col-md-3']"
-                :buttons="false"
-            />
-            <EntityAttributeSlider
-                v-model="rotationString"
-                title="rotation"
-                :label="$t('modules.tools.modeler3D.entity.captions.rotationSwitch')"
-                @increment="val => rotationString = rotation + val"
-                @decrement="val => rotationString = rotation - val"
-            />
-        </div>
-        <div v-if="!wasDrawn">
-            <div class="h-seperator" />
-            <EntityAttribute
-                v-model="scaleString"
-                title="scale"
-                :label="$t('modules.tools.modeler3D.entity.captions.scale')"
-                :width-classes="['col-md-8', 'col-md-4']"
-                @increment="scaleString = (scale + 0.1).toFixed(1)"
-                @increment-shift="scaleString = (scale + 1).toFixed(1)"
-                @decrement="scaleString = (scale - 0.1).toFixed(1)"
-                @decrement-shift="scaleString = (scale - 1).toFixed(1)"
-            />
-        </div>
-        <div v-if="showExtrudedHeight">
-            <div class="h-seperator" />
-            <EntityAttribute
-                v-model="extrudedHeightString"
-                title="extruded-height"
-                :label="$t('modules.tools.modeler3D.draw.captions.extrudedHeight') + ' [m]'"
-                :width-classes="['col-md-8', 'col-md-4']"
-                @increment="extrudedHeightString = (extrudedHeight + 0.1).toFixed(2)"
-                @increment-shift="extrudedHeightString = (extrudedHeight + 1).toFixed(2)"
-                @decrement="extrudedHeightString = (extrudedHeight - 0.1).toFixed(2)"
-                @decrement-shift="extrudedHeightString = (extrudedHeight - 1).toFixed(2)"
-            />
-        </div>
-        <div v-if="showWidth">
-            <div class="h-seperator" />
-            <EntityAttribute
-                v-model="lineWidthString"
-                title="line-width"
-                :label="$t('modules.tools.modeler3D.draw.captions.strokeWidth') + ' [Pixel]'"
-                :width-classes="['col-md-8', 'col-md-4']"
-                @increment="lineWidthString = (lineWidth + 1).toFixed(2)"
-                @decrement="lineWidthString = (lineWidth - 1).toFixed(2)"
-            />
-        </div>
-        <div v-if="showFillColor">
-            <div class="h-seperator" />
-            <EntityAttribute
-                v-model="editedFillColor"
-                title="fill-color"
-                :label="$t('modules.tools.modeler3D.draw.captions.fillColor')"
-                :width-classes="['col-md-8', 'col-md-3']"
-                :buttons="false"
-                type="color"
-            />
-        </div>
-        <div v-if="wasDrawn">
-            <div class="h-seperator" />
-            <EntityAttribute
-                v-model="editedStrokeColor"
-                title="stroke-color"
-                :label="$t('modules.tools.modeler3D.draw.captions.strokeColor')"
-                :width-classes="['col-md-8', 'col-md-3']"
-                :buttons="false"
-                type="color"
-            />
-        </div>
-        <div class="h-seperator" />
+            <div class="container pt-0">
+                <div class="row">
+                    <EntityAttribute
+                        v-if="showPositioning"
+                        id="height"
+                        v-model="heightString"
+                        title="height"
+                        :label="$t('modules.tools.modeler3D.entity.projections.height') + ' [m]'"
+                        :width-classes="['col', 'col-md']"
+                        :keep-height="true"
+                        :buttons="!adaptToHeight"
+                        :disabled="adaptToHeight"
+                        :form-group="false"
+                        @increment="heightString = prettyCoord(height + coordAdjusted({shift: false, coordType: 'height'}))"
+                        @increment-shift="heightString = prettyCoord(height + coordAdjusted({shift: true, coordType: 'height'}))"
+                        @decrement="heightString = prettyCoord(height - coordAdjusted({shift: false, coordType: 'height'}))"
+                        @decrement-shift="heightString = prettyCoord(height - coordAdjusted({shift: true, coordType: 'height'}))"
+                    />
+                    <div
+                        v-if="showPositioning && wasDrawn"
+                        id="area"
+                        class="pt-4"
+                    >
+                        <label
+                            class="col col-md"
+                            for="displayArea"
+                        >
+                            {{ $t("modules.tools.modeler3D.entity.projections.area") }}
+                        </label>
+                        <div
+                            class="col col-md displayArea mt-1"
+                        >
+                            {{ area + " m²" }}
+                        </div>
+                    </div>
+                    <div
+                        v-if="showPositioning"
+                        id="adapt-check"
+                        class="form-check pt-4 ms-3"
+                    >
+                        <input
+                            id="adaptHeightCheck"
+                            class="form-check-input check-height"
+                            type="checkbox"
+                            :checked="adaptToHeight"
+                            @change="checkedAdapt($event.target.checked)"
+                        >
+                        <label
+                            class="form-check-label"
+                            for="adaptHeightCheck"
+                        >
+                            {{ $t("modules.tools.modeler3D.entity.projections.adaptToHeight") }}
+                        </label>
+                    </div>
+                    <div
+                        v-if="showExtrudedHeight"
+                        class="pt-4"
+                    >
+                        <EntityAttribute
+                            v-model="extrudedHeightString"
+                            title="extruded-height"
+                            :label="$t('modules.tools.modeler3D.draw.captions.extrudedHeight') + ' [m]'"
+                            :width-classes="['col', 'col-md']"
+                            @increment="extrudedHeightString = (extrudedHeight + 0.1).toFixed(2)"
+                            @increment-shift="extrudedHeightString = (extrudedHeight + 1).toFixed(2)"
+                            @decrement="extrudedHeightString = (extrudedHeight - 0.1).toFixed(2)"
+                            @decrement-shift="extrudedHeightString = (extrudedHeight - 1).toFixed(2)"
+                        />
+                    </div>
+                </div>
+            </div>
+        </AccordionItem>
+        <hr
+            v-if="!wasDrawn"
+            class="m-0"
+        >
+        <AccordionItem
+            v-if="!wasDrawn"
+            id="transformation-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.draw.captions.transformation')"
+            icon="bi bi-arrow-repeat"
+            :is-open="true"
+        >
+            <div
+                v-if="!wasDrawn"
+                id="container"
+            >
+                <div class="row">
+                    <div class="col col-md-12">
+                        <EntityAttribute
+                            id="rotation"
+                            v-model="rotationString"
+                            :label="$t('modules.tools.modeler3D.entity.captions.rotation') + ' [°]'"
+                            :width-classes="['col-md-8', 'col-md-3']"
+                            :buttons="false"
+                        />
+                        <EntityAttributeSlider
+                            v-model="rotationString"
+                            title="rotation"
+                            :label="$t('modules.tools.modeler3D.entity.captions.rotationSwitch')"
+                            @increment="val => rotationString = rotation + val"
+                            @decrement="val => rotationString = rotation - val"
+                        />
+                    </div>
+                    <div
+                        v-if="!wasDrawn"
+                        class="pt-4"
+                    >
+                        <EntityAttribute
+                            id="scale"
+                            v-model="scaleString"
+                            title="scale"
+                            :label="$t('modules.tools.modeler3D.entity.captions.scale')"
+                            :width-classes="['col-md-8', 'col-md-4']"
+                            @increment="scaleString = (scale + 0.1).toFixed(1)"
+                            @increment-shift="scaleString = (scale + 1).toFixed(1)"
+                            @decrement="scaleString = (scale - 0.1).toFixed(1)"
+                            @decrement-shift="scaleString = (scale - 1).toFixed(1)"
+                        />
+                    </div>
+                </div>
+            </div>
+        </AccordionItem>
+        <hr
+            v-if="showWidth || showFillColor || wasDrawn"
+            class="m-0"
+        >
+        <AccordionItem
+            v-if="showWidth || showFillColor || wasDrawn"
+            id="transformation-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.draw.captions.design')"
+            icon="bi bi-paint-bucket"
+            :is-open="true"
+        >
+            <div v-if="showWidth">
+                <EntityAttribute
+                    v-model="lineWidthString"
+                    title="line-width"
+                    :label="$t('modules.tools.modeler3D.draw.captions.strokeWidth') + ' [Pixel]'"
+                    :width-classes="['col-md-8', 'col-md-4']"
+                    @increment="lineWidthString = (lineWidth + 1).toFixed(2)"
+                    @decrement="lineWidthString = (lineWidth - 1).toFixed(2)"
+                />
+            </div>
+            <div
+                v-if="showFillColor"
+                class="pt-4"
+            >
+                <EntityAttribute
+                    v-model="editedFillColor"
+                    title="fill-color"
+                    :label="$t('modules.tools.modeler3D.draw.captions.fillColor')"
+                    :width-classes="['col-md-8', 'col-md-3']"
+                    :buttons="false"
+                    type="color"
+                />
+            </div>
+            <div
+                v-if="wasDrawn"
+                class="pt-4"
+            >
+                <EntityAttribute
+                    v-model="editedStrokeColor"
+                    title="stroke-color"
+                    :label="$t('modules.tools.modeler3D.draw.captions.strokeColor')"
+                    :width-classes="['col-md-8', 'col-md-3']"
+                    :buttons="false"
+                    type="color"
+                />
+            </div>
+        </AccordionItem>
         <div
             id="footer-buttons"
             class="row justify-content-between"
@@ -563,13 +616,6 @@ export default {
 
     .position-input {
         height: 3.8em;
-    }
-
-    .check-height {
-        width: 1.5em;
-        height: 1.5em;
-
-        margin: 0;
     }
 
     .btn-margin {

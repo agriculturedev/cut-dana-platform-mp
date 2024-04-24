@@ -8,13 +8,17 @@ import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
 import {GLTFExporter} from "three/examples/jsm/exporters/GLTFExporter.js";
 import store from "../../../../app-store";
+import EntityModel from "./Modeler3DEntityModel.vue";
+import AccordionItem from "./ui/AccordionItem.vue";
 
 export default {
     name: "Modeler3DImport",
     components: {
         BasicFileImport,
         EntityList,
-        RoutingLoadingSpinner
+        RoutingLoadingSpinner,
+        EntityModel,
+        AccordionItem
     },
     emits: ["moveEntity"],
     computed: {
@@ -251,9 +255,12 @@ export default {
         v-else
         id="modeler3D-import-view"
     >
-        <BasicFileImport
-            :intro-formats="$t('modules.tools.modeler3D.import.captions.introFormats')"
-            @add-file="addFile"
+        <AccordionItem
+            id="info-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.import.captions.info')"
+            icon="bi bi-info-circle"
+            :is-open="true"
         >
             <p
                 class="cta"
@@ -263,16 +270,43 @@ export default {
                 class="cta"
                 v-html="$t('modules.tools.modeler3D.import.captions.introInfo2')"
             />
-        </BasicFileImport>
-
-        <EntityList
+        </AccordionItem>
+        <hr class="m-0">
+        <AccordionItem
             v-if="importedModels?.length > 0"
-            id="successfully-imported-models"
-            :objects="importedModels"
-            :objects-label="$t('modules.tools.modeler3D.import.captions.successfullyImportedLabel')"
-            :entity="true"
-            @change-visibility="changeVisibility"
-            @zoom-to="zoomTo"
+            id="import-model-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.import.captions.successfullyImportedLabel')"
+            icon="bi bi-box"
+            :is-open="true"
+        >
+            <EntityList
+                id="successfully-imported-models"
+                :objects="importedModels"
+                :entity="true"
+                @change-visibility="changeVisibility"
+                @zoom-to="zoomTo"
+            />
+        </AccordionItem>
+        <hr
+            v-if="!currentModelId"
+            class="m-0"
+        >
+        <AccordionItem
+            v-if="!currentModelId || wasDrawn"
+            id="import-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.import.captions.newImport')"
+            icon="bi bi-upload"
+            :is-open="true"
+        >
+            <BasicFileImport
+                :intro-formats="$t('modules.tools.modeler3D.import.captions.introFormats')"
+                @add-file="addFile"
+            />
+        </AccordionItem>
+        <EntityModel
+            v-if="currentModelId && !wasDrawn"
         />
     </div>
 </template>

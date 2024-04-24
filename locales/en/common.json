@@ -694,7 +694,9 @@
                         "introInfo": "With the importer, you can load, visualize, and analyze digital urban designs into the existing 3D model of the city.",
                         "introInfo2": "Simply import your desired file by dragging and dropping or alternatively using the browser's open dialog.",
                         "introFormats": "You can import glTF- (*.gltf), OBJ- (*.obj), Collada- (*.dae), or GeoJSON-files.",
-                        "successfullyImportedLabel": "Imported 3D Models:"
+                        "info": "Information",
+                        "successfullyImportedLabel": "Imported 3D Models",
+                        "newImport": "New Import"
                     }
                 },
                 "draw": {
@@ -716,7 +718,15 @@
                         "outlineColor": "Outline Color",
                         "readyGeometries": "One-Click Geometries",
                         "strokeColor": "Outline Color",
-                        "strokeWidth": "Outline Width"
+                        "strokeWidth": "Outline Width",
+                        "transparency": "Transparency",
+                        "lineWidth": "Line Width",
+                        "info": "Information",
+                        "newModel": "New Model",
+                        "coordinates": "Coordinates",
+                        "dimensions": "Dimensions",
+                        "transformation": "Transformation",
+                        "design": "Design"
                     },
                     "geometries": {
                         "line": "Line",

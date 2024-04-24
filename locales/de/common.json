@@ -696,7 +696,9 @@
                         "introInfo": "Mit dem Importer können Sie digitale städtebauliche Entwürfe in das bestehende 3D-Modell der Stadt laden, visualisieren und analysieren.",
                         "introInfo2": "Importieren Sie Ihre gewünschte Datei einfach per Drag and Drop oder alternativ mit dem Öffnen-Dialog des Browsers.",
                         "introFormats": "Es können glTF- (*.gltf), OBJ- (*.obj) Collada- (*.dae) oder GeoJSON-Dateien importiert werden.",
-                        "successfullyImportedLabel": "Importierte 3D-Modelle:"
+                        "info": "Informationen",
+                        "successfullyImportedLabel": "Importierte 3D-Modelle",
+                        "newImport": "Neuer Import"
                     }
                 },
                 "draw": {
@@ -707,8 +709,8 @@
                         "controlInfo": "Klicken Sie mit der linken Maustaste um Punkte zu setzen. Mit der rechten Maustaste oder einem Doppelklick beenden Sie das Zeichnen. Sie können den zuletzt platzierten Punkt mit Strg+Z entfernen und mit Strg+Y wieder hinzufügen.",
                         "drawing": "Zeichnung",
                         "drawName": "Name",
-                        "drawnModels": "Gezeichnete Modelle:",
-                        "export": "Exportieren",
+                        "drawnModels": "Gezeichnete Modelle",
+                        "export": "alles Exportieren",
                         "exportTitle": "Alle gezeichneten Modelle in GeoJSON Format exportieren.",
                         "extrudedHeight": "Extrudierte Höhe",
                         "fillColor": "Füllfarbe",
@@ -718,7 +720,13 @@
                         "options": "Optionen",
                         "readyGeometries": "Fertige Geometrien",
                         "strokeColor": "Umrissfarbe",
-                        "strokeWidth": "Strichstärke"
+                        "strokeWidth": "Strichstärke",
+                        "info": "Informationen",
+                        "newModel": "Neues Modell",
+                        "coordinates": "Koordinaten",
+                        "dimensions": "Maße",
+                        "transformation": "Transformation",
+                        "design": "Design"
                     },
                     "geometries": {
                         "line": "Linie",

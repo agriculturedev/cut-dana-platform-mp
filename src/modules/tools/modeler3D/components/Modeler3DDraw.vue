@@ -4,12 +4,14 @@ import actions from "../store/actionsModeler3D";
 import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
 import crs from "@masterportal/masterportalapi/src/crs";
+import EntityModel from "./Modeler3DEntityModel.vue";
 import {adaptCylinderToEntity, adaptCylinderToGround, adaptCylinderUnclamped, calculatePolygonArea} from "../utils/draw";
 
 import DrawTypes from "./ui/DrawTypes.vue";
 import DrawLayout from "./ui/DrawLayout.vue";
 import EntityList from "./ui/EntityList.vue";
 import DrawModels from "./ui/DrawModels.vue";
+import AccordionItem from "./ui/AccordionItem.vue";
 
 let eventHandler = null;
 
@@ -19,7 +21,9 @@ export default {
         DrawTypes,
         DrawLayout,
         EntityList,
-        DrawModels
+        DrawModels,
+        EntityModel,
+        AccordionItem
     },
     data () {
         return {
@@ -672,131 +676,148 @@ export default {
 
 <template lang="html">
     <div id="modeler3D-draw-tool">
-        <p
-            class="cta"
-            v-html="$t('modules.tools.modeler3D.draw.captions.introInfo')"
-        />
-        <p
-            class="cta"
-            v-html="$t('modules.tools.modeler3D.draw.captions.controlInfo')"
-        />
-        <div class="h-seperator" />
-        <div>
-            <div class="form-check form-switch cta">
-                <input
-                    id="clampToGroundSwitch"
-                    class="form-check-input"
-                    type="checkbox"
-                    role="switch"
-                    :aria-checked="clampToGround"
-                    :checked="clampToGround"
-                    @change="clampToGround = !clampToGround; resetDrawing();"
-                >
-                <label
-                    class="form-check-label"
-                    for="clampToGroundSwitch"
-                >
-                    {{ $t("modules.tools.modeler3D.draw.captions.clampToGround") }}
-                </label>
-            </div>
-            <div class="form-check form-switch cta">
-                <input
-                    id="dimensionsSwitch"
-                    class="form-check-input"
-                    type="checkbox"
-                    role="switch"
-                    :aria-checked="dimensions"
-                    :checked="dimensions"
-                    @change="dimensions = !dimensions; resetDrawing();"
-                >
-                <label
-                    class="form-check-label"
-                    for="clampToGroundSwitch"
-                >
-                    {{ "Maße anzeigen" }}
-                </label>
+        <AccordionItem
+            id="info-section"
+            class="p-0"
+            :title="$t('modules.tools.modeler3D.draw.captions.info')"
+            icon="bi bi-info-circle"
+            :is-open="true"
+        >
+            <p
+                class="cta"
+                v-html="$t('modules.tools.modeler3D.draw.captions.introInfo')"
+            />
+            <p
+                class="cta"
+                v-html="$t('modules.tools.modeler3D.draw.captions.controlInfo')"
+            />
+            <p
+                class="cta"
+                v-html="$t('modules.tools.modeler3D.entity.captions.editInfo')"
+            />
+            <p
+                class="cta"
+                v-html="$t('modules.tools.modeler3D.entity.captions.pickupPlace')"
+            />
+        </AccordionItem>
+        <hr class="m-0">
+        <div v-if="drawnModels.length > 0">
+            <AccordionItem
+                id="drawn-model-section"
+                class="p-0"
+                :title="$t('modules.tools.modeler3D.draw.captions.drawnModels')"
+                icon="bi bi-box"
+                :is-open="true"
+            >
+                <EntityList
+                    id="drawn-models"
+                    :objects="drawnModels"
+                    :entity="true"
+                    :geometry="true"
+                    @change-visibility="changeVisibility"
+                    @export-geojson="exportToGeoJson"
+                    @zoom-to="zoomTo"
+                />
+            </AccordionItem>
+            <hr class="m-0">
+        </div>
+        <AccordionItem
+            v-if="!currentModelId || !wasDrawn"
+            id="new-model-section"
+            :title="$t('modules.tools.modeler3D.draw.captions.newModel')"
+            icon="bi bi-brush"
+            :is-open="true"
+        >
+            <div>
+                <div class="form-check cta">
+                    <input
+                        id="clampToGroundSwitch"
+                        class="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        :aria-checked="clampToGround"
+                        :checked="clampToGround"
+                        @change="clampToGround = !clampToGround; resetDrawing();"
+                    >
+                    <label
+                        class="form-check-label"
+                        for="clampToGroundSwitch"
+                    >
+                        {{ $t("modules.tools.modeler3D.draw.captions.clampToGround") }}
+                    </label>
+                </div>
+                <div class="form-check cta">
+                    <input
+                        id="dimensionsSwitch"
+                        class="form-check-input"
+                        type="checkbox"
+                        role="switch"
+                        :aria-checked="dimensions"
+                        :checked="dimensions"
+                        @change="dimensions = !dimensions; resetDrawing();"
+                    >
+                    <label
+                        class="form-check-label"
+                        for="clampToGroundSwitch"
+                    >
+                        {{ "Maße anzeigen" }}
+                    </label>
+                </div>
             </div>
             <div
-                class="form-group form-group-sm row"
+                v-if="drawModelTypes.length > 0"
+                class="d-flex flex-column"
+            >
+                <label
+                    class="col col-form-label"
+                    for="tool-modeler3D-draw-models"
+                >
+                    {{ $t("modules.tools.modeler3D.draw.captions.readyGeometries") }}
+                </label>
+                <DrawModels
+                    id="tool-modeler3D-draw-models"
+                    :draw-model-types="drawModelTypes"
+                    :selected-draw-model-type="selectedDrawModelType"
+                    :set-selected-draw-model-type="setSelectedDrawModelType"
+                    @start-placing="startPlacing"
+                />
+            </div>
+            <div class="d-flex flex-column">
+                <label
+                    class="col col-form-label"
+                    for="tool-modeler3d-draw-types"
+                >
+                    {{ $t("modules.tools.modeler3D.draw.captions.geometries") }}
+                </label>
+                <DrawTypes
+                    id="tool-modeler3d-draw-types"
+                    :current-layout="currentLayout"
+                    :draw-types="drawTypes"
+                    :selected-draw-type="selectedDrawType"
+                    :set-selected-draw-type="setSelectedDrawType"
+                    @start-drawing="startDrawing"
+                    @stop-drawing="stopDrawing"
+                />
+            </div>
+            <div
+                v-if="selectedDrawType !== ''"
+                class="d-flex flex-column flex-wrap"
             >
                 <label
                     class="col-md-5 col-form-label"
-                    for="modeler3D-draw-name"
+                    for="tool-modeler3d-draw-types"
                 >
-                    {{ $t("modules.tools.modeler3D.draw.captions.drawName") }}
+                    {{ $t("modules.tools.modeler3D.draw.captions.options") }}
                 </label>
-                <div class="col-md-7">
-                    <input
-                        id="modeler3D-draw-name"
-                        class="form-control form-control-sm"
-                        type="text"
-                        :value="drawName"
-                        @input="setDrawName($event.target.value)"
-                    >
-                </div>
+                <DrawLayout
+                    :current-layout="currentLayout"
+                    :selected-draw-type="selectedDrawType"
+                    @update-layout="resetDrawing"
+                />
             </div>
-        </div>
-        <div
-            v-if="drawModelTypes.length > 0"
-            class="d-flex flex-column"
-        >
-            <label
-                class="col col-form-label"
-                for="tool-modeler3D-draw-models"
-            >
-                {{ $t("modules.tools.modeler3D.draw.captions.readyGeometries") }}
-            </label>
-            <DrawModels
-                id="tool-modeler3D-draw-models"
-                :draw-model-types="drawModelTypes"
-                :selected-draw-model-type="selectedDrawModelType"
-                :set-selected-draw-model-type="setSelectedDrawModelType"
-                @start-placing="startPlacing"
-            />
-        </div>
-        <div class="d-flex flex-column">
-            <label
-                class="col col-form-label"
-                for="tool-modeler3d-draw-types"
-            >
-                {{ $t("modules.tools.modeler3D.draw.captions.geometries") }}
-            </label>
-            <DrawTypes
-                id="tool-modeler3d-draw-types"
-                :current-layout="currentLayout"
-                :draw-types="drawTypes"
-                :selected-draw-type="selectedDrawType"
-                :set-selected-draw-type="setSelectedDrawType"
-                @start-drawing="startDrawing"
-                @stop-drawing="stopDrawing"
-            />
-        </div>
-        <div
-            v-if="selectedDrawType !== ''"
-            class="d-flex flex-column flex-wrap"
-        >
-            <label
-                class="col-md-5 col-form-label"
-                for="tool-modeler3d-draw-types"
-            >
-                {{ $t("modules.tools.modeler3D.draw.captions.options") }}
-            </label>
-            <DrawLayout
-                :current-layout="currentLayout"
-                :selected-draw-type="selectedDrawType"
-                @update-layout="resetDrawing"
-            />
-        </div>
-        <EntityList
-            v-if="drawnModels.length > 0"
-            id="drawn-models"
-            :objects="drawnModels"
-            :objects-label="$t('modules.tools.modeler3D.draw.captions.drawnModels')"
-            :entity="true"
-            :geometry="true"
-            @change-visibility="changeVisibility"
-            @export-geojson="exportToGeoJson"
-            @zoom-to="zoomTo"
+        </AccordionItem>
+        <EntityModel
+            v-if="currentModelId && wasDrawn"
         />
     </div>
 </template>
@@ -805,22 +826,17 @@ export default {
     @import "~/css/mixins.scss";
     @import "~variables";
 
-    .cta {
+   /* .cta {
         margin-bottom:12px;
-    }
+    } */
 
-    .form-switch,
+    .form-check-input,
     .col-form-label {
         font-size: $font_size_big;
     }
 
     .form-check-input {
         cursor: pointer;
-    }
-
-    .h-seperator {
-        margin:12px 0 12px 0;
-        border: 1px solid #DDDDDD;
     }
 
     .primary-button-wrapper {

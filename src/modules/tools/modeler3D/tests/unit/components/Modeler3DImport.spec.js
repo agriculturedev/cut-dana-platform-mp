@@ -137,7 +137,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DImport.vue", () => {
 
     it("should find Tool component", () => {
         wrapper = mount(Modeler3DImportComponent, {store, localVue});
-        const toolModeler3DImportWrapper = wrapper.findComponent({name: "BasicFileImport"});
+        const toolModeler3DImportWrapper = wrapper.findAllComponents({name: "AccordionItem"}).at(1);
 
         expect(toolModeler3DImportWrapper.exists()).to.be.true;
     });

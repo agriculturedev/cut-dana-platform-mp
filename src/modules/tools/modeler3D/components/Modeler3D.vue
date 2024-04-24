@@ -1,6 +1,5 @@
 <script>
 import ToolTemplate from "../../ToolTemplate.vue";
-import EntityModel from "./Modeler3DEntityModel.vue";
 import Import from "./Modeler3DImport.vue";
 import Draw from "./Modeler3DDraw.vue";
 import EntityList from "./ui/EntityList.vue";
@@ -24,7 +23,6 @@ export default {
     name: "Modeler3D",
     components: {
         ToolTemplate,
-        EntityModel,
         Import,
         Draw,
         EntityList
@@ -944,140 +942,135 @@ export default {
                 v-if="active"
                 id="tool-modeler3D"
             >
-                <EntityModel
-                    v-if="currentModelId"
-                />
-                <div v-else>
-                    <ul class="nav nav-tabs">
-                        <li
-                            id="tool-modeler3D-import"
-                            role="presentation"
-                            class="nav-item"
-                        >
-                            <a
-                                href="#"
-                                class="nav-link"
-                                :class="[importTabClasses, {'disabled': isDrawing}]"
-                                @click.prevent="setCurrentView('import'), resetPov()"
-                            >{{ $t("modules.tools.modeler3D.nav.importTitle") }}</a>
-                        </li>
-                        <li
-                            id="tool-modeler3D-draw"
-                            role="presentation"
-                            class="nav-item"
-                        >
-                            <a
-                                href="#"
-                                class="nav-link"
-                                :class="[drawTabClasses, {'disabled': isDrawing}]"
-                                @click.prevent="setCurrentView('draw'), resetPov()"
-                            >{{ $t("modules.tools.modeler3D.nav.drawTitle") }}</a>
-                        </li>
-                        <li
-                            id="tool-modeler3D-options"
-                            role="presentation"
-                            class="nav-item"
-                        >
-                            <a
-                                href="#"
-                                class="nav-link"
-                                :class="[optionsTabClasses, {'disabled': isDrawing}]"
-                                @click.prevent="setCurrentView(''), resetPov()"
-                            >{{ $t("modules.tools.modeler3D.nav.options") }}</a>
-                        </li>
-                    </ul>
-                    <component
-                        :is="currentView"
-                        v-if="currentView"
-                        @emit-move="moveEntity"
-                        @select-and-move="(id) => selectAndMove(id)"
-                    />
-                    <div
-                        v-if="!currentView"
-                        id="modeler3D-options-view"
-                        class="accordion"
+                <ul class="nav nav-tabs">
+                    <li
+                        id="tool-modeler3D-import"
+                        role="presentation"
+                        class="nav-item"
                     >
-                        <div class="accordion-item">
-                            <h1
-                                id="options-headingOne"
-                                class="accordion-header"
+                        <a
+                            href="#"
+                            class="nav-link"
+                            :class="[importTabClasses, {'disabled': isDrawing}]"
+                            @click.prevent="setCurrentView('import'), resetPov()"
+                        >{{ $t("modules.tools.modeler3D.nav.importTitle") }}</a>
+                    </li>
+                    <li
+                        id="tool-modeler3D-draw"
+                        role="presentation"
+                        class="nav-item"
+                    >
+                        <a
+                            href="#"
+                            class="nav-link"
+                            :class="[drawTabClasses, {'disabled': isDrawing}]"
+                            @click.prevent="setCurrentView('draw'), resetPov()"
+                        >{{ $t("modules.tools.modeler3D.nav.drawTitle") }}</a>
+                    </li>
+                    <li
+                        id="tool-modeler3D-options"
+                        role="presentation"
+                        class="nav-item"
+                    >
+                        <a
+                            href="#"
+                            class="nav-link"
+                            :class="[optionsTabClasses, {'disabled': isDrawing}]"
+                            @click.prevent="setCurrentView(''), resetPov()"
+                        >{{ $t("modules.tools.modeler3D.nav.options") }}</a>
+                    </li>
+                </ul>
+                <component
+                    :is="currentView"
+                    v-if="currentView"
+                    @emit-move="moveEntity"
+                    @select-and-move="(id) => selectAndMove(id)"
+                />
+                <div
+                    v-if="!currentView"
+                    id="modeler3D-options-view"
+                    class="accordion"
+                >
+                    <div class="accordion-item">
+                        <h1
+                            id="options-headingOne"
+                            class="accordion-header"
+                        >
+                            <button
+                                class="accordion-button"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#options-collapseOne"
+                                aria-expanded="true"
+                                aria-controls="options-collapseOne"
                             >
-                                <button
-                                    class="accordion-button"
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#options-collapseOne"
-                                    aria-expanded="true"
-                                    aria-controls="options-collapseOne"
-                                >
-                                    {{ $t("modules.tools.modeler3D.options.captions.visibilityTitle") }}
-                                </button>
-                            </h1>
-                            <div
-                                id="options-collapseOne"
-                                class="accordion-collapse collapse show"
-                                aria-labelledby="options-headingOne"
-                            >
-                                <div class="accordion-body">
-                                    <h2 v-html="$t('modules.tools.modeler3D.options.captions.hideSwitchLabel')" />
+                                {{ $t("modules.tools.modeler3D.options.captions.visibilityTitle") }}
+                            </button>
+                        </h1>
+                        <div
+                            id="options-collapseOne"
+                            class="accordion-collapse collapse show"
+                            aria-labelledby="options-headingOne"
+                        >
+                            <div class="accordion-body">
+                                <h2 v-html="$t('modules.tools.modeler3D.options.captions.hideSwitchLabel')" />
+                                <div class="form-check form-switch cta">
+                                    <input
+                                        id="hideObjectsSwitch"
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        role="switch"
+                                        :aria-checked="hideObjects"
+                                        :checked="hideObjects"
+                                        @change="changeSwitches('hideObjectsSwitch')"
+                                    >
+                                    <label
+                                        class="form-check-label"
+                                        for="hideObjectsSwitch"
+                                    >
+                                        {{ $t("modules.tools.modeler3D.options.captions.enableFunction") }}
+                                    </label>
+                                </div>
+                                <p
+                                    class="cta"
+                                    v-html="$t('modules.tools.modeler3D.options.captions.hideObjectInfo')"
+                                />
+                                <div class="h-seperator" />
+                                <h2 v-html="$t('modules.tools.modeler3D.options.captions.povTitle')" />
+                                <div>
                                     <div class="form-check form-switch cta">
                                         <input
-                                            id="hideObjectsSwitch"
+                                            id="povActiveSwitch"
                                             class="form-check-input"
                                             type="checkbox"
                                             role="switch"
-                                            :aria-checked="hideObjects"
-                                            :checked="hideObjects"
-                                            @change="changeSwitches('hideObjectsSwitch')"
+                                            :aria-checked="povActive"
+                                            :checked="povActive"
+                                            @change="changeSwitches('povActiveSwitch'), changeCursor()"
                                         >
                                         <label
                                             class="form-check-label"
-                                            for="hideObjectsSwitch"
+                                            for="povActiveSwitch"
                                         >
                                             {{ $t("modules.tools.modeler3D.options.captions.enableFunction") }}
                                         </label>
                                     </div>
                                     <p
                                         class="cta"
-                                        v-html="$t('modules.tools.modeler3D.options.captions.hideObjectInfo')"
+                                        v-html="$t('modules.tools.modeler3D.options.captions.povInfo')"
                                     />
-                                    <div class="h-seperator" />
-                                    <h2 v-html="$t('modules.tools.modeler3D.options.captions.povTitle')" />
-                                    <div>
-                                        <div class="form-check form-switch cta">
-                                            <input
-                                                id="povActiveSwitch"
-                                                class="form-check-input"
-                                                type="checkbox"
-                                                role="switch"
-                                                :aria-checked="povActive"
-                                                :checked="povActive"
-                                                @change="changeSwitches('povActiveSwitch'), changeCursor()"
-                                            >
-                                            <label
-                                                class="form-check-label"
-                                                for="povActiveSwitch"
-                                            >
-                                                {{ $t("modules.tools.modeler3D.options.captions.enableFunction") }}
-                                            </label>
-                                        </div>
-                                        <p
-                                            class="cta"
-                                            v-html="$t('modules.tools.modeler3D.options.captions.povInfo')"
-                                        />
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <EntityList
-                        v-if="hiddenObjects.length > 0 && !isLoading"
-                        id="hidden-objects"
-                        :objects="hiddenObjects"
-                        :objects-label="$t('modules.tools.modeler3D.hiddenObjectsLabel')"
-                        @change-visibility="showObject"
-                    />
                 </div>
+                <EntityList
+                    v-if="hiddenObjects.length > 0 && !isLoading"
+                    id="hidden-objects"
+                    :objects="hiddenObjects"
+                    :objects-label="$t('modules.tools.modeler3D.hiddenObjectsLabel')"
+                    @change-visibility="showObject"
+                />
             </div>
         </template>
     </ToolTemplate>

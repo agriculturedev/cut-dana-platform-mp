@@ -154,7 +154,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         wrapper = mount(Modeler3DEntityModelComponent, {store, localVue});
 
         expect(wrapper.find("#modeler3D-entity-view").exists()).to.be.true;
-        expect(wrapper.find("#model-name").exists()).to.be.true;
         expect(wrapper.find("#projection").exists()).to.be.true;
         expect(wrapper.find("#position").exists()).to.be.true;
         expect(wrapper.find("#easting").exists()).to.be.true;

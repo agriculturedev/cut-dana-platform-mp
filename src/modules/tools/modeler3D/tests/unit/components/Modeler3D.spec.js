@@ -7,7 +7,6 @@ import Modeler3DComponent from "../../../components/Modeler3D.vue";
 import Modeler3D from "../../../store/indexModeler3D";
 import Modeler3DDraw from "../../../components/Modeler3DDraw.vue";
 import Modeler3DImport from "../../../components/Modeler3DImport.vue";
-import Modeler3DEntityModel from "../../../components/Modeler3DEntityModel.vue";
 import getGfiFeaturesByTileFeatureModule from "../../../../../../api/gfi/getGfiFeaturesByTileFeature";
 
 const localVue = createLocalVue();
@@ -319,19 +318,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
         expect(wrapper.find("#modeler3D-options-view").exists()).to.be.true;
         expect(wrapper.findComponent(Modeler3DDraw).exists()).to.be.false;
         expect(wrapper.findComponent(Modeler3DImport).exists()).to.be.false;
-    });
-
-    it("renders Modeler3D with entity model view", async () => {
-        wrapper = shallowMount(Modeler3DComponent, {store, localVue});
-
-        store.commit("Tools/Modeler3D/setCurrentModelId", "someId");
-        await wrapper.vm.$nextTick();
-
-        expect(wrapper.find("#tool-modeler3D").exists()).to.be.true;
-        expect(wrapper.findComponent(Modeler3DEntityModel).exists()).to.be.true;
-        expect(wrapper.findComponent(Modeler3DDraw).exists()).to.be.false;
-        expect(wrapper.findComponent(Modeler3DImport).exists()).to.be.false;
-        expect(wrapper.find("#modeler3D-options-view").exists()).to.be.false;
     });
 
     it("renders hiddenObject List when set", async () => {

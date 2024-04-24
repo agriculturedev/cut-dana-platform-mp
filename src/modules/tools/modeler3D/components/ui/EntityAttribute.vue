@@ -52,7 +52,7 @@ export default {
 <template>
     <div
         :id="title"
-        :class="[{'form-group form-group-sm': formGroup}, 'row']"
+        :class="[{'form-group form-group-sm': formGroup}, 'col', 'col-md']"
     >
         <label
             :class="widthClasses[0] + ' col-form-label'"

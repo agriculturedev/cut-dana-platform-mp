@@ -29,12 +29,10 @@ describe("src/modules/tools/modeler3D/components/EntityList.vue", () => {
         }});
 
         const zoomToButton = wrapper.find("#list-zoomTo"),
-            editButton = wrapper.find("#list-edit"),
             hideButton = wrapper.find("#list-hide"),
             deleteButton = wrapper.find("#list-delete");
 
         expect(zoomToButton.exists()).to.be.true;
-        expect(editButton.exists()).to.be.true;
         expect(hideButton.exists()).to.be.true;
         expect(deleteButton.exists()).to.be.true;
     });

@@ -9,8 +9,9 @@ export default {
             required: true
         },
         objectsLabel: {
-            type: String,
-            required: true
+            type: [Boolean, String],
+            required: false,
+            default: false
         },
         entity: {
             type: Boolean,
@@ -25,31 +26,148 @@ export default {
     },
     data () {
         return {
-            isHovering: ""
+            isHovering: "",
+            activeId: "",
+            isActive: false
         };
     },
     methods: {
         ...mapActions("Tools/Modeler3D", ["confirmDeletion"]),
-        ...mapMutations("Tools/Modeler3D", ["setCurrentModelId"])
+        ...mapMutations("Tools/Modeler3D", ["setCurrentModelId"]),
+
+        getActiveClass (id) {
+            if (!this.isActive) {
+                this.isActive = !this.isActive;
+                this.activeId = id;
+            }
+            else if (this.isActive && this.activeId !== id) {
+                this.activeId = id;
+            }
+            else if (this.isActive && this.activeId === id) {
+                this.isActive = !this.isActive;
+                this.setCurrentModelId(null);
+            }
+        }
     }
 };
 </script>
 
 <template>
     <div class="objectList">
-        <div class="h-seperator" />
-        <ul>
-            <li>
-                <label
-                    class="objectListLabel"
-                    for="objects"
+        <label
+            v-if="objectsLabel !== false"
+            class="objectListLabel"
+            for="objects"
+        >
+            {{ objectsLabel }}
+        </label>
+        <div class="objects-list list-group list-group-flush">
+            <div
+                v-for="(object, index) in objects"
+                :key="index"
+                class="model-list"
+            >
+                <button
+                    type="button"
+                    data-toggle="button"
+                    class="listButton list-group-item list-group-item-action"
+                    :class="{active: isActive === true && object.id === activeId}"
+                    @click="getActiveClass(object.id), setCurrentModelId(object.id)"
                 >
-                    {{ objectsLabel }}
-                </label>
-                <div
-                    v-if="geometry"
-                    class="buttons"
-                >
+                    <input
+                        v-if="entity && object.edit"
+                        v-model="object.name"
+                        class="input-name editable"
+                        @blur="object.edit = false"
+                        @keyup.enter="object.edit = false"
+                    >
+                    <span
+                        v-else-if="entity && !object.edit"
+                        role="button"
+                        class="input-name editable"
+                        tabindex="-1"
+                        @click="object.edit = true"
+                        @keyup.enter="object.edit = true"
+                    >
+                        {{ object.name }}
+                    </span>
+                    <span
+                        v-else
+                        class="input-name"
+                    >
+                        {{ object.name }}
+                    </span>
+                    <div class="buttons">
+                        <i
+                            v-if="entity"
+                            id="list-zoomTo"
+                            class="inline-button bi"
+                            :class="{ 'bi-geo-alt-fill': isHovering === `${index}-geo`, 'bi-geo-alt': isHovering !== `${index}-geo`}"
+                            :title="$t(`common:modules.tools.modeler3D.entity.captions.zoomTo`, {name: object.name})"
+                            role="button"
+                            tabindex="0"
+                            @click="$emit('zoom-to', object.id)"
+                            @keydown.enter="$emit('zoom-to', object.id)"
+                            @mouseover="isHovering = `${index}-geo`"
+                            @mouseout="isHovering = false"
+                            @focusin="isHovering = `${index}-geo`"
+                            @focusout="isHovering = false"
+                        />
+                        <i
+                            v-if="object.show"
+                            id="list-show"
+                            class="inline-button bi"
+                            :class="{ 'bi-eye-slash-fill': isHovering === `${index}-hide`, 'bi-eye': isHovering !== `${index}-hide`}"
+                            :title="$t(`common:modules.tools.modeler3D.entity.captions.visibilityTitle`, {name: object.name})"
+                            role="button"
+                            tabindex="0"
+                            @click="$emit('change-visibility', object)"
+                            @keydown.enter="$emit('change-visibility', object)"
+                            @mouseover="isHovering = `${index}-hide`"
+                            @mouseout="isHovering = false"
+                            @focusin="isHovering = `${index}-hide`"
+                            @focusout="isHovering = false"
+                        />
+                        <i
+                            v-else
+                            id="list-hide"
+                            class="inline-button bi"
+                            :class="{ 'bi-eye-fill': isHovering === `${index}-show`, 'bi-eye-slash': isHovering !== `${index}-show`}"
+                            :title="$t(`common:modules.tools.modeler3D.entity.captions.visibilityTitle`, {name: object.name})"
+                            role="button"
+                            tabindex="0"
+                            @click="$emit('change-visibility', object)"
+                            @keydown.enter="$emit('change-visibility', object)"
+                            @mouseover="isHovering = `${index}-show`"
+                            @mouseout="isHovering = false"
+                            @focusin="isHovering = `${index}-show`"
+                            @focusout="isHovering = false"
+                        />
+                        <i
+                            v-if="entity"
+                            id="list-delete"
+                            class="inline-button bi"
+                            :class="{ 'bi-trash3-fill': isHovering === `${index}-del`, 'bi-trash3': isHovering !== `${index}-del`}"
+                            :title="$t(`common:modules.tools.modeler3D.entity.captions.deletionTitle`, {name: object.name})"
+                            role="button"
+                            tabindex="0"
+                            @click="confirmDeletion(object.id)"
+                            @keydown.enter="confirmDeletion(object.id)"
+                            @mouseover="isHovering = `${index}-del`"
+                            @mouseout="isHovering = false"
+                            @focusin="isHovering = `${index}-del`"
+                            @focusout="isHovering = false"
+                        />
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div
+            v-if="geometry"
+            class="container buttons pt-4"
+        >
+            <div class="row">
+                <div class="col-md-12 d-flex justify-content-end">
                     <button
                         id="tool-modeler3D-export-button"
                         class="primary-button-wrapper"
@@ -63,116 +181,8 @@ export default {
                         {{ $t("modules.tools.modeler3D.draw.captions.export") }}
                     </button>
                 </div>
-            </li>
-            <li
-                v-for="(object, index) in objects"
-                :key="index"
-            >
-                <span class="index">
-                    {{ index + 1 }}
-                </span>
-                <input
-                    v-if="entity && object.edit"
-                    v-model="object.name"
-                    class="input-name editable"
-                    @blur="object.edit = false"
-                    @keyup.enter="object.edit = false"
-                >
-                <span
-                    v-else-if="entity && !object.edit"
-                    role="button"
-                    class="input-name editable"
-                    tabindex="-1"
-                    @click="object.edit = true"
-                    @keyup.enter="object.edit = true"
-                >
-                    {{ object.name }}
-                </span>
-                <span
-                    v-else
-                    class="input-name"
-                >
-                    {{ object.name }}
-                </span>
-                <div class="buttons">
-                    <i
-                        v-if="entity"
-                        id="list-zoomTo"
-                        class="inline-button bi"
-                        :class="{ 'bi-geo-alt-fill': isHovering === `${index}-geo`, 'bi-geo-alt': isHovering !== `${index}-geo`}"
-                        :title="$t(`common:modules.tools.modeler3D.entity.captions.zoomTo`, {name: object.name})"
-                        role="button"
-                        tabindex="0"
-                        @click="$emit('zoom-to', object.id)"
-                        @keydown.enter="$emit('zoom-to', object.id)"
-                        @mouseover="isHovering = `${index}-geo`"
-                        @mouseout="isHovering = false"
-                        @focusin="isHovering = `${index}-geo`"
-                        @focusout="isHovering = false"
-                    />
-                    <i
-                        v-if="entity"
-                        id="list-edit"
-                        class="inline-button bi"
-                        :class="{ 'bi-pencil-fill': isHovering === `${index}-edit`, 'bi-pencil': isHovering !== `${index}-edit`}"
-                        :title="$t(`common:modules.tools.modeler3D.entity.captions.editModel`, {name: object.name})"
-                        role="button"
-                        tabindex="0"
-                        @click="setCurrentModelId(object.id)"
-                        @keydown.enter="setCurrentModelId(object.id)"
-                        @mouseover="isHovering = `${index}-edit`"
-                        @mouseout="isHovering = false"
-                        @focusin="isHovering = `${index}-edit`"
-                        @focusout="isHovering = false"
-                    />
-                    <i
-                        v-if="object.show"
-                        id="list-show"
-                        class="inline-button bi"
-                        :class="{ 'bi-eye-slash-fill': isHovering === `${index}-hide`, 'bi-eye': isHovering !== `${index}-hide`}"
-                        :title="$t(`common:modules.tools.modeler3D.entity.captions.visibilityTitle`, {name: object.name})"
-                        role="button"
-                        tabindex="0"
-                        @click="$emit('change-visibility', object)"
-                        @keydown.enter="$emit('change-visibility', object)"
-                        @mouseover="isHovering = `${index}-hide`"
-                        @mouseout="isHovering = false"
-                        @focusin="isHovering = `${index}-hide`"
-                        @focusout="isHovering = false"
-                    />
-                    <i
-                        v-else
-                        id="list-hide"
-                        class="inline-button bi"
-                        :class="{ 'bi-eye-fill': isHovering === `${index}-show`, 'bi-eye-slash': isHovering !== `${index}-show`}"
-                        :title="$t(`common:modules.tools.modeler3D.entity.captions.visibilityTitle`, {name: object.name})"
-                        role="button"
-                        tabindex="0"
-                        @click="$emit('change-visibility', object)"
-                        @keydown.enter="$emit('change-visibility', object)"
-                        @mouseover="isHovering = `${index}-show`"
-                        @mouseout="isHovering = false"
-                        @focusin="isHovering = `${index}-show`"
-                        @focusout="isHovering = false"
-                    />
-                    <i
-                        v-if="entity"
-                        id="list-delete"
-                        class="inline-button bi"
-                        :class="{ 'bi-trash3-fill': isHovering === `${index}-del`, 'bi-trash3': isHovering !== `${index}-del`}"
-                        :title="$t(`common:modules.tools.modeler3D.entity.captions.deletionTitle`, {name: object.name})"
-                        role="button"
-                        tabindex="0"
-                        @click="confirmDeletion(object.id)"
-                        @keydown.enter="confirmDeletion(object.id)"
-                        @mouseover="isHovering = `${index}-del`"
-                        @mouseout="isHovering = false"
-                        @focusin="isHovering = `${index}-del`"
-                        @focusout="isHovering = false"
-                    />
-                </div>
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -180,30 +190,32 @@ export default {
     @import "~/css/mixins.scss";
     @import "~variables";
 
-    .h-seperator {
-        margin:12px 0 12px 0;
-        border: 1px solid #DDDDDD;
-    }
-
     .objectListLabel {
         font-weight: bold;
     }
 
-    ul {
-        font-size: $font_size_icon_lg;
+    .objects-list {
+        font-size: $font_size_big;
         list-style-type: none;
         padding: 0;
         margin: 0;
     }
 
-    li {
+    .listButton {
         display: flex;
         align-items: center;
-        height: 1.5rem;
-    }
+        height: 2 rem;
+        background-color: $secondary_focus_contrast;
+        border-top:   1px solid $secondary_active_drop;
+        border-right:  none;
+        border-bottom: 1px solid $secondary_active_drop;
+        border-left:   none;
+}
 
-    li:first-child {
-        height: 2.2rem;
+    .list-group-item.active {
+        background-color: #D6E3FF;
+        color: $black;
+        border: none;
     }
 
     .index {
@@ -221,9 +233,8 @@ export default {
         cursor: text;
 
         &:hover {
-            border-color: #8098b1;
+            border-bottom: 1px solid #8098b1;
             outline: 0;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075), 0 0 0 0.25rem rgba(0, 48, 99, 0.25);
         }
     }
 
@@ -250,7 +261,7 @@ export default {
         background-color: $secondary_focus;
         display: block;
         text-align:center;
-        padding: 0.1rem 0.7rem;
+        padding: 0.2rem 0.7rem;
         cursor: pointer;
         font-size: 0.8rem;
         position: relative;
