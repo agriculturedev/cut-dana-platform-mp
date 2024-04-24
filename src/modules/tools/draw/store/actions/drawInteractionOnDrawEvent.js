@@ -127,6 +127,7 @@ export function handleDrawEvent ({state, commit, dispatch, rootState}, event) {
 /**
  * Returns a function to style feature.
  * @param {Object} styleSettings settings for style
+ * @param {Boolean} isOuterCircle if true, style is for isOuterCircle
  * @returns {Function} a function to style feature
  */
 export function featureStyle (styleSettings, isOuterCircle) {
