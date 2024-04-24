@@ -5907,7 +5907,7 @@ List of attributes typically used for tilesets.
 |Name|Required|Type|Default|Description|
 |----|--------|----|-------|-----------|
 |hiddenFeatures|no|String[]|[]|List of IDs to be hidden in the plane.|
-|**[cesium3DTilesetOptions](https://cesiumjs.org/Cesium/Build/Documentation/Cesium3DTileset.html)**|no|**[cesium3DTilesetOption](#markdown-header-themenconfiglayertilesetcesium3dtilesetoption)**||Cesium 3D tileset options directly forwarded to the *Cesium tileset object*. E.g. `maximumScreenSpaceError` is relevant to the visibility.|
+|**[cesium3DTilesetOptions](https://cesium.com/learn/cesiumjs/ref-doc/Cesium3DTileset.html#.ConstructorOptions)**|no|**[cesium3DTilesetOption](#markdown-header-themenconfiglayertilesetcesium3dtilesetoption)**||Cesium 3D tileset options directly forwarded to the *Cesium tileset object*. E.g. `maximumScreenSpaceError` is relevant to the visibility.|
 
 **Example**
 
