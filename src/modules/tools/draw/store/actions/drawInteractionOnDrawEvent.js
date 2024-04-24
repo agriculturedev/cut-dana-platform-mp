@@ -134,15 +134,15 @@ export function featureStyle (styleSettings, isOuterCircle) {
         if (feature.get("isVisible")) {
             let settings;
 
-            //NOTICE: change settings for outerCircle, else outerColor is same as innerColor (BG-5394)
-            //NOTICE: do this only for outerCircle to stay the old behaviour for all other stylings
-            if(!isOuterCircle){
+            // NOTICE: change settings for outerCircle, else outerColor is same as innerColor (BG-5394)
+            // NOTICE: do this only for outerCircle to stay the old behaviour for all other stylings
+            if (!isOuterCircle) {
                 settings = Object.assign({}, styleSettings, feature.get("drawState"));
             }
-            else{
+            else {
                 settings = Object.assign({}, feature.get("drawState"), styleSettings);
             }
-            return  createStyleModule.createStyle(feature.get("drawState"), settings);
+            return createStyleModule.createStyle(feature.get("drawState"), settings);
         }
         return undefined;
     };
