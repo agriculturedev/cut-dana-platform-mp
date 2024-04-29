@@ -89,7 +89,7 @@ export default {
                 eventHandler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
 
                 eventHandler.setInputAction(this.selectObject, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-                eventHandler.setInputAction(this.moveEntity, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+                eventHandler.setInputAction(this.moveEntity, Cesium.ScreenSpaceEventType.LEFT_DOWN);
                 eventHandler.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
                 document.addEventListener("keydown", this.catchUndoRedo);
             }
@@ -268,17 +268,17 @@ export default {
 
             if (Cesium.defined(entity) && entity instanceof Cesium.Entity) {
                 if (this.currentModelId && entity.id === this.currentModelId || entity.cylinder) {
-                    document.body.style.cursor = "grab";
+                    document.getElementById("map").style.cursor = "grab";
                 }
                 else {
-                    document.body.style.cursor = "pointer";
+                    document.getElementById("map").style.cursor = "pointer";
                 }
             }
             else if (this.hideObjects && Cesium.defined(picked) && picked instanceof Cesium.Cesium3DTileFeature) {
-                document.body.style.cursor = "pointer";
+                document.getElementById("map").style.cursor = "pointer";
             }
             else {
-                document.body.style.cursor = "auto";
+                document.getElementById("map").style.cursor = "auto";
             }
         },
         /**
@@ -301,25 +301,34 @@ export default {
             }
 
             if (entity instanceof Cesium.Entity || !event) {
-                const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
+                const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                    scene = mapCollection.getMap("3D").getCesiumScene();
 
                 this.setIsDragging(true);
+                scene.screenSpaceCameraController.enableInputs = false;
                 this.originalHideOption = this.hideObjects;
                 this.setHideObjects(false);
 
-                document.body.style.cursor = "grabbing";
+                eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                document.getElementById("map").style.cursor = "grabbing";
 
                 if (entity?.cylinder) {
-                    const geometry = entities.getById(this.currentModelId),
-                        position = geometry.polygon ? geometry.polygon.hierarchy.getValue().positions[entity.positionIndex] : geometry.polyline.positions.getValue()[entity.positionIndex];
+                    const geometry = entities.getById(this.currentModelId);
 
-                    this.currentPosition = position;
-                    this.originalPosition = {entityId: entity.positionIndex, attachedEntityId: entity.attachedEntityId, position};
+                    if (geometry) {
+                        const position = geometry.polygon
+                            ? geometry.polygon.hierarchy.getValue().positions[entity.positionIndex]
+                            : geometry.polyline.positions.getValue()[entity.positionIndex];
 
-                    entity.position = geometry.clampToGround ?
-                        new Cesium.CallbackProperty(() => adaptCylinderToGround(entity, this.currentPosition), false) :
-                        new Cesium.CallbackProperty(() => adaptCylinderToEntity(geometry, entity, this.currentPosition), false);
-                    eventHandler.setInputAction(this.moveCylinder, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                        this.setCylinderId(entity.id);
+                        this.currentPosition = position;
+                        this.originalPosition = {entityId: entity.positionIndex, attachedEntityId: entity.attachedEntityId, position};
+
+                        entity.position = geometry.clampToGround ?
+                            new Cesium.CallbackProperty(() => adaptCylinderToGround(entity, this.currentPosition), false) :
+                            new Cesium.CallbackProperty(() => adaptCylinderToEntity(geometry, entity, this.currentPosition), false);
+                        eventHandler.setInputAction(this.moveCylinder, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                    }
                 }
                 else if (entity?.wasDrawn) {
                     entities.values.filter(ent => ent.cylinder).forEach((cyl, index) => {
@@ -332,14 +341,16 @@ export default {
 
                     this.originalPosition = {entityId: entity.id, position: this.getCenterFromGeometry(entity)};
 
-                    eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                    if (this.currentModelId && this.currentModelId === entity.id) {
+                        eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                    }
                 }
                 else {
                     this.originalPosition = entity ? {entityId: entity.id, position: entity.position.getValue()} : null;
                     eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
                 }
 
-                eventHandler.setInputAction(this.onMouseUp, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+                eventHandler.setInputAction(this.onMouseUp, Cesium.ScreenSpaceEventType.LEFT_UP);
             }
         },
         /**
@@ -352,36 +363,32 @@ export default {
                 return;
             }
             const scene = mapCollection.getMap("3D").getCesiumScene(),
-                picked = scene.pick(event.position);
+                picked = scene.pick(event.position),
+                entity = Cesium.defaultValue(picked?.id, picked?.primitive?.id);
 
-            if (Cesium.defined(picked)) {
-                const entity = Cesium.defaultValue(picked?.id, picked?.primitive?.id);
+            if (!Cesium.defined(picked)) {
+                return;
+            }
 
-                if (entity instanceof Cesium.Entity) {
-                    if (entity.cylinder) {
-                        this.setCylinderId(entity.id);
-                    }
-                    else {
-                        this.setCurrentModelId(entity.id);
-                        this.setCylinderId(null);
-                        if (entity.polygon) {
-                            this.setArea(calculatePolygonArea(entity));
-                        }
-                    }
+            if (entity instanceof Cesium.Entity && !entity.cylinder) {
+                this.setCurrentModelId(entity.id);
+                this.setCylinderId(null);
+                if (entity.polygon) {
+                    this.setArea(calculatePolygonArea(entity));
                 }
-                else if (this.hideObjects && picked instanceof Cesium.Cesium3DTileFeature) {
-                    const features = getGfiFeatures.getGfiFeaturesByTileFeature(picked),
-                        gmlId = features[0]?.getProperties()[this.gmlIdPath],
-                        tileSetModels = this.updateAllLayers ?
-                            Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D"}) :
-                            Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D", id: picked.tileset.layerReferenceId});
+            }
+            else if (this.hideObjects && picked instanceof Cesium.Cesium3DTileFeature) {
+                const features = getGfiFeatures.getGfiFeaturesByTileFeature(picked),
+                    gmlId = features[0]?.getProperties()[this.gmlIdPath],
+                    tileSetModels = this.updateAllLayers ?
+                        Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D"}) :
+                        Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D", id: picked.tileset.layerReferenceId});
 
-                    tileSetModels.forEach(model => model.hideObjects([gmlId], this.updateAllLayers));
+                tileSetModels.forEach(model => model.hideObjects([gmlId], this.updateAllLayers));
 
-                    this.hiddenObjects.push({
-                        name: gmlId
-                    });
-                }
+                this.hiddenObjects.push({
+                    name: gmlId
+                });
             }
         },
         /**
@@ -465,33 +472,42 @@ export default {
             if (!this.isDragging) {
                 return;
             }
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                scene = mapCollection.getMap("3D").getCesiumScene();
 
-            this.removeInputActions();
+            eventHandler?.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_UP);
+            eventHandler?.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             this.setIsDragging(false);
 
             if (this.cylinderId) {
                 const cylinder = entities.getById(this.cylinderId),
                     entity = entities.getById(this.currentModelId);
 
-                cylinder.position = entity?.clampToGround ?
-                    adaptCylinderToGround(cylinder, cylinder.position.getValue()) :
-                    adaptCylinderToEntity(entity, cylinder, cylinder.position.getValue());
-                this.setCylinderId(null);
+                if (cylinder?.position) {
+                    cylinder.position = entity?.clampToGround ?
+                        adaptCylinderToGround(cylinder, cylinder.position.getValue()) :
+                        adaptCylinderToEntity(entity, cylinder, cylinder.position.getValue());
+                    this.setCylinderId(null);
+                }
             }
             else if (this.wasDrawn) {
                 const cylinders = entities.values.filter(ent => ent.cylinder),
                     entity = entities.getById(this.currentModelId);
 
                 cylinders.forEach((cyl) => {
-                    cyl.position = entity?.clampToGround ?
-                        adaptCylinderToGround(cyl, cyl.position.getValue()) :
-                        adaptCylinderToEntity(entity, cyl, cyl.position.getValue());
+                    if (cyl?.position) {
+                        cyl.position = entity?.clampToGround ?
+                            adaptCylinderToGround(cyl, cyl.position.getValue()) :
+                            adaptCylinderToEntity(entity, cyl, cyl.position.getValue());
+                    }
                 });
             }
             this.setHideObjects(this.originalHideOption);
 
-            document.body.style.cursor = "auto";
+            document.getElementById("map").style.cursor = "grab";
+            setTimeout(() => {
+                scene.screenSpaceCameraController.enableInputs = true;
+            });
         },
         /**
          * Called on every keypress to catch CTRL + Z/Y to undo or redo the last movement action.
@@ -575,18 +591,6 @@ export default {
                     this.onMouseUp();
                 }
             }, entityObject.attachedEntityId ? 200 : 0);
-        },
-        /**
-         * Removes the input actions related to mouse move and left double click events.
-         * @returns {void}
-         */
-        removeInputActions () {
-            if (eventHandler) {
-                eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-                eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-                eventHandler.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-                eventHandler.setInputAction(this.moveEntity, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-            }
         },
         /**
          * Highlights the specified entity by applying the configured or default highlight style.
@@ -727,8 +731,8 @@ export default {
                         deltaX = mousePosition.x - startMousePosition.x,
 
                         sensitivity = 0.002,
-                        pitch = Cesium.Math.clamp(camera.pitch + sensitivity * deltaY, -Cesium.Math.PI_OVER_TWO, Cesium.Math.PI_OVER_TWO),
-                        heading = camera.heading + sensitivity * deltaX;
+                        pitch = Cesium.Math.clamp(camera.pitch - sensitivity * deltaY, -Cesium.Math.PI_OVER_TWO, Cesium.Math.PI_OVER_TWO),
+                        heading = camera.heading - sensitivity * deltaX;
 
                     camera.setView({
                         orientation: {
@@ -773,6 +777,7 @@ export default {
             entities.removeById(this.cylinderId);
             document.body.style.cursor = this.originalCursorStyle;
             eventHandler.setInputAction(this.selectObject, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            eventHandler.setInputAction(this.moveEntity, Cesium.ScreenSpaceEventType.LEFT_DOWN);
             eventHandler.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
         },
         /**

@@ -90,7 +90,8 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
                 pick: sinon.stub().returns([11.549606597773037, 48.17285700012215]),
                 getHeight: sinon.stub().returns(5)
             },
-            sampleHeight: sinon.stub()
+            sampleHeight: sinon.stub(),
+            screenSpaceCameraController: {}
         },
         map3D = {
             id: "1",
@@ -121,6 +122,17 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
         origMovePolygon,
         origMovePolyline,
         origUpdatePositionUI;
+
+    before(() => {
+        const mapElement = document.createElement("div");
+
+        mapElement.id = "map";
+        document.body.append(mapElement);
+    });
+
+    after(() => {
+        document.getElementById("map")?.remove();
+    });
 
     beforeEach(() => {
         mapCollection.clear();
@@ -179,7 +191,8 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
                     y: 659341.4057539968,
                     z: 5107613.232959453
                 })
-            }
+            },
+            ScreenSpaceEventType: {}
         };
 
         origUpdateUI = Modeler3D.actions.updateUI;
@@ -475,7 +488,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             global.Cesium.defined = sinon.stub().returns(true);
 
             wrapper.vm.cursorCheck(event);
-            expect(document.body.style.cursor).to.equal("grab");
+            expect(document.getElementById("map").style.cursor).to.equal("grab");
         });
 
         it("should set cursor to \"grab\" when isDrawing is true", async () => {
@@ -487,7 +500,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             global.Cesium.defined = sinon.stub().returns(true);
 
             wrapper.vm.cursorCheck(event);
-            expect(document.body.style.cursor).to.equal("pointer");
+            expect(document.getElementById("map").style.cursor).to.equal("pointer");
         });
 
         it("should set cursor to \"auto\" when Cesium.defined returns false", async () => {
@@ -496,7 +509,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             global.Cesium.defined = sinon.stub().returns(false);
 
             wrapper.vm.cursorCheck(event);
-            expect(document.body.style.cursor).to.equal("auto");
+            expect(document.getElementById("map").style.cursor).to.equal("auto");
         });
 
         it("should update the position when moving a cylinder with clampToGround set to true", async () => {
@@ -573,16 +586,14 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             entity.polygon = false;
             entity.polyline = false;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
-            wrapper.vm.removeInputActions = sinon.spy();
             await wrapper.vm.$nextTick();
             store.commit("Tools/Modeler3D/setCylinderId", 2);
             store.commit("Tools/Modeler3D/setIsDragging", true);
 
             wrapper.vm.onMouseUp(event);
-            expect(wrapper.vm.removeInputActions).to.be.called;
             expect(store.state.Tools.Modeler3D.isDragging).to.be.false;
             expect(store.state.Tools.Modeler3D.cylinderId).to.eql(null);
-            expect(document.body.style.cursor).to.equal("auto");
+            expect(document.getElementById("map").style.cursor).to.equal("grab");
         });
         it("should perform actions when dragging of a drawn object is finished", async () => {
             const entity = entities.getById("entityId");
@@ -591,14 +602,12 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             entity.polygon = false;
             entity.polyline = false;
             store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
-            wrapper.vm.removeInputActions = sinon.spy();
             await wrapper.vm.$nextTick();
             store.commit("Tools/Modeler3D/setIsDragging", true);
 
             wrapper.vm.onMouseUp(event);
-            expect(wrapper.vm.removeInputActions).to.be.called;
             expect(store.state.Tools.Modeler3D.isDragging).to.be.false;
-            expect(document.body.style.cursor).to.equal("auto");
+            expect(document.getElementById("map").style.cursor).to.equal("grab");
         });
         it("should highlight a drawn polygon", async () => {
             const entity = entities.getById("entityId");

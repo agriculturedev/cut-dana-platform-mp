@@ -25,7 +25,7 @@ export function adaptCylinderToEntity (entity, cylinder, position) {
     const scene = mapCollection.getMap("3D").getCesiumScene(),
         cartographic = Cesium.Cartographic.fromCartesian(position),
         sampledHeight = scene.sampleHeight(cartographic, [entity, cylinder]),
-        heightDelta = entity.polygon ? entity.polygon.extrudedHeight - sampledHeight : sampledHeight;
+        heightDelta = entity?.polygon?.extrudedHeight - sampledHeight || sampledHeight;
 
     cylinder.cylinder.length = heightDelta + 5;
 
