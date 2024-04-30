@@ -3,9 +3,7 @@
 
 [Semantic versioning](https://semver.org/spec/v2.0.0.html) is used.
 
-## Unreleased - in development
-### __Breaking Changes__
-
+## v2.45.0 - 2024-04-30
 ### Added
 - Modeler3D:
   - Set points while drawing can be undone with CTRL + Z and redone with CTRL + Y
@@ -36,10 +34,6 @@
         - @geoblocks/print: 0.7.4 to 0.7.8
 - The version of node was updated to `^16.13.2 || ^18.16.0 || ^20.12.2`.
 - The version of npm was updated to `^8.1.2 || ^9.5.1 || ^10.5.0`
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 - Issue #1174: Draw: the outer outline color of the double circle is drawn as selected.
