@@ -83,50 +83,66 @@ describe("Actions", () => {
                     getValue: () => this.scale._value
                 };
             },
-            Cartesian3: function () {
-                this.x = 0;
-                this.y = 0;
-                this.z = 0;
+            CallbackProperty: function () {
+                this.callback = () => ({x: 10, y: 20, z: 30});
+                this.getValue = () => this.callback();
             },
-            Cartographic: {
-                fromCartesian: () => ({
+            Cartesian3: class {
+                /**
+                 * Represents a Cartesian3 object.
+                 */
+                constructor () {
+                    this.x = 0;
+                    this.y = 0;
+                    this.z = 0;
+                }
+                static fromDegrees = () => ({
+                    x: 3739310.9273738265,
+                    y: 659341.4057539968,
+                    z: 5107613.232959453
+                });
+                static subtract = (pos1, pos2, res) => {
+                    res.x = pos1.x - pos2.x;
+                    res.y = pos1.y - pos2.y;
+                    res.z = pos1.z - pos2.z;
+                    return res;
+                };
+                static add = (pos1, pos2, res) => {
+                    res.x = pos1.x + pos2.x;
+                    res.y = pos1.y + pos2.y;
+                    res.z = pos1.z + pos2.z;
+                    return res;
+                };
+            },
+            Cartographic: class {
+                /**
+                 * Represents a Cartographic object.
+                 */
+                constructor () {
+                    this.longitude = 0;
+                    this.latitude = 0;
+                    this.height = 0;
+                }
+                static fromCartesian = () => ({
                     longitude: 0.17443853256965697,
                     latitude: 0.9346599366554966,
                     height: 6.134088691520464
-                }),
-                toCartesian: () => ({
+                });
+                static toCartesian = () => ({
                     x: 10,
                     y: 20,
                     z: 30
-                }),
-                fromDegrees: () => ({
+                });
+                static fromDegrees = () => ({
                     longitude: 0.17443853256965697,
                     latitude: 0.9346599366554966,
                     height: 6.134088691520464
-                })
+                });
             },
             Math: {
                 toDegrees: () => 9.99455657887449,
                 toRadians: () => 0.97
             }
-        };
-
-        global.Cesium.Cartesian3.fromDegrees = () => ({
-            x: 3739310.9273738265,
-            y: 659341.4057539968,
-            z: 5107613.232959453
-        });
-        global.Cesium.Cartesian3.subtract = (pos1, pos2, res) => {
-            res.x = pos1.x - pos2.x;
-            res.y = pos1.y - pos2.y;
-            res.z = pos1.z - pos2.z;
-            return res;
-        };
-        global.Cesium.Cartesian3.add = (pos1, pos2, res) => {
-            res.x = pos1.x + pos2.x;
-            res.y = pos1.y + pos2.y;
-            res.z = pos1.z + pos2.z;
-            return res;
         };
 
         store.state.Maps.mode = "3D";
@@ -142,7 +158,8 @@ describe("Actions", () => {
         };
         entities = {
             getById: sinon.spy(() => entity),
-            removeById: sinon.spy()
+            removeById: sinon.spy(),
+            values: []
         };
     });
     afterEach(() => {
@@ -577,7 +594,7 @@ describe("Actions", () => {
             expect(commit.calledWith("setActiveShapePoints", entity.polygon.hierarchy.getValue().positions)).to.be.true;
             expect(dispatch.callCount).to.eql(3);
             entities.values.forEach(ent => {
-                expect(ent.position).to.eql({x: 10, y: 20, z: 30});
+                expect(ent.position.getValue()).to.eql({x: 10, y: 20, z: 30});
             });
         });
 
@@ -619,7 +636,7 @@ describe("Actions", () => {
             expect(commit.calledWith("setActiveShapePoints", entity.polyline.positions.getValue())).to.be.true;
             expect(dispatch.callCount).to.eql(3);
             entities.values.forEach(ent => {
-                expect(ent.position).to.eql({x: 10, y: 20, z: 30});
+                expect(ent.position.getValue()).to.eql({x: 10, y: 20, z: 30});
             });
         });
     });
@@ -769,6 +786,29 @@ describe("Actions", () => {
 
             expect(entities.getById.calledWith(1)).to.be.true;
             expect(entity.originalColor).eql({red: 1, green: 0, blue: 0});
+        });
+    });
+
+    describe("moveAdjacentRectangleCorners", () => {
+        it("should move the adjacent corners of a rectangle to a new position", () => {
+            const state = {
+                    activeShapePoints: [
+                        Cesium.Cartesian3.fromDegrees(0, 0, 0),
+                        Cesium.Cartesian3.fromDegrees(0, 1, 0),
+                        Cesium.Cartesian3.fromDegrees(1, 1, 0),
+                        Cesium.Cartesian3.fromDegrees(1, 0, 0)
+                    ],
+                    currentModelId: 1
+                },
+                moveOptions = {
+                    movedCornerIndex: 0,
+                    clampToGround: true
+                };
+
+            actions.moveAdjacentRectangleCorners({state}, moveOptions);
+
+            expect(state.activeShapePoints[1]).to.eql({x: 10, y: 20, z: 30});
+            expect(state.activeShapePoints[3]).to.eql({x: 10, y: 20, z: 30});
         });
     });
 });

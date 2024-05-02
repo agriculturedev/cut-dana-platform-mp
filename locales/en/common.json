@@ -711,15 +711,20 @@
                         "extrudedHeight": "Extruded Height",
                         "fillColor": "Fill Color",
                         "fillTransparency": "Transparency",
-                        "geometry": "Geometry",
+                        "geometries": "Geometry",
                         "introInfo": "With this function, you can draw 3D objects on the map and edit and design them individually. You can sketch buildings and then, for example, perform shadow simulations.<br><br>The tool also allows drawing on existing buildings and imported objects. A prerequisite is that you have activated the terrain height.<br><br>Using the export function, you can export your designs and load them back into the application later using the importer.",
                         "outlineColor": "Outline Color",
-                        "transparency": "Transparency",
-                        "lineWidth": "Line Width"
+                        "readyGeometries": "One-Click Geometries",
+                        "strokeColor": "Outline Color",
+                        "strokeWidth": "Outline Width"
                     },
                     "geometries": {
+                        "line": "Line",
                         "polygon": "Polygon",
-                        "line": "Line"
+                        "rectangle": "Rectangle"
+                    },
+                    "oneClicks": {
+                        "rectangle": "15m x 20m x 20m (WxDxH) Rectangle"
                     }
                 },
                 "options": {

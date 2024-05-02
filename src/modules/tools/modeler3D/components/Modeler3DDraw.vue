@@ -9,6 +9,7 @@ import {adaptCylinderToEntity, adaptCylinderToGround, adaptCylinderUnclamped, ca
 import DrawTypes from "./ui/DrawTypes.vue";
 import DrawLayout from "./ui/DrawLayout.vue";
 import EntityList from "./ui/EntityList.vue";
+import DrawModels from "./ui/DrawModels.vue";
 
 let eventHandler = null;
 
@@ -17,7 +18,8 @@ export default {
     components: {
         DrawTypes,
         DrawLayout,
-        EntityList
+        EntityList,
+        DrawModels
     },
     data () {
         return {
@@ -129,21 +131,23 @@ export default {
             }
             if (Cesium.defined(this.currentPosition)) {
                 this.activeShapePoints.splice(floatingPoint.positionIndex, 1, this.currentPosition);
+                const shape = entities.getById(this.shapeId);
+
+                if (shape?.polygon?.rectangle && this.activeShapePoints.length > 1) {
+                    this.moveAdjacentRectangleCorners({movedCornerIndex: 3, clampToGround: this.clampToGround});
+                }
+
                 if (this.activeShapePoints.length > 1 && this.shapeId !== null && this.dimensions) {
-                    const shape = entities.getById(this.shapeId),
-                        labelId = entities.getById(this.areaLabelId);
+                    const areaLabel = entities.getById(this.areaLabelId);
 
                     if (shape?.polygon && this.labelList.length !== 0) {
-                        this.calculateDistances();
                         const area = calculatePolygonArea(shape);
 
-                        labelId.label.text = Math.round(area * 100) / 100 + " m²";
-                        labelId.label.show = this.dimensions;
+                        areaLabel.label.text = Math.round(area * 100) / 100 + " m²";
+                        areaLabel.label.show = this.dimensions;
                         this.setArea(area);
                     }
-                    if (shape?.polyline) {
-                        this.calculateDistances();
-                    }
+                    this.calculateDistances();
                 }
             }
         },
@@ -161,7 +165,8 @@ export default {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
 
             let floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId),
-                entity = null;
+                entity = null,
+                label = null;
 
             if (this.activeShapePoints.length === 1 && !this.shapeId) {
                 const scene = mapCollection.getMap("3D").getCesiumScene();
@@ -174,8 +179,22 @@ export default {
                 this.addLabel("area");
             }
             entity = entities.getById(this.shapeId);
-            this.addLabel("distance");
-            this.labelList.push(entities.getById(this.labelId));
+            label = this.addLabel("distance");
+            this.labelList.push(label);
+
+            if (entity?.polygon?.rectangle) {
+                if (this.activeShapePoints.length > 1) {
+                    this.activeShapePoints.push({});
+                    this.stopDrawing();
+                    return;
+                }
+                this.activeShapePoints.splice(1, 0, Cesium.Cartesian3.clone(this.activeShapePoints[0]));
+                this.activeShapePoints.unshift(Cesium.Cartesian3.clone(this.activeShapePoints[0]));
+            }
+            if ((this.activeShapePoints.length === 2 && entity?.polygon) || entity?.polygon?.rectangle) {
+                label = this.addLabel("distance");
+                this.labelList.push(label);
+            }
 
             if (this.clampToGround) {
                 floatingPoint.position = adaptCylinderToGround(floatingPoint, this.currentPosition);
@@ -316,7 +335,7 @@ export default {
             if (shape?.polyline && this.activeShapePoints.length >= 2) {
                 shape.polyline.positions = this.activeShapePoints;
             }
-            else if (shape && shape.polygon && this.activeShapePoints.length < 3) {
+            else if (shape && shape.polygon && (this.activeShapePoints.length < 3 || (shape.polygon.rectangle && this.activeShapePoints.length < 4))) {
                 this.deleteEntity(shape.id);
             }
 
@@ -342,50 +361,46 @@ export default {
                 lastId = lastElement ? lastElement.id : undefined,
                 shapeId = lastId ? lastId + 1 : 1,
                 positionData = new Cesium.CallbackProperty(() => {
-                    if (this.selectedDrawType === "polygon") {
+                    if (this.selectedDrawType === "polygon" || this.selectedDrawType === "rectangle") {
                         return new Cesium.PolygonHierarchy(this.activeShapePoints);
                     }
                     return this.activeShapePoints;
-                }, false);
-            let shape;
+                }, false),
+                shape = new Cesium.Entity({
+                    id: shapeId,
+                    name: this.drawName ? this.drawName : i18next.t("common:modules.tools.modeler3D.draw.captions.drawing") + ` ${shapeId}`,
+                    wasDrawn: true,
+                    clampToGround: this.clampToGround
+                });
 
             if (this.selectedDrawType === "line") {
-                shape = {
-                    id: shapeId,
-                    name: this.drawName ? this.drawName : i18next.t("common:modules.tools.modeler3D.draw.captions.drawing") + ` ${shapeId}`,
-                    wasDrawn: true,
-                    clampToGround: this.clampToGround,
-                    polyline: {
-                        material: new Cesium.ColorMaterialProperty(
-                            Cesium.Color.fromBytes(...this.currentLayout.strokeColor).withAlpha(1 - this.currentLayout.fillTransparency / 100)
-                        ),
-                        positions: positionData,
-                        clampToGround: this.clampToGround,
-                        width: this.lineWidth
-                    }
+                shape.polyline = {
+                    material: new Cesium.ColorMaterialProperty(
+                        Cesium.Color.fromBytes(...this.currentLayout.strokeColor).withAlpha(1 - this.currentLayout.fillTransparency / 100)
+                    ),
+                    positions: positionData,
+                    width: this.lineWidth
                 };
             }
-            else if (this.selectedDrawType === "polygon") {
-                shape = {
-                    id: shapeId,
-                    name: this.drawName ? this.drawName : i18next.t("common:modules.tools.modeler3D.draw.captions.drawing") + ` ${shapeId}`,
-                    wasDrawn: true,
-                    clampToGround: this.clampToGround,
-                    polygon: {
-                        height: this.height,
-                        hierarchy: positionData,
-                        material: new Cesium.ColorMaterialProperty(
-                            Cesium.Color.fromBytes(...this.currentLayout.fillColor).withAlpha(1 - this.currentLayout.fillTransparency / 100)
-                        ),
-                        outline: true,
-                        outlineColor: Cesium.Color.fromBytes(...this.currentLayout.strokeColor).withAlpha(1 - this.currentLayout.fillTransparency / 100),
-                        shadows: Cesium.ShadowMode.ENABLED,
-                        extrudedHeight: this.extrudedHeight + this.height
-                    }
+            else if (this.selectedDrawType === "polygon" || this.selectedDrawType === "rectangle") {
+                shape.polygon = {
+                    height: this.height,
+                    hierarchy: positionData,
+                    material: new Cesium.ColorMaterialProperty(
+                        Cesium.Color.fromBytes(...this.currentLayout.fillColor).withAlpha(1 - this.currentLayout.fillTransparency / 100)
+                    ),
+                    outline: true,
+                    outlineColor: Cesium.Color.fromBytes(...this.currentLayout.strokeColor).withAlpha(1 - this.currentLayout.fillTransparency / 100),
+                    shadows: Cesium.ShadowMode.ENABLED,
+                    extrudedHeight: this.extrudedHeight + this.height
                 };
             }
 
             entities.add(shape);
+            if (this.selectedDrawType === "rectangle") {
+                shape.polygon.rectangle = true;
+            }
+
             models.push({
                 id: shape.id,
                 name: shape.name,
@@ -522,7 +537,7 @@ export default {
          * Creates the label in the EntityCollection depending on "distance" or "area" type.
          * @param {String} type - label type can be "distance" or "area".
          * @param {Object} labelInfo - set specific text and position. Default is false.
-         * @returns {void}
+         * @returns {Cesium.Entity} - The created label.
          */
         addLabel (type, labelInfo = false) {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
@@ -547,7 +562,6 @@ export default {
                         show: !labelInfo ? false : this.dimensions
                     }
                 };
-                entities.add(label);
                 this.labelId = label.id;
             }
             else if (type === "area") {
@@ -567,9 +581,10 @@ export default {
                         pixelOffset: new Cesium.Cartesian2(30, -30)
                     }
                 };
-                entities.add(label);
                 this.areaLabelId = label.id;
             }
+            entities.add(label);
+            return label;
         },
         /**
         * Removes all Label from the the Cesium EntityCollection.
@@ -585,20 +600,71 @@ export default {
         },
         /**
         * Calculate the distance between two points and update the label.
+        * @param {Cesium.Cartesian3} position1 - The first position.
+        * @param {Cesium.Cartesian3} position2 - The second position.
+        * @param {Number} labelId - The id of the label.
         * @returns {void}
         */
         calculateDistances () {
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                newLabel = entities.getById(this.labelId),
-                leftPosition = new Cesium.Cartesian3(this.activeShapePoints[this.activeShapePoints.length - 2].x, this.activeShapePoints[this.activeShapePoints.length - 2].y, this.activeShapePoints[this.activeShapePoints.length - 2].z),
-                rightPosition = new Cesium.Cartesian3(this.currentPosition.x, this.currentPosition.y, this.currentPosition.z),
-                distance = Cesium.Cartesian3.distance(leftPosition, rightPosition),
-                midPointCartesian = new Cesium.Cartesian3(),
-                labelPosition = Cesium.Cartesian3.midpoint(leftPosition, rightPosition, midPointCartesian);
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
 
-            newLabel.label.text = Math.round(distance * 100) / 100 + "m";
-            newLabel.position = labelPosition;
-            newLabel.label.show = this.dimensions;
+            this.labelList.forEach((label, index) => {
+                const labelEntity = entities.getById(label.id),
+                    position1 = this.activeShapePoints[index % this.activeShapePoints.length],
+                    position2 = this.activeShapePoints[(index + 1) % this.activeShapePoints.length],
+                    distance = Cesium.Cartesian3.distance(position1, position2),
+                    labelPosition = Cesium.Cartesian3.midpoint(position1, position2, new Cesium.Cartesian3());
+
+                labelEntity.label.text = Math.round(distance * 100) / 100 + "m";
+                labelEntity.position = labelPosition;
+                labelEntity.label.show = this.dimensions;
+            });
+        },
+        /**
+         * Starts placing of a ready to place 3D element.
+         * @returns {void}
+         */
+        startPlacing () {
+            if (this.isDrawing) {
+                this.stopDrawing();
+            }
+
+            const camera = mapCollection.getMap("3D").getCesiumScene().camera,
+                position = Cesium.Cartographic.fromCartesian(camera.position);
+
+            if (this.selectedDrawModelType === "rectangle") {
+                const corners = this.generateRectangleCorners(position);
+
+                this.setActiveShapePoints(corners);
+                this.setSelectedDrawType("rectangle");
+                this.setExtrudedHeight(20);
+                this.drawShape();
+            }
+
+            this.$emit("select-and-move", this.shapeId);
+        },
+        /**
+         * Generate the corners of a rectangle given a center position.
+         * @param {Cesium.Cartographic} position - The given center of the rectangle.
+         * @returns {Cesium.Cartesian3[]} - The corners of the rectangle.
+         */
+        generateRectangleCorners (position) {
+            const scene = mapCollection.getMap("3D").getCesiumScene(),
+                ellipsoid = scene.globe.ellipsoid,
+                localFrame = Cesium.Transforms.eastNorthUpToFixedFrame(ellipsoid.cartographicToCartesian(position)),
+
+                halfDepth = 20 / 2,
+                halfWidth = 15 / 2,
+                corners = [
+                    new Cesium.Cartesian3(-halfDepth, -halfWidth, 0),
+                    new Cesium.Cartesian3(halfDepth, -halfWidth, 0),
+                    new Cesium.Cartesian3(halfDepth, halfWidth, 0),
+                    new Cesium.Cartesian3(-halfDepth, halfWidth, 0)
+                ],
+
+                cornersCartesian = corners.map(cr => Cesium.Matrix4.multiplyByPoint(localFrame, cr, new Cesium.Cartesian3()));
+
+            return cornersCartesian;
         }
     }
 };
@@ -670,21 +736,37 @@ export default {
                 </div>
             </div>
         </div>
+        <div
+            v-if="drawModelTypes.length > 0"
+            class="d-flex flex-column"
+        >
+            <label
+                class="col col-form-label"
+                for="tool-modeler3D-draw-models"
+            >
+                {{ $t("modules.tools.modeler3D.draw.captions.readyGeometries") }}
+            </label>
+            <DrawModels
+                id="tool-modeler3D-draw-models"
+                :draw-model-types="drawModelTypes"
+                :selected-draw-model-type="selectedDrawModelType"
+                :set-selected-draw-model-type="setSelectedDrawModelType"
+                @start-placing="startPlacing"
+            />
+        </div>
         <div class="d-flex flex-column">
             <label
-                class="col-md-5 col-form-label"
+                class="col col-form-label"
                 for="tool-modeler3d-draw-types"
             >
-                {{ $t("modules.tools.modeler3D.draw.captions.geometry") }}
+                {{ $t("modules.tools.modeler3D.draw.captions.geometries") }}
             </label>
             <DrawTypes
                 id="tool-modeler3d-draw-types"
                 :current-layout="currentLayout"
                 :draw-types="drawTypes"
                 :selected-draw-type="selectedDrawType"
-                :selected-draw-type-main="selectedDrawTypeMain"
                 :set-selected-draw-type="setSelectedDrawType"
-                :set-selected-draw-type-main="setSelectedDrawTypeMain"
                 @start-drawing="startDrawing"
                 @stop-drawing="stopDrawing"
             />

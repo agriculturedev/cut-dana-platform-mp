@@ -23,6 +23,8 @@
   - Set points while drawing can be undone with CTRL + Z and redone with CTRL + Y
   - The movement of objects can be undone with CTRL + Z and redone with CTRL + Y
   - Add edit function for fillColor and stroke color of drawn polygons and polylines.
+  - Rectangles can now be drawn in the drawing tool.
+  - A ready to drop-in 15m x 20m x 20m rectangle can now be chosen in the draw tool.
 - overviewMap:
   - Adds New parameter `renderIn3d` for overviewMap. Enables the overviewMap in 3d mode.
   - Adds New parameter `boxBorderColor` for overviewMap. Enables to configure the border color of mini overview map box.

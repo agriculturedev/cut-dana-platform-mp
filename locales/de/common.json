@@ -713,15 +713,20 @@
                         "extrudedHeight": "Extrudierte Höhe",
                         "fillColor": "Füllfarbe",
                         "fillTransparency": "Transparenz",
-                        "geometry": "Geometrie",
+                        "geometries": "Geometrien",
                         "introInfo": "Über diese Funktion können Sie 3D-Objekte in die Karte zeichnen und diese individuell bearbeiten und gestalten. Sie können so Gebäude skizieren und anschließend z.B. Schattensimulationen durchführen.<br><br>Das Tool ermöglicht zudem das Zeichnen auf bereits bestehenden Gebäuden sowie importierten Objekten. Voraussetzung ist, dass Sie die Geländehöhe aktiviert haben.<br><br>Über die Exportfunktion können Sie Ihre Entwürfe exportieren und zu einem späteren Zeitpunkt über den Importer wieder in die Anwendung laden.",
                         "options": "Optionen",
+                        "readyGeometries": "Fertige Geometrien",
                         "strokeColor": "Umrissfarbe",
                         "strokeWidth": "Strichstärke"
                     },
                     "geometries": {
+                        "line": "Linie",
                         "polygon": "Polygon",
-                        "line": "Linie"
+                        "rectangle": "Rechteck"
+                    },
+                    "oneClicks": {
+                        "rectangle": "15m x 20m x 20m (BxTxH) Rechteck"
                     }
                 },
                 "options": {

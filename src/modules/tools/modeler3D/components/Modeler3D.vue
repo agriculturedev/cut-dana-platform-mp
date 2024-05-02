@@ -106,53 +106,15 @@ export default {
          */
         currentModelId (newId, oldId) {
             if (!this.isDrawing) {
-                const scene = mapCollection.getMap("3D").getCesiumScene(),
-                    entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                     newEntity = entities.getById(newId),
                     oldEntity = entities.getById(oldId);
 
                 if (oldEntity) {
-                    if (oldEntity.wasDrawn) {
-                        if (oldEntity.polygon) {
-                            oldEntity.polygon.material.color = oldEntity.originalColor;
-                            oldEntity.polygon.outlineColor = oldEntity.originalOutlineColor;
-                            oldEntity.polygon.hierarchy = new Cesium.ConstantProperty(new Cesium.PolygonHierarchy(this.activeShapePoints));
-                            this.setExtrudedHeight(20);
-                        }
-                        else if (oldEntity.polyline) {
-                            oldEntity.polyline.positions = new Cesium.ConstantProperty(this.activeShapePoints);
-                            oldEntity.polyline.material.color = oldEntity.originalColor;
-                        }
-                        this.removeCylinders();
-                        this.setActiveShapePoints([]);
-                        this.setCylinderId(null);
-                    }
-                    else {
-                        oldEntity.model.color = Cesium.Color.WHITE;
-                        oldEntity.model.silhouetteColor = null;
-                        oldEntity.model.silhouetteSize = 0;
-                        oldEntity.model.colorBlendAmount = 0;
-                    }
-                    scene.requestRender();
-
-                    this.setCurrentModelPosition(null);
+                    this.resetOldEntity(oldEntity);
                 }
                 if (newEntity) {
-                    if (newEntity.wasDrawn) {
-                        this.generateCylinders();
-
-                        if (newEntity.polygon) {
-                            this.setActiveShapePoints(newEntity.polygon.hierarchy.getValue().positions);
-                            newEntity.polygon.hierarchy = new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(this.activeShapePoints), false);
-                        }
-                        else if (newEntity.polyline) {
-                            this.setActiveShapePoints(newEntity.polyline.positions.getValue());
-                            newEntity.polyline.positions = new Cesium.CallbackProperty(() => this.activeShapePoints);
-                        }
-                    }
-                    this.highlightEntity(newEntity);
-                    this.setCurrentModelPosition(newEntity?.position?.getValue() || this.getCenterFromGeometry(newEntity));
-                    this.updateUI();
+                    this.setupNewEntity(newEntity);
                 }
             }
         }
@@ -166,6 +128,76 @@ export default {
         ...mapMutations("Tools/Gfi", {setGfiActive: "setActive"}),
         ...mapMutations("controls/overviewMap/", ["setOverviewLayer"]),
 
+
+        /**
+         * Resets the old entity by calling the corresponding reset function based on the entity type.
+         * @param {Cesium.Entity} oldEntity - The entity to reset.
+         * @returns {void}
+         */
+        resetOldEntity (oldEntity) {
+            const scene = mapCollection.getMap("3D").getCesiumScene();
+
+            if (oldEntity.wasDrawn) {
+                this.resetDrawnEntity(oldEntity);
+            }
+            else {
+                this.resetModelEntity(oldEntity);
+            }
+            scene.requestRender();
+            this.setCurrentModelPosition(null);
+        },
+        /**
+         * Resets the drawn entity's properties to their original values and resets state.
+         * @param {Cesium.Entity} entity - The entity to reset.
+         * @returns {void}
+         */
+        resetDrawnEntity (entity) {
+            if (entity.polygon) {
+                entity.polygon.material.color = entity.originalColor;
+                entity.polygon.outlineColor = entity.originalOutlineColor;
+                entity.polygon.hierarchy = new Cesium.ConstantProperty(new Cesium.PolygonHierarchy(this.activeShapePoints));
+                this.setExtrudedHeight(20);
+            }
+            else if (entity.polyline) {
+                entity.polyline.positions = new Cesium.ConstantProperty(this.activeShapePoints);
+                entity.polyline.material.color = entity.originalColor;
+            }
+            this.removeCylinders();
+            this.setActiveShapePoints([]);
+            this.setCylinderId(null);
+        },
+        /**
+         * Resets the imported entity's properties to their original values and resets state.
+         * @param {Cesium.Entity} entity - The entity to reset.
+         * @returns {void}
+         */
+        resetModelEntity (entity) {
+            entity.model.color = Cesium.Color.WHITE;
+            entity.model.silhouetteColor = null;
+            entity.model.silhouetteSize = 0;
+            entity.model.colorBlendAmount = 0;
+        },
+        /**
+         * Sets the entity's properties to callback values, generates cylinders and applies highlighting.
+         * @param {Cesium.Entity} newEntity - The entity to apply the changes to.
+         * @returns {void}
+         */
+        setupNewEntity (newEntity) {
+            if (newEntity.wasDrawn) {
+                this.generateCylinders();
+                if (newEntity.polygon) {
+                    this.setActiveShapePoints(newEntity.polygon.hierarchy.getValue().positions);
+                    newEntity.polygon.hierarchy = new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(this.activeShapePoints), false);
+                }
+                else if (newEntity.polyline) {
+                    this.setActiveShapePoints(newEntity.polyline.positions.getValue());
+                    newEntity.polyline.positions = new Cesium.CallbackProperty(() => this.activeShapePoints);
+                }
+            }
+            this.highlightEntity(newEntity);
+            this.setCurrentModelPosition(newEntity?.position?.getValue() || this.getCenterFromGeometry(newEntity));
+            this.updateUI();
+        },
         /**
          * Initializes the projections to select. If projection EPSG:4326 is available same is added in decimal-degree.
          * @returns {void}
@@ -313,22 +345,23 @@ export default {
                 document.getElementById("map").style.cursor = "grabbing";
 
                 if (entity?.cylinder) {
-                    const geometry = entities.getById(this.currentModelId);
+                    const geometry = entities.getById(this.currentModelId),
+                        position = geometry.polygon ? geometry.polygon.hierarchy.getValue().positions[entity.positionIndex] : geometry.polyline.positions.getValue()[entity.positionIndex],
+                        cylinders = entities.values.filter(ent => ent.cylinder);
 
-                    if (geometry) {
-                        const position = geometry.polygon
-                            ? geometry.polygon.hierarchy.getValue().positions[entity.positionIndex]
-                            : geometry.polyline.positions.getValue()[entity.positionIndex];
+                    this.currentPosition = position;
+                    this.originalPosition = {entityId: entity.positionIndex, attachedEntityId: entity.attachedEntityId, position};
 
-                        this.setCylinderId(entity.id);
-                        this.currentPosition = position;
-                        this.originalPosition = {entityId: entity.positionIndex, attachedEntityId: entity.attachedEntityId, position};
+                    cylinders.forEach((cyl) => {
+                        this.cylinderPosition[cyl.positionIndex] = cyl.position.getValue();
+                        cyl.position = geometry.clampToGround ?
+                            new Cesium.CallbackProperty(() => adaptCylinderToGround(cyl, this.cylinderPosition[cyl.positionIndex]), false) :
+                            new Cesium.CallbackProperty(() => adaptCylinderToEntity(geometry, cyl, this.cylinderPosition[cyl.positionIndex]), false);
+                    });
 
-                        entity.position = geometry.clampToGround ?
-                            new Cesium.CallbackProperty(() => adaptCylinderToGround(entity, this.currentPosition), false) :
-                            new Cesium.CallbackProperty(() => adaptCylinderToEntity(geometry, entity, this.currentPosition), false);
-                        eventHandler.setInputAction(this.moveCylinder, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-                    }
+                    this.setCylinderId(entity.id);
+
+                    eventHandler.setInputAction(this.moveCylinder, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
                 }
                 else if (entity?.wasDrawn) {
                     entities.values.filter(ent => ent.cylinder).forEach((cyl, index) => {
@@ -392,6 +425,16 @@ export default {
             }
         },
         /**
+         * Selects and moves an object based on the provided ID.
+         * @param {string} id - The ID of the object to select and move.
+         * @returns {void}
+         */
+        async selectAndMove (id) {
+            this.setCurrentModelId(id);
+            await this.$nextTick();
+            this.moveEntity();
+        },
+        /**
          * Handles the mouse move event and performs actions when dragging a cylinder.
          * @param {Event} event - The event object containing the position information.
          * @returns {void}
@@ -412,8 +455,8 @@ export default {
                     const ray = scene.camera.getPickRay(event.endPosition),
                         position = scene.globe.pick(ray, scene);
 
-                    if (this.currentPosition !== position) {
-                        this.currentPosition = scene.globe.pick(ray, scene);
+                    if (this.cylinderPosition[cylinder.positionIndex] !== position) {
+                        this.cylinderPosition[cylinder.positionIndex] = scene.globe.pick(ray, scene);
                         this.updatePositionUI();
                     }
                 }
@@ -423,13 +466,16 @@ export default {
 
                     cartographic.height = scene.sampleHeight(cartographic, [cylinder, entity]);
 
-                    if (this.currentPosition !== Cesium.Cartographic.toCartesian(cartographic)) {
-                        this.currentPosition = Cesium.Cartographic.toCartesian(cartographic);
+                    if (this.cylinderPosition[cylinder.positionIndex] !== Cesium.Cartographic.toCartesian(cartographic)) {
+                        this.cylinderPosition[cylinder.positionIndex] = Cesium.Cartographic.toCartesian(cartographic);
                         this.updatePositionUI();
                     }
                 }
-                if (Cesium.defined(this.currentPosition)) {
-                    this.activeShapePoints.splice(cylinder.positionIndex, 1, this.currentPosition);
+                if (Cesium.defined(this.cylinderPosition[cylinder.positionIndex])) {
+                    this.activeShapePoints.splice(cylinder.positionIndex, 1, this.cylinderPosition[cylinder.positionIndex]);
+                    if (entity.polygon?.rectangle) {
+                        this.moveAdjacentRectangleCorners({movedCornerIndex: cylinder.positionIndex, clampToGround: entity.clampToGround});
+                    }
                 }
             }
         },
@@ -479,29 +525,19 @@ export default {
             eventHandler?.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             this.setIsDragging(false);
 
-            if (this.cylinderId) {
-                const cylinder = entities.getById(this.cylinderId),
-                    entity = entities.getById(this.currentModelId);
-
-                if (cylinder?.position) {
-                    cylinder.position = entity?.clampToGround ?
-                        adaptCylinderToGround(cylinder, cylinder.position.getValue()) :
-                        adaptCylinderToEntity(entity, cylinder, cylinder.position.getValue());
-                    this.setCylinderId(null);
-                }
-            }
-            else if (this.wasDrawn) {
+            if (this.cylinderId || this.wasDrawn) {
                 const cylinders = entities.values.filter(ent => ent.cylinder),
                     entity = entities.getById(this.currentModelId);
 
-                cylinders.forEach((cyl) => {
-                    if (cyl?.position) {
-                        cyl.position = entity?.clampToGround ?
-                            adaptCylinderToGround(cyl, cyl.position.getValue()) :
-                            adaptCylinderToEntity(entity, cyl, cyl.position.getValue());
-                    }
+                cylinders.forEach(cyl => {
+                    cyl.position = entity?.clampToGround ?
+                        adaptCylinderToGround(cyl, cyl.position.getValue()) :
+                        adaptCylinderToEntity(entity, cyl, cyl.position.getValue());
                 });
+
+                this.setCylinderId(null);
             }
+
             this.setHideObjects(this.originalHideOption);
 
             document.getElementById("map").style.cursor = "grab";
@@ -533,64 +569,74 @@ export default {
          * @param {Object} entityObject - The object containing the entity ID and the new position.
          * @returns {void}
          */
-        applyEntityMovement (entityObject) {
+        async applyEntityMovement (entityObject) {
             if (!entityObject) {
                 return;
             }
 
             this.setCurrentModelId(entityObject.attachedEntityId || entityObject.entityId);
+            await this.$nextTick();
 
-            // setTimeout is needed to wait for the cylinders to be created, otherwise the wrong entity is returned
-            setTimeout(() => {
-                const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                    movedEntity = entityObject.attachedEntityId ? entities.values.find(val => val.positionIndex === entityObject.entityId) : entities.getById(entityObject.entityId);
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                movedEntity = entityObject.attachedEntityId ? entities.values.find(val => val.positionIndex === entityObject.entityId) : entities.getById(entityObject.entityId);
 
-                if (!movedEntity) {
-                    return;
-                }
+            if (!movedEntity) {
+                return;
+            }
 
-                if (this.lastAction === "undo") {
-                    this.undonePosition = {entityId: movedEntity.id, position: movedEntity.wasDrawn ? this.getCenterFromGeometry(movedEntity) : movedEntity.position.getValue()};
-                }
-                else if (this.lastAction === "redo") {
-                    this.originalPosition = {entityId: movedEntity.id, position: movedEntity.wasDrawn ? this.getCenterFromGeometry(movedEntity) : movedEntity.position.getValue()};
-                }
+            if (this.lastAction === "undo") {
+                this.undonePosition = {entityId: movedEntity.id, position: movedEntity.wasDrawn ? this.getCenterFromGeometry(movedEntity) : movedEntity.position.getValue()};
+            }
+            else if (this.lastAction === "redo") {
+                this.originalPosition = {entityId: movedEntity.id, position: movedEntity.wasDrawn ? this.getCenterFromGeometry(movedEntity) : movedEntity.position.getValue()};
+            }
 
-                if (movedEntity.cylinder) {
-                    const attachedEntity = entities.getById(entityObject.attachedEntityId);
+            if (movedEntity.cylinder) {
+                const attachedEntity = entities.getById(entityObject.attachedEntityId);
 
-                    this.undonePosition.attachedEntityId = entityObject.attachedEntityId;
+                this.undonePosition.attachedEntityId = entityObject.attachedEntityId;
 
-                    movedEntity.position = attachedEntity.clampToGround ?
-                        adaptCylinderToGround(movedEntity, entityObject.position) :
-                        adaptCylinderToEntity(attachedEntity, movedEntity, entityObject.position);
-
-                    this.activeShapePoints.splice(movedEntity.positionIndex, 1, entityObject.position);
-                }
-                else if (movedEntity.wasDrawn) {
+                this.activeShapePoints.splice(movedEntity.positionIndex, 1, entityObject.position);
+                if (attachedEntity.polygon?.rectangle) {
                     const cylinders = entities.values.filter(ent => ent.cylinder);
 
-                    if (movedEntity.polygon) {
-                        this.movePolygon(entityObject);
-                    }
-                    else if (movedEntity.polyline) {
-                        this.movePolyline(entityObject);
-                    }
-
-                    cylinders.forEach((cyl) => {
-                        cyl.position = movedEntity?.clampToGround ?
+                    this.moveAdjacentRectangleCorners({movedCornerIndex: movedEntity.positionIndex, clampToGround: attachedEntity.clampToGround});
+                    cylinders.forEach(cyl => {
+                        cyl.position = attachedEntity.clampToGround ?
                             adaptCylinderToGround(cyl, this.cylinderPosition[cyl.positionIndex]) :
-                            adaptCylinderToEntity(movedEntity, cyl, this.cylinderPosition[cyl.positionIndex]);
+                            adaptCylinderToEntity(attachedEntity, cyl, this.cylinderPosition[cyl.positionIndex]);
                     });
                 }
                 else {
-                    movedEntity.position = entityObject.position;
+                    movedEntity.position = attachedEntity.clampToGround ?
+                        adaptCylinderToGround(movedEntity, entityObject.position) :
+                        adaptCylinderToEntity(attachedEntity, movedEntity, entityObject.position);
                 }
 
-                if (this.isDragging) {
-                    this.onMouseUp();
+            }
+            else if (movedEntity.wasDrawn) {
+                const cylinders = entities.values.filter(ent => ent.cylinder);
+
+                if (movedEntity.polygon) {
+                    this.movePolygon(entityObject);
                 }
-            }, entityObject.attachedEntityId ? 200 : 0);
+                else if (movedEntity.polyline) {
+                    this.movePolyline(entityObject);
+                }
+
+                cylinders.forEach((cyl) => {
+                    cyl.position = movedEntity?.clampToGround ?
+                        adaptCylinderToGround(cyl, this.cylinderPosition[cyl.positionIndex]) :
+                        adaptCylinderToEntity(movedEntity, cyl, this.cylinderPosition[cyl.positionIndex]);
+                });
+            }
+            else {
+                movedEntity.position = entityObject.position;
+            }
+
+            if (this.isDragging) {
+                this.onMouseUp();
+            }
         },
         /**
          * Highlights the specified entity by applying the configured or default highlight style.
@@ -944,6 +990,7 @@ export default {
                         :is="currentView"
                         v-if="currentView"
                         @emit-move="moveEntity"
+                        @select-and-move="(id) => selectAndMove(id)"
                     />
                     <div
                         v-if="!currentView"

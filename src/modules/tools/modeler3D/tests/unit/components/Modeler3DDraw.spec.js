@@ -93,7 +93,10 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             },
             globe: {
                 pick: sinon.stub().returns({}),
-                getHeight: sinon.stub().returns(5)
+                getHeight: sinon.stub().returns(5),
+                ellipsoid: {
+                    cartographicToCartesian: () => ({x: 100, y: 100, z: 100})
+                }
             },
             sampleHeight: sinon.stub().returns(5)
         };
@@ -147,6 +150,29 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                 static midpoint () {
                     return {x: 100, y: 100, z: 100};
                 }
+                /**
+                 * Mock static method
+                 * @returns {void} Nothing.
+                 */
+                static add () {
+                    return {x: 100, y: 100, z: 100};
+                }
+                /**
+                 * Mock static method
+                 * @returns {void} Nothing.
+                 */
+                static subtract () {
+                    return {x: 100, y: 100, z: 100};
+                }
+            },
+            Entity: function () {
+                this.id = 1;
+            },
+            Transforms: {
+                eastNorthUpToFixedFrame: sinon.stub()
+            },
+            Matrix4: {
+                multiplyByPoint: () => ({x: 100, y: 100, z: 100})
             },
             Cartesian2: sinon.stub(),
             Math: {
@@ -159,6 +185,11 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                     z: 5107613.232959453
                 }),
                 fromDegrees: () => ({
+                    longitude: 0.17443853256965697,
+                    latitude: 0.9346599366554966,
+                    height: 6.134088691520464
+                }),
+                fromRadians: () => ({
                     longitude: 0.17443853256965697,
                     latitude: 0.9346599366554966,
                     height: 6.134088691520464
@@ -508,30 +539,53 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         });
 
         it("should return calculated distances in label with correct position", async () => {
-            const mockLabel = {
-                position: {x: 100, y: 200, z: 300},
-                id: "2",
-                label: {
-                    text: "text",
-                    show: false
+            let labels = null;
+            const mockLabelList = [
+                {
+                    position: {x: 100, y: 200, z: 300},
+                    id: "2",
+                    label: {
+                        text: "text",
+                        show: false
+                    }
+                },
+                {
+                    position: {x: 200, y: 300, z: 400},
+                    id: "3",
+                    label: {
+                        text: "text2",
+                        show: false
+                    }
                 }
-            };
+            ];
 
-            entities.values.push(mockLabel);
+            entities.values.push(...mockLabelList);
             store.commit("Tools/Modeler3D/setActiveShapePoints", [
                 {x: 100, y: 200, z: 300},
-                {x: 200, y: 300, z: 400}
+                {x: 200, y: 300, z: 400},
+                {x: 300, y: 400, z: 500}
             ]);
-            wrapper.vm.currentPosition = {x: 300, y: 400, z: 500};
-            await wrapper.setData({labelId: "2"});
+            wrapper.vm.labelList = mockLabelList;
 
             wrapper.vm.calculateDistances();
 
-            expect(entities.values[1].label.text).to.equal("123m");
-            expect(entities.values[1].position.x).to.equal(100);
-            expect(entities.values[1].position.y).to.equal(100);
-            expect(entities.values[1].position.z).to.equal(100);
-            expect(entities.values[1].label.show).to.be.true;
+            labels = entities.values.filter(ent => ent.label);
+
+            labels.forEach((label) => {
+                expect(label.label.text).to.equal("123m");
+                expect(label.position).to.eql({x: 100, y: 100, z: 100});
+                expect(label.label.show).to.be.true;
+            });
+        });
+
+        it("should generate the remaining corners of a rectangle given one corner", () => {
+            const corner = Cesium.Cartographic.fromDegrees(9, 53, 5),
+                corners = wrapper.vm.generateRectangleCorners(corner);
+
+            expect(corners).to.be.an("array").that.has.lengthOf(4);
+            corners.forEach(cr => {
+                expect(cr).to.be.an("object").that.has.all.keys("x", "y", "z");
+            });
         });
     });
 });

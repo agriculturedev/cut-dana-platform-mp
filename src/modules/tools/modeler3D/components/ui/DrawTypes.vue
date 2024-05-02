@@ -6,7 +6,6 @@ import IconButton from "./IconButton.vue";
  * @module shared/modules/draw/DrawTypes
  * @vue-prop {Object} [circleOptions={innerRadius: 100, interactive: true, outerRadius: 500}] - The circle Options.
  * @vue-prop {Object} currentLayout - The current layout for the styling.
- * @vue-prop {Object} [currentLayoutOuterCircle={}] - The current layout for styling the outer circle. Only used for double circle.
  * @vue-prop {Object} [drawIcons={box: "bi-square", circle: "bi-circle", doubleCircle: "bi-record-circle", geometries: "bi-hexagon-fill", line: "bi-slash-lg", pen: "bi-pencil-fill", point: "bi-circle-fill", polygon: "bi-octagon", symbols: "bi-circle-square"}] - The icons for draw buttons.
  * @vue-prop {String[]} [drawTypes=["pen", "geometries", "symbols"]] - The drawing types.
  * @vue-prop {String} [selectedDrawType=""] - The selected draw type.
@@ -36,32 +35,21 @@ export default {
             type: Object,
             required: true
         },
-        currentLayoutOuterCircle: {
-            type: Object,
-            default () {
-                return {};
-            }
-        },
         drawIcons: {
             type: Object,
             default () {
                 return {
-                    box: "bi-square",
-                    circle: "bi-circle",
-                    doubleCircle: "bi-record-circle",
-                    geometries: "bi-hexagon-fill",
                     line: "bi-slash-lg",
-                    pen: "bi-pencil-fill",
                     point: "bi-circle-fill",
                     polygon: "bi-octagon",
-                    symbols: "bi-circle-square"
+                    rectangle: "bi-square"
                 };
             }
         },
         drawTypes: {
             type: Array,
             default () {
-                return ["pen", "geometries", "symbols"];
+                return ["line", "polygon"];
             }
         },
         selectedDrawType: {
@@ -70,21 +58,9 @@ export default {
                 return "";
             }
         },
-        selectedDrawTypeMain: {
-            type: String,
-            default () {
-                return "";
-            }
-        },
         setSelectedDrawType: {
             type: Function,
             required: true
-        },
-        setSelectedDrawTypeMain: {
-            type: Function,
-            default () {
-                return null;
-            }
         }
     },
     methods: {
@@ -94,10 +70,6 @@ export default {
          * @returns {void}
          */
         regulateInteraction (drawType) {
-            if (typeof this.setSelectedDrawTypeMain === "function") {
-                this.setSelectedDrawTypeMain(this.selectedDrawTypeMain !== drawType ? drawType : "");
-            }
-
             this.$emit("stop-drawing");
 
             if (this.selectedDrawType !== drawType) {
@@ -120,7 +92,7 @@ export default {
             :class-array="[
                 'btn-primary',
                 'me-3',
-                selectedDrawType === drawType || selectedDrawTypeMain === drawType ? 'active': ''
+                selectedDrawType === drawType ? 'active': ''
             ]"
             :interaction="() => regulateInteraction(drawType)"
             :icon="drawIcons[drawType]"

@@ -201,44 +201,35 @@ const actions = {
      * @returns {void}
     */
     generateCylinders ({commit, dispatch, state}) {
+        let positions, length;
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(state.currentModelId);
 
-        if (entity?.polygon?.hierarchy) {
-            const hierarchy = entity.polygon.hierarchy.getValue(),
-                length = entity.polygon.extrudedHeight - entity.polygon.height + 5;
+        if (entity?.polygon) {
+            length = entity.polygon.extrudedHeight - entity.polygon.height + 5;
+            positions = entity.polygon.hierarchy.getValue().positions;
 
-            commit("setActiveShapePoints", hierarchy.positions);
-
-            hierarchy.positions.forEach((position, index) => {
-                dispatch("createCylinder", {
-                    posIndex: index,
-                    length: length
-                });
-                const cylinder = entities.values.find(cyl => cyl.id === state.cylinderId);
-
-                cylinder.position = entity.clampToGround ?
-                    adaptCylinderToGround(cylinder, position) :
-                    adaptCylinderToEntity(entity, cylinder, position);
-            });
         }
-        else if (entity?.polyline?.positions) {
-            const positions = entity.polyline.positions.getValue();
+        else if (entity?.polyline) {
+            length = 4;
+            positions = entity.polyline.positions.getValue();
 
-            commit("setActiveShapePoints", positions);
-
-            positions.forEach((position, index) => {
-                dispatch("createCylinder", {
-                    posIndex: index,
-                    length: 4
-                });
-                const cylinder = entities.values.find(cyl => cyl.id === state.cylinderId);
-
-                cylinder.position = entity.clampToGround ?
-                    adaptCylinderToGround(cylinder, position) :
-                    adaptCylinderToEntity(entity, cylinder, position);
-            });
         }
+        commit("setActiveShapePoints", positions);
+
+        positions.forEach((_, index) => {
+            dispatch("createCylinder", {
+                posIndex: index,
+                length: length
+            });
+            const cylinder = entities.values.find(cyl => cyl.id === state.cylinderId);
+
+            cylinder.position = new Cesium.CallbackProperty(() => {
+                return entity.clampToGround ?
+                    adaptCylinderToGround(cylinder, state.activeShapePoints[cylinder.positionIndex]) :
+                    adaptCylinderToEntity(entity, cylinder, state.activeShapePoints[cylinder.positionIndex]);
+            }, false);
+        });
     },
     /**
      * Create a singular Cesium cylinder at the given position.
@@ -356,6 +347,30 @@ const actions = {
                 entity.originalColor = newStrokeColor;
             }
         }
+    },
+    /**
+     * Moves the adjacent corners of a rectangle to a new position.
+     * @param {object} context - The context of the Vuex module
+     * @param {Object} moveOptions - Contains the moved corner index and a boolean to clamp the new position to the ground.
+     * @returns {void}
+     */
+    moveAdjacentRectangleCorners ({state}, {movedCornerIndex, clampToGround}) {
+        const corner1 = Cesium.Cartographic.fromCartesian(state.activeShapePoints[movedCornerIndex]),
+            corner2 = Cesium.Cartographic.fromCartesian(state.activeShapePoints[(movedCornerIndex + 2) % 4]),
+            corner3 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner1.longitude, corner2.latitude, corner1.height)),
+            corner4 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner2.longitude, corner1.latitude, corner1.height)),
+            entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            entity = entities.getById(state.currentModelId),
+            cylinders = entities.values.filter(ent => ent.cylinder);
+
+        state.activeShapePoints.splice((movedCornerIndex + 1) % 4, 1, corner3);
+        state.activeShapePoints.splice((movedCornerIndex + 3) % 4, 1, corner4);
+
+        cylinders.forEach(cyl => {
+            state.cylinderPosition[cyl.positionIndex] = clampToGround ?
+                adaptCylinderToGround(cyl, state.activeShapePoints[cyl.positionIndex]) :
+                adaptCylinderToEntity(entity, cyl, state.activeShapePoints[cyl.positionIndex]);
+        });
     }
 };
 

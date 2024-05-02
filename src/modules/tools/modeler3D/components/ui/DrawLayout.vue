@@ -4,7 +4,6 @@ import {convertColor} from "../../../../../utils/convertColor";
 /**
  * Shared component that provides buttons for setting the layout of drawings.
  * @module shared/modules/draw/DrawLayout
- * @vue-prop {String} [circleType="innerCircle"] - The circle type "innerCircle" or "outerCircle".
  * @vue-prop {Object} currentLayout - The current layout for the styling.
  * @vue-prop {String} selectedDrawType - The selected draw type.
  * @vue-prop {Number[]} [strokeRange=[1, 32]] - The stroke range in the unit pixel.
@@ -13,12 +12,6 @@ import {convertColor} from "../../../../../utils/convertColor";
 export default {
     name: "DrawLayout",
     props: {
-        circleType: {
-            type: String,
-            default () {
-                return "innerCircle";
-            }
-        },
         currentLayout: {
             type: Object,
             required: true
@@ -38,23 +31,23 @@ export default {
         return {
             mappingLayout: {
                 fillColor: {
-                    drawTypes: ["box", "circle", "doubleCircle", "point", "polygon"],
+                    drawTypes: ["polygon", "rectangle"],
                     icon: "bi-paint-bucket"
                 },
                 strokeColor: {
-                    drawTypes: ["box", "circle", "doubleCircle", "line", "pen", "point", "polygon"],
+                    drawTypes: ["line", "polygon", "rectangle"],
                     icon: "bi-pencil-fill"
                 },
                 strokeWidth: {
-                    drawTypes: ["box", "circle", "doubleCircle", "line", "pen", "point"],
+                    drawTypes: ["line"],
                     icon: "bi-border-width"
                 },
                 fillTransparency: {
-                    drawTypes: ["box", "circle", "doubleCircle", "point", "polygon"],
+                    drawTypes: ["polygon", "rectangle"],
                     icon: "bi-droplet-half"
                 },
                 extrudedHeight: {
-                    drawTypes: ["polygon"],
+                    drawTypes: ["polygon", "rectangle"],
                     icon: "bi-box-arrow-up"
                 }
             },
@@ -121,20 +114,8 @@ export default {
     <div class="d-flex flex-column">
         <div class="d-flex flex-row align-items-center mb-5">
             <button
-                v-if="selectedDrawType === 'doubleCircle'"
-                :id="'draw-layout-' + circleType"
-                class="btn btn-primary me-3"
-                type="button"
-                disabled="true"
-            >
-                <i
-                    :class="[circleType, 'bi-circle']"
-                    role="img"
-                />
-            </button>
-            <button
                 v-for="layoutKey in Object.keys(mappingLayoutBySelectedDrawType)"
-                :id="'draw-layout-' + circleType + '-' + layoutKey"
+                :id="'draw-layout-' + layoutKey"
                 :key="layoutKey"
                 tabindex="0"
                 :class="[
@@ -150,14 +131,14 @@ export default {
             >
                 <label
                     v-if="layoutKey === 'fillColor' || layoutKey === 'strokeColor'"
-                    :for="'color-picker-' + circleType + '-' + layoutKey"
+                    :for="'color-picker-' + layoutKey"
                 >
                     <i
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
                     <input
-                        :id="'color-picker-' + circleType + '-' + layoutKey"
+                        :id="'color-picker-' + layoutKey"
                         type="color"
                         :value="convertColor(currentLayout[layoutKey], 'hex')"
                         @input="event => updateCurrentLayout(layoutKey, event.target.value)"
@@ -165,14 +146,14 @@ export default {
                 </label>
                 <label
                     v-else-if="layoutKey === 'fillTransparency'"
-                    :for="'text-fill-transparency-' + circleType + '-' + layoutKey"
+                    :for="'text-fill-transparency-' + layoutKey"
                 >
                     <i
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
                     <span
-                        :id="'text-fill-transparency-' + circleType + '-' + layoutKey"
+                        :id="'text-fill-transparency-' + layoutKey"
                         :key="layoutKey"
                         class="iconLabel"
                         :title="`${currentLayout[layoutKey]}%`"
@@ -184,14 +165,14 @@ export default {
                 </label>
                 <label
                     v-else-if="layoutKey === 'strokeWidth'"
-                    :for="'text-stroke-width-' + circleType + '-' + layoutKey"
+                    :for="'text-stroke-width-' + layoutKey"
                 >
                     <i
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
                     <span
-                        :id="'text-stroke-width-' + circleType + '-' + layoutKey"
+                        :id="'text-stroke-width-' + layoutKey"
                         :key="layoutKey"
                         class="iconLabel"
                         :title="`${currentLayout[layoutKey]}px`"
@@ -203,14 +184,14 @@ export default {
                 </label>
                 <label
                     v-else-if="layoutKey === 'extrudedHeight'"
-                    :for="'text-extruded-height-' + circleType + '-' + layoutKey"
+                    :for="'text-extruded-height-' + layoutKey"
                 >
                     <i
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
                     <span
-                        :id="'text-extruded-height-' + circleType + '-' + layoutKey"
+                        :id="'text-extruded-height-' + layoutKey"
                         :key="layoutKey"
                         class="iconLabel"
                         :title="`${currentLayout[layoutKey]}m`"
@@ -227,7 +208,7 @@ export default {
             class="d-flex mb-3"
         >
             <input
-                :id="'slider-stroke-width-' + circleType"
+                :id="'slider-stroke-width'"
                 class="me-3"
                 type="range"
                 :title="`${currentLayout.strokeWidth}px`"
@@ -238,7 +219,7 @@ export default {
                 @input="event => updateCurrentLayout('strokeWidth', event.target.value)"
             >
             <label
-                :for="'slider-stroke-width-' + circleType"
+                :for="'slider-stroke-width'"
             >
                 {{ `${currentLayout.strokeWidth}px` }}
             </label>
@@ -248,7 +229,7 @@ export default {
             class="d-flex mb-3"
         >
             <input
-                :id="'slider-fill-transparency-' + circleType"
+                :id="'slider-fill-transparency'"
                 class="me-3"
                 type="range"
                 :title="`${currentLayout.fillTransparency}%`"
@@ -259,7 +240,7 @@ export default {
                 @input="event => updateCurrentLayout('fillTransparency', event.target.value)"
             >
             <label
-                :for="'slider-fill-transparency-' + circleType"
+                :for="'slider-fill-transparency'"
             >
                 {{ `${currentLayout.fillTransparency}%` }}
             </label>
@@ -269,7 +250,7 @@ export default {
             class="d-flex mb-3"
         >
             <input
-                :id="'slider-extruded-height-' + circleType"
+                :id="'slider-extruded-height'"
                 class="me-3"
                 type="range"
                 :title="`${currentLayout.extrudedHeight}m`"
@@ -280,7 +261,7 @@ export default {
                 @input="event => updateCurrentLayout('extrudedHeight', event.target.value)"
             >
             <label
-                :for="'slider-extruded-height-' + circleType"
+                :for="'slider-extruded-height'"
             >
                 {{ `${currentLayout.extrudedHeight}m` }}
             </label>
