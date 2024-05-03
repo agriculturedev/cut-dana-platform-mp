@@ -81,8 +81,6 @@ export default {
     hiddenObjects: [],
     hideObjects: true,
     highlightStyle: {
-        color: "#787777",
-        alpha: 1,
         silhouetteColor: "#E20D0F",
         silhouetteSize: 4
     },

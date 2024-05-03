@@ -3246,8 +3246,6 @@ These drawings can be exported and loaded back georeferenced into the map.
         "gmlIdPath": "gmlId",
         "updateAllLayers": false,
         "highlightStyle": {
-            "color": "#787777",
-            "alpha": 1,
             "silhouetteColor": "#E20D0F",
             "silhouetteSize": 4
         }
@@ -3259,8 +3257,6 @@ These drawings can be exported and loaded back georeferenced into the map.
 
 |Name|Required|Type|Default|Description|Expert|
 |----|--------|----|-------|-----------|------|
-|color|no|String|"#787777"|Specify the fill color for highlighting entities.|false|
-|alpha|no|Number|1|Specify the alpha for highlighting entities.|false|
 |silhouetteColor|no|String|"#E20D0F"|Specify the outline color for highlighting entities.|false|
 |silhouetteSize|no|Number|1|Specify the outline width for highlighting entities.|false|
 
@@ -3269,8 +3265,6 @@ These drawings can be exported and loaded back georeferenced into the map.
 ```json
 {
     "highlightStyle": {
-        "color": "#787777",
-        "alpha": 1,
         "silhouetteColor": "#E20D0F",
         "silhouetteSize": 4
     }

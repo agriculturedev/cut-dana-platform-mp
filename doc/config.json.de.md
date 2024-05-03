@@ -3188,8 +3188,6 @@ Diese Zeichnungen können exportiert und georeferenziert wieder in die Karte gel
         "gmlIdPath": "gmlId",
         "updateAllLayers": false,
         "highlightStyle": {
-            "color": "#787777",
-            "alpha": 1,
             "silhouetteColor": "#E20D0F",
             "silhouetteSize": 4
         }
@@ -3201,8 +3199,6 @@ Diese Zeichnungen können exportiert und georeferenziert wieder in die Karte gel
 
 |Name|Required|Type|Default|Description|Expert|
 |----|--------|----|-------|-----------|------|
-|color|nein|String|"#787777"|Bestimmen Sie die Füllfarbe zum Hervorheben der Entities.|false|
-|alpha|nein|Number|1|Bestimmen Sie die Transparenz zum Hervorheben der Entities.|false|
 |silhouetteColor|nein|String|"#E20D0F"|Bestimmen Sie die Umrissfarbe zum Hervorheben der Entities.|false|
 |silhouetteSize|nein|Number|1|Bestimmen Sie die Umrissdicke zum Hervorheben der Entities.|false|
 
@@ -3211,8 +3207,6 @@ Diese Zeichnungen können exportiert und georeferenziert wieder in die Karte gel
 ```json
 {
     "highlightStyle": {
-        "color": "#787777",
-        "alpha": 1,
         "silhouetteColor": "#E20D0F",
         "silhouetteSize": 4
     }

@@ -185,7 +185,8 @@ export default {
             get () {
                 const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                     entity = entities?.getById(this.currentModelId),
-                    color = entity?.originalColor.getValue(),
+                    entityType = this.getEntityType(entity),
+                    color = entity[entityType].material.color.getValue(),
                     colorToByte = [Cesium.Color.floatToByte(color.red), Cesium.Color.floatToByte(color.green), Cesium.Color.floatToByte(color.blue)];
 
                 return convertColor(colorToByte, "hex");
@@ -199,7 +200,7 @@ export default {
             get () {
                 const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                     entity = entities?.getById(this.currentModelId),
-                    outlineColor = entity.polygon ? entity?.originalOutlineColor.getValue() : entity?.originalColor.getValue(),
+                    outlineColor = entity.polygon ? entity?.polygon?.outlineColor.getValue() : entity?.originalColor,
                     colorToByte = [Cesium.Color.floatToByte(outlineColor.red), Cesium.Color.floatToByte(outlineColor.green), Cesium.Color.floatToByte(outlineColor.blue)];
 
                 return convertColor(colorToByte, "hex");

@@ -153,14 +153,17 @@ export default {
          */
         resetDrawnEntity (entity) {
             if (entity.polygon) {
-                entity.polygon.material.color = entity.originalColor;
-                entity.polygon.outlineColor = entity.originalOutlineColor;
+                const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                    outlines = entities.values.filter(ent => ent.outline && ent.polyline);
+
+                outlines.forEach(outline => entities.remove(outline));
                 entity.polygon.hierarchy = new Cesium.ConstantProperty(new Cesium.PolygonHierarchy(this.activeShapePoints));
                 this.setExtrudedHeight(20);
             }
             else if (entity.polyline) {
                 entity.polyline.positions = new Cesium.ConstantProperty(this.activeShapePoints);
                 entity.polyline.material.color = entity.originalColor;
+                entity.polyline.width = entity.originalWidth;
             }
             this.removeCylinders();
             this.setActiveShapePoints([]);
@@ -172,7 +175,6 @@ export default {
          * @returns {void}
          */
         resetModelEntity (entity) {
-            entity.model.color = Cesium.Color.WHITE;
             entity.model.silhouetteColor = null;
             entity.model.silhouetteSize = 0;
             entity.model.colorBlendAmount = 0;
@@ -300,7 +302,7 @@ export default {
                 picked = scene.pick(event.endPosition),
                 entity = Cesium.defaultValue(picked?.id, picked?.primitive?.id);
 
-            if (Cesium.defined(entity) && entity instanceof Cesium.Entity) {
+            if (Cesium.defined(entity) && entity instanceof Cesium.Entity && !entity.outline) {
                 if (this.currentModelId && entity.id === this.currentModelId || entity.cylinder) {
                     document.getElementById("map").style.cursor = "grab";
                 }
@@ -401,7 +403,7 @@ export default {
                 picked = scene.pick(event.position),
                 entity = Cesium.defaultValue(picked?.id, picked?.primitive?.id);
 
-            if (!Cesium.defined(picked)) {
+            if (!Cesium.defined(picked) || entity.outline) {
                 return;
             }
 
@@ -626,39 +628,72 @@ export default {
          * @returns {void}
          */
         highlightEntity (entity) {
-            const color = this.highlightStyle.color,
-                alpha = this.highlightStyle.alpha,
-                silhouetteColor = this.highlightStyle.silhouetteColor,
+            const silhouetteColor = this.highlightStyle.silhouetteColor,
                 silhouetteSize = this.highlightStyle.silhouetteSize;
 
             if (entity.wasDrawn) {
                 if (entity.polygon) {
-                    entity.originalColor = entity.polygon.material.color;
-                    entity.originalOutlineColor = entity.polygon.outlineColor;
-                    entity.polygon.material.color = Cesium.Color.fromAlpha(
-                        Cesium.Color.fromCssColorString(color),
-                        parseFloat(alpha)
-                    );
-                    entity.polygon.outline = true;
-                    entity.polygon.outlineColor = Cesium.Color.fromCssColorString(silhouetteColor);
+                    this.generateOutlines(entity);
                 }
                 else if (entity.polyline) {
+                    entity.originalWidth = entity.polyline.width;
                     entity.originalColor = entity.polyline.material.color;
                     entity.polyline.material.color = Cesium.Color.fromAlpha(
-                        Cesium.Color.fromCssColorString(color),
-                        parseFloat(alpha)
+                        Cesium.Color.fromCssColorString(silhouetteColor),
+                        parseFloat(1)
                     );
+                    entity.polyline.width += 2;
                 }
             }
             else {
-                entity.model.color = Cesium.Color.fromAlpha(
-                    Cesium.Color.fromCssColorString(color),
-                    parseFloat(alpha)
-                );
                 entity.model.silhouetteColor = Cesium.Color.fromCssColorString(silhouetteColor);
                 entity.model.silhouetteSize = parseFloat(silhouetteSize);
                 entity.model.colorBlendMode = Cesium.ColorBlendMode.HIGHLIGHT;
             }
+        },
+        /**
+         * Generate outlines on top and bottom of a provided polygon entity.
+         * @param {Cesium.Entity} entity - The entity to generate the outlines for.
+         * @returns {void}
+         */
+        generateOutlines (entity) {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                positions = entity.polygon.hierarchy.getValue().positions;
+
+            entities.add({outline: true, polyline: {
+                width: 4,
+                material: Cesium.Color.fromAlpha(
+                    Cesium.Color.fromCssColorString(this.highlightStyle.silhouetteColor),
+                    parseFloat(1)
+                ),
+                positions: new Cesium.CallbackProperty(() => {
+                    const extrudedPositions = positions.map((pos) => {
+                        const cartographic = Cesium.Cartographic.fromCartesian(pos);
+
+                        return Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, this.height);
+                    });
+
+                    extrudedPositions.push(extrudedPositions[0]);
+                    return extrudedPositions;
+                }, false)
+            }});
+            entities.add({outline: true, polyline: {
+                width: 4,
+                material: Cesium.Color.fromAlpha(
+                    Cesium.Color.fromCssColorString(this.highlightStyle.silhouetteColor),
+                    parseFloat(1)
+                ),
+                positions: new Cesium.CallbackProperty(() => {
+                    const extrudedPositions = positions.map((pos) => {
+                        const cartographic = Cesium.Cartographic.fromCartesian(pos);
+
+                        return Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, this.extrudedHeight + this.height);
+                    });
+
+                    extrudedPositions.push(extrudedPositions[0]);
+                    return extrudedPositions;
+                }, false)
+            }});
         },
         /**
          * Shows the specified object by making it visible in the scene.

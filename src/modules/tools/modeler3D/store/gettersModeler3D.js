@@ -118,6 +118,18 @@ const getters = {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
 
         return entities.getById(state.currentModelId)?.wasDrawn;
+    },
+    getEntityType: () => (entity) => {
+        if (entity.polygon) {
+            return "polygon";
+        }
+        if (entity.polyline) {
+            return "line";
+        }
+        if (entity.model) {
+            return "model";
+        }
+        return undefined;
     }
 };
 

@@ -45,6 +45,9 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             getById: (val) => {
                 return entities.values.find(x => x.id === val);
             },
+            add (val) {
+                entities.values.push(val);
+            },
             values: [
                 {
                     id: "FloatingPointId",
@@ -366,7 +369,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
 
             const entity = entities.getById(2);
 
-            expect(entity.model.color).to.be.equals("#ffffff");
             expect(entity.model.silhouetteColor).to.be.null;
             expect(entity.model.silhouetteSize).to.be.equals(0);
             expect(entity.model.colorBlendAmount).to.be.equals(0);
@@ -597,9 +599,11 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             expect(document.getElementById("map").style.cursor).to.equal("grab");
         });
         it("should highlight a drawn polygon", async () => {
-            const entity = entities.getById("entityId");
-
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+
+            const entity = entities.getById("entityId"),
+                generateOutlinesStub = sinon.stub(wrapper.vm, "generateOutlines");
+
             entity.polygon = {outline: true, outlineColor: "white", material: {
                 color: "RED"
             }};
@@ -610,13 +614,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
 
             wrapper.vm.highlightEntity(entity);
 
-            expect(entity.originalColor).to.eql(entity.polygon.material.color);
-            expect(entity.originalOutlineColor).to.eql(entity.polygon.outlineColor);
-            expect(entity.polygon.material.color).to.eql(
-                global.Cesium.Color.fromAlpha(global.Cesium.Color.fromCssColorString("RED"), parseFloat(1.0))
-            );
-            expect(entity.polygon.outline).to.be.true;
-            expect(entity.polygon.outlineColor).to.eql(global.Cesium.Color.fromCssColorString("white"));
+            expect(generateOutlinesStub.called).to.be.true;
         });
         it("should highlight a drawn polyline", async () => {
             const entity = entities.getById("entityId");
@@ -675,6 +673,25 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
                 expect(entity.position).to.eql({x: 200, y: 300, z: 400});
                 done();
             }, 10);
+        });
+
+        it("should generate outlines for the given entity", () => {
+            wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+            const entity = {
+                polygon: {
+                    hierarchy: {
+                        getValue: sinon.stub().returns({
+                            positions: [1, 2, 3]
+                        })
+                    }
+                }
+            };
+
+            entities.add = sinon.spy();
+
+            wrapper.vm.generateOutlines(entity);
+
+            expect(entities.add.callCount).to.equal(2);
         });
     });
 });

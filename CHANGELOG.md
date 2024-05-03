@@ -12,6 +12,8 @@
   - Dimensions of rectangles can now be set using forms when selected.
 
 ### Changed
+- Modeler3D:
+  - Polygon and line highlighting has been changed
 
 ### Deprecated
 
