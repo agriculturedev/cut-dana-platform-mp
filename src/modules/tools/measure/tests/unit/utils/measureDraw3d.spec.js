@@ -25,6 +25,7 @@ describe("tools/measure/utils/measureDraw3d", () => {
                     values: [],
                     add: function (entity) {
                         this.values.push(entity);
+                        return entity;
 
                     },
                     removeAll: function () {
@@ -76,6 +77,10 @@ describe("tools/measure/utils/measureDraw3d", () => {
                 static midpoint () {
                     return undefined;
                 }
+            },
+            CallbackProperty: function (callback) {
+                this.callback = callback;
+                this.getValue = () => this.callback();
             },
             ColorMaterialProperty: function (color) {
                 return color;
@@ -228,7 +233,7 @@ describe("tools/measure/utils/measureDraw3d", () => {
             };
             onMouseMove({endPosition: {x: 1, y: 2}});
 
-            expect(entities.getById("floating").polyline.positions[0]).to.deep.equal({x: 1, y: 2});
+            expect(entities.getById("floating").polyline.positions.getValue()[0]).to.deep.equal({x: 1, y: 2});
         });
     });
 

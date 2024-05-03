@@ -1,4 +1,5 @@
-let currentPosition = {x: 0, y: 0, z: 0},
+let pinPositions = [],
+    currentPosition = {x: 0, y: 0, z: 0},
     firstPosition = null;
 
 /**
@@ -12,6 +13,7 @@ export function createLabelEntity (text = "", position = {}) {
         return undefined;
     }
     return {
+        origin: "measure",
         position: position,
         label: {
             text: text,
@@ -34,6 +36,7 @@ export function createLineEntity (color = {}, positions = []) {
         return undefined;
     }
     return {
+        origin: "measure",
         polyline: {
             positions: positions,
             width: 3,
@@ -117,7 +120,6 @@ export function onClick () {
 */
 export function onMouseMove (event) {
     const scene = mapCollection.getMap("3D").getCesiumScene(),
-        entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
         mousePosition = {};
     let positionAbove = null;
 
@@ -131,7 +133,7 @@ export function onMouseMove (event) {
         return;
     }
 
-    entities.getById("floating").polyline.positions = [
+    pinPositions = [
         currentPosition, positionAbove
     ];
 }
@@ -145,6 +147,7 @@ export function addFloatingPin (entities) {
     const pin = createLineEntity(Cesium.Color.RED, []);
 
     pin.id = "floating";
+    pin.polyline.positions = new Cesium.CallbackProperty(() => pinPositions, false);
 
     entities?.add?.(pin);
 }
@@ -172,7 +175,9 @@ function makeDraw () {
 
     return {
         abortDrawing: () => {
-            entities.removeAll();
+            entities.values.filter(ent => ent.origin === "measure").forEach((ent) => {
+                entities.remove(ent);
+            });
             addFloatingPin(entities);
         },
         stopInteraction: () => {

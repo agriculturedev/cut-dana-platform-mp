@@ -15,6 +15,8 @@
 ### Removed
 
 ### Fixed
+- Measure module:
+  - Entities from other tools are now ignored when pressing "delete measurements".
 
 ---
 ## v2.45.0 - 2024-04-30
