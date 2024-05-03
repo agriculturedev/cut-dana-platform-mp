@@ -504,7 +504,6 @@ export default {
             </div>
             <div
                 v-if="showFillColor"
-                class="pt-4"
             >
                 <EntityAttribute
                     v-model="editedFillColor"
@@ -517,7 +516,6 @@ export default {
             </div>
             <div
                 v-if="wasDrawn"
-                class="pt-4"
             >
                 <EntityAttribute
                     v-model="editedStrokeColor"

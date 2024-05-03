@@ -3,6 +3,7 @@ import ToolTemplate from "../../ToolTemplate.vue";
 import Import from "./Modeler3DImport.vue";
 import Draw from "./Modeler3DDraw.vue";
 import EntityList from "./ui/EntityList.vue";
+import AccordionItem from "./ui/AccordionItem.vue";
 import {getComponent} from "../../../../utils/getComponent";
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import actions from "../store/actionsModeler3D";
@@ -25,6 +26,7 @@ export default {
         ToolTemplate,
         Import,
         Draw,
+        AccordionItem,
         EntityList
     },
     data () {
@@ -1064,13 +1066,21 @@ export default {
                         </div>
                     </div>
                 </div>
-                <EntityList
+                <div
                     v-if="hiddenObjects.length > 0 && !isLoading"
-                    id="hidden-objects"
-                    :objects="hiddenObjects"
-                    :objects-label="$t('modules.tools.modeler3D.hiddenObjectsLabel')"
-                    @change-visibility="showObject"
-                />
+                >
+                    <hr class="m-0">
+                    <AccordionItem
+                        id="hidden-objects"
+                        :title="$t('modules.tools.modeler3D.hiddenObjectsLabel')"
+                        icon="bi-eye-slash-fill"
+                    >
+                        <EntityList
+                            :objects="hiddenObjects"
+                            @change-visibility="showObject"
+                        />
+                    </AccordionItem>
+                </div>
             </div>
         </template>
     </ToolTemplate>
