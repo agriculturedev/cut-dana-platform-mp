@@ -83,6 +83,9 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
                 fromCartesian: () => ({longitude: 9, latitude: 50, height: 5}),
                 toCartesian: () => ({x: 10, y: 20, z: 30})
             },
+            Cartesian3: {
+                distance: () => 10
+            },
             Math: {
                 toRadians: (val) => {
                     return val / 10;
@@ -330,6 +333,19 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
 
             expect(store.state.Tools.Modeler3D.height).to.eql(10.2);
             expect(Modeler3D.actions.updateEntityPosition.called).to.be.true;
+        });
+
+        it("updates dimensions of the entity", () => {
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            const updateRectangleDimensionsStub = sinon.stub(wrapper.vm, "updateRectangleDimensions");
+
+            wrapper.vm.widthString = "120.50";
+
+            expect(updateRectangleDimensionsStub.called).to.be.true;
+
+            wrapper.vm.depthString = "150.00";
+
+            expect(updateRectangleDimensionsStub.called).to.be.true;
         });
     });
 });

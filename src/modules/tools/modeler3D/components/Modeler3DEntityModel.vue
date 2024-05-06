@@ -435,7 +435,7 @@ export default {
                         @decrement-shift="depthString = (parseFloat(depthString) - 1).toFixed(2)"
                     />
                     <EntityAttribute
-                        v-if="showDimensions"
+                        v-if="showPositioning"
                         id="height"
                         v-model="heightString"
                         title="height"

@@ -139,6 +139,12 @@ describe("Actions", () => {
                     height: 6.134088691520464
                 });
             },
+            Transforms: {
+                eastNorthUpToFixedFrame: () => ({x: 10, y: 20, z: 30})
+            },
+            Matrix4: {
+                multiplyByPoint: () => ({x: 10, y: 20, z: 30})
+            },
             Math: {
                 toDegrees: () => 9.99455657887449,
                 toRadians: () => 0.97
@@ -918,6 +924,27 @@ describe("Actions", () => {
             actions.rotateDrawnEntity({state, getters, commit});
 
             expect(entity.lastRotationAngle).to.eql(10);
+        });
+    });
+
+    describe("updateRectangleDimensions", () => {
+        it("should update the dimensions of the rectangle", () => {
+            const state = {
+                    currentModelId: 1,
+                    activeShapePoints: []
+                },
+                commit = sinon.spy(),
+                dimensions = {width: 10, depth: 10};
+
+            getters = {
+                getCenterFromGeometry: sinon.stub().returns({x: 10, y: 20, z: 30})
+            };
+
+            entity = {position: {getValue: () => ({x: 10, y: 20, z: 30})}};
+
+            actions.updateRectangleDimensions({commit, getters, state}, dimensions);
+
+            expect(commit.firstCall.args[1]).to.be.an("array").with.lengthOf(4);
         });
     });
 });

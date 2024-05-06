@@ -405,7 +405,7 @@ const actions = {
      * @param {Object} dimensions - The new dimensions of the rectangle.
      * @returns {void}
      */
-    updateRectangleDimensions ({getters, state}, dimensions) {
+    updateRectangleDimensions ({commit, getters, state}, dimensions) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(state.currentModelId),
             cylinders = entities.values.filter(ent => ent.cylinder),
@@ -419,7 +419,7 @@ const actions = {
             ],
             cornersRelative = corners.map(cr => Cesium.Matrix4.multiplyByPoint(localFrame, cr, new Cesium.Cartesian3()));
 
-        state.activeShapePoints = cornersRelative;
+        commit("setActiveShapePoints", cornersRelative);
 
         cylinders.forEach(cyl => {
             state.cylinderPosition[cyl.positionIndex] = entity.clampToGround ?
