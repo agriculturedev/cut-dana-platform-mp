@@ -72,9 +72,18 @@ export default {
             eventHandler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
 
             eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-            eventHandler.setInputAction(this.addGeometryPosition, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            eventHandler.setInputAction((event) => {
+                this.onMouseMove({endPosition: event.position});
+                this.addGeometryPosition();
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
             eventHandler.setInputAction(this.stopDrawing, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
             eventHandler.setInputAction(this.stopDrawing, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+            eventHandler.setInputAction(() => {
+                eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+            }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
+            eventHandler.setInputAction(() => {
+                eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+            }, Cesium.ScreenSpaceEventType.LEFT_UP);
             document.addEventListener("keydown", this.catchUndoRedo);
         },
         /**
