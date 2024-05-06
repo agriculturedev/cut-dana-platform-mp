@@ -487,8 +487,10 @@ export default {
             }
 
             const scene = mapCollection.getMap("3D").getCesiumScene(),
-                ray = scene.camera.getPickRay(event.endPosition),
-                position = scene.globe.pick(ray, scene),
+                posRay = scene.camera.getPickRay(event.endPosition),
+                position = scene.globe.pick(posRay, scene),
+                anchorRay = scene.camera.getPickRay(event.startPosition),
+                anchor = this.useAnchorMove ? scene.globe.pick(anchorRay, scene) : null,
                 entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 entity = entities.getById(this.currentModelId);
 
@@ -497,13 +499,15 @@ export default {
             }
 
             if (entity.polygon) {
-                this.movePolygon({entityId: this.currentModelId, position});
+                this.movePolygon({entityId: this.currentModelId, position, anchor});
             }
             else if (entity.polyline) {
-                this.movePolyline({entityId: this.currentModelId, position});
+                this.movePolyline({entityId: this.currentModelId, position, anchor});
             }
             else {
-                entity.position = position;
+                const diff = Cesium.Cartesian3.subtract(position, anchor || entity.position.getValue(), new Cesium.Cartesian3());
+
+                entity.position = Cesium.Cartesian3.add(entity.position.getValue(), diff, new Cesium.Cartesian3());
             }
             this.updatePositionUI();
         },
@@ -526,6 +530,7 @@ export default {
             }
 
             this.setHideObjects(this.originalHideOption);
+            this.setUseAnchorMove(true);
 
             document.getElementById("map").style.cursor = "grab";
             setTimeout(() => {

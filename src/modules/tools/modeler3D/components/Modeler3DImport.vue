@@ -84,15 +84,17 @@ export default {
                     id: lastId ? lastId + 1 : 1,
                     name: fileName,
                     clampToGround: true,
+                    position: Cesium.Cartesian3.fromDegrees(9, 53, 0),
                     model: new Cesium.ModelGraphics({
                         uri: URL.createObjectURL(blob)
                     })
                 });
 
+            entities.add(entity);
+
+            this.setUseAnchorMove(false);
             this.setCurrentModelId(entity.id);
             this.$emit("emit-move");
-
-            entities.add(entity);
 
             models.push({
                 id: entity.id,

@@ -106,6 +106,7 @@ export default {
     selectedFillColor: "",
     selectedOutlineColor: "",
     updateAllLayers: true,
+    useAnchorMove: true,
 
     // defaults for config.json parameters
     icon: "bi-bounding-box",

@@ -287,7 +287,7 @@ const actions = {
      * @param {object} moveOptions - Contains the polygon and new position it shall be moved to.
      * @returns {void}
     */
-    movePolygon ({dispatch, getters, state}, {entityId, position}) {
+    movePolygon ({dispatch, getters, state}, {entityId, position, anchor = null}) {
         const scene = mapCollection.getMap("3D").getCesiumScene(),
             entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(entityId);
@@ -295,7 +295,7 @@ const actions = {
         if (entity?.polygon?.hierarchy && position) {
             const positions = entity?.polygon?.hierarchy.getValue().positions,
                 center = getters.getCenterFromGeometry(entity),
-                positionDelta = Cesium.Cartesian3.subtract(position, center, new Cesium.Cartesian3());
+                positionDelta = Cesium.Cartesian3.subtract(position, anchor || center, new Cesium.Cartesian3());
 
             if (entity.clampToGround) {
                 state.height = scene.globe.getHeight(Cesium.Cartographic.fromCartesian(center));
@@ -317,14 +317,14 @@ const actions = {
      * @param {object} moveOptions - Contains the polyline and new position it shall be moved to.
      * @returns {void}
     */
-    movePolyline ({state, getters}, {entityId, position}) {
+    movePolyline ({state, getters}, {entityId, position, anchor = null}) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(entityId);
 
         if (entity?.polyline?.positions && position) {
             const positions = entity.polyline.positions.getValue(),
                 center = getters.getCenterFromGeometry(entity),
-                positionDelta = Cesium.Cartesian3.subtract(position, center, new Cesium.Cartesian3());
+                positionDelta = Cesium.Cartesian3.subtract(position, anchor || center, new Cesium.Cartesian3());
 
             positions.forEach((pos, index) => {
                 Cesium.Cartesian3.add(pos, positionDelta, pos);
