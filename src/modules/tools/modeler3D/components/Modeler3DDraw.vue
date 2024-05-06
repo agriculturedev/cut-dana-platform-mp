@@ -660,10 +660,10 @@ export default {
                 halfDepth = 20 / 2,
                 halfWidth = 15 / 2,
                 corners = [
-                    new Cesium.Cartesian3(-halfDepth, -halfWidth, 0),
-                    new Cesium.Cartesian3(halfDepth, -halfWidth, 0),
-                    new Cesium.Cartesian3(halfDepth, halfWidth, 0),
-                    new Cesium.Cartesian3(-halfDepth, halfWidth, 0)
+                    new Cesium.Cartesian3(-halfWidth, -halfDepth, 0),
+                    new Cesium.Cartesian3(halfWidth, -halfDepth, 0),
+                    new Cesium.Cartesian3(halfWidth, halfDepth, 0),
+                    new Cesium.Cartesian3(-halfWidth, halfDepth, 0)
                 ],
 
                 cornersCartesian = corners.map(cr => Cesium.Matrix4.multiplyByPoint(localFrame, cr, new Cesium.Cartesian3()));

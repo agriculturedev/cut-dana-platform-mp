@@ -34,6 +34,12 @@ export default {
 
             return Boolean(entity?.polygon && entity?.wasDrawn);
         },
+        showDimensions: function () {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                entity = entities.getById(this.currentModelId);
+
+            return Boolean(entity?.polygon?.rectangle);
+        },
         showPositioning: function () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 entity = entities.getById(this.currentModelId);
@@ -147,6 +153,32 @@ export default {
             set (value) {
                 this.setHeight(this.formatCoord(value));
                 this.updateEntityPosition();
+            }
+        },
+        widthString: {
+            get () {
+                const width = Cesium.Cartesian3.distance(this.activeShapePoints[0], this.activeShapePoints[1]);
+
+                return width.toFixed(2);
+            },
+            set (value) {
+                const width = parseFloat(value),
+                    depth = parseFloat(this.depthString);
+
+                this.updateRectangleDimensions({width, depth});
+            }
+        },
+        depthString: {
+            get () {
+                const depth = Cesium.Cartesian3.distance(this.activeShapePoints[0], this.activeShapePoints[3]);
+
+                return depth.toFixed(2);
+            },
+            set (value) {
+                const width = parseFloat(this.widthString),
+                    depth = parseFloat(value);
+
+                this.updateRectangleDimensions({width, depth});
             }
         },
         editedFillColor: {
@@ -377,7 +409,33 @@ export default {
             <div class="container pt-0">
                 <div class="row">
                     <EntityAttribute
-                        v-if="showPositioning"
+                        v-if="showDimensions"
+                        id="width"
+                        v-model="widthString"
+                        title="width"
+                        :label="$t('modules.tools.modeler3D.entity.projections.width') + ' [m]'"
+                        :width-classes="['col', 'col-md']"
+                        :buttons="true"
+                        @increment="widthString = (parseFloat(widthString) + 0.1).toFixed(2)"
+                        @increment-shift="widthString = (parseFloat(widthString) + 1).toFixed(2)"
+                        @decrement="widthString = (parseFloat(widthString) - 0.1).toFixed(2)"
+                        @decrement-shift="widthString = (parseFloat(widthString) - 1).toFixed(2)"
+                    />
+                    <EntityAttribute
+                        v-if="showDimensions"
+                        id="depth"
+                        v-model="depthString"
+                        title="depth"
+                        :label="$t('modules.tools.modeler3D.entity.projections.depth') + ' [m]'"
+                        :width-classes="['col', 'col-md']"
+                        :buttons="true"
+                        @increment="depthString = (parseFloat(depthString) + 0.1).toFixed(2)"
+                        @increment-shift="depthString = (parseFloat(depthString) + 1).toFixed(2)"
+                        @decrement="depthString = (parseFloat(depthString) - 0.1).toFixed(2)"
+                        @decrement-shift="depthString = (parseFloat(depthString) - 1).toFixed(2)"
+                    />
+                    <EntityAttribute
+                        v-if="showDimensions"
                         id="height"
                         v-model="heightString"
                         title="height"
@@ -386,7 +444,6 @@ export default {
                         :keep-height="true"
                         :buttons="!adaptToHeight"
                         :disabled="adaptToHeight"
-                        :form-group="false"
                         @increment="heightString = prettyCoord(height + coordAdjusted({shift: false, coordType: 'height'}))"
                         @increment-shift="heightString = prettyCoord(height + coordAdjusted({shift: true, coordType: 'height'}))"
                         @decrement="heightString = prettyCoord(height - coordAdjusted({shift: false, coordType: 'height'}))"

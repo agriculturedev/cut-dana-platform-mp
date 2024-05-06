@@ -672,12 +672,14 @@
                             "eastingLabel": "Easting",
                             "northingLabel": "Northing"
                         },
+                        "depth": "Depth",
                         "hdms": {
                             "eastingLabel": "Longitude",
                             "northingLabel": "Latitude"
                         },
                         "height": "Height",
-                        "projection": "Coordinate System"
+                        "projection": "Coordinate System",
+                        "width": "Width"
                     }
                 },
                 "import": {

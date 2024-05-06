@@ -398,6 +398,34 @@ const actions = {
                 adaptCylinderToEntity(entity, cyl, pos);
         });
         entity.lastRotationAngle = state.drawRotation;
+    },
+    /**
+     * Updates the dimensions of the currently selected rectangle.
+     * @param {object} context - The context of the Vuex module.
+     * @param {Object} dimensions - The new dimensions of the rectangle.
+     * @returns {void}
+     */
+    updateRectangleDimensions ({getters, state}, dimensions) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            entity = entities.getById(state.currentModelId),
+            cylinders = entities.values.filter(ent => ent.cylinder),
+            position = getters.getCenterFromGeometry(entity),
+            localFrame = Cesium.Transforms.eastNorthUpToFixedFrame(position),
+            corners = [
+                new Cesium.Cartesian3(-dimensions.width / 2, -dimensions.depth / 2, 0),
+                new Cesium.Cartesian3(dimensions.width / 2, -dimensions.depth / 2, 0),
+                new Cesium.Cartesian3(dimensions.width / 2, dimensions.depth / 2, 0),
+                new Cesium.Cartesian3(-dimensions.width / 2, dimensions.depth / 2, 0)
+            ],
+            cornersRelative = corners.map(cr => Cesium.Matrix4.multiplyByPoint(localFrame, cr, new Cesium.Cartesian3()));
+
+        state.activeShapePoints = cornersRelative;
+
+        cylinders.forEach(cyl => {
+            state.cylinderPosition[cyl.positionIndex] = entity.clampToGround ?
+                adaptCylinderToGround(cyl, state.activeShapePoints[cyl.positionIndex]) :
+                adaptCylinderToEntity(entity, cyl, state.activeShapePoints[cyl.positionIndex]);
+        });
     }
 };
 

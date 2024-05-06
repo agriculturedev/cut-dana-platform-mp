@@ -9,6 +9,7 @@
 ### Added
 - Modeler3D:
   - Drawn entities can be rotated.
+  - Dimensions of rectangles can now be set using forms when selected.
 
 ### Changed
 

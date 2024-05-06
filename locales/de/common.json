@@ -674,12 +674,14 @@
                             "eastingLabel": "Rechtswert",
                             "northingLabel": "Hochwert"
                         },
+                        "depth": "Tiefe",
                         "hdms": {
                             "eastingLabel": "Länge",
                             "northingLabel": "Breite"
                         },
                         "height": "Höhe",
-                        "projection": "Koordinatensystem"
+                        "projection": "Koordinatensystem",
+                        "width": "Breite"
                     }
                 },
                 "import": {

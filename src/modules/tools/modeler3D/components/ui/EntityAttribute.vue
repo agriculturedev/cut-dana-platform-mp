@@ -123,6 +123,7 @@ export default {
 
     .position-input {
         height: 3.8em;
+        min-width: 6em;
     }
 
     .row {
