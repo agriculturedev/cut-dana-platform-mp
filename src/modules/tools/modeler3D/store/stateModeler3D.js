@@ -84,6 +84,7 @@ export default {
         silhouetteColor: "#E20D0F",
         silhouetteSize: 4
     },
+    highlightTimeout: null,
     importedModels: [],
     isDragging: false,
     isDrawing: false,

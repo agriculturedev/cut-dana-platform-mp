@@ -146,7 +146,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             },
             Color: {
                 fromCssColorString: () => {
-                    return "white";
+                    return "RED";
                 },
                 fromAlpha: () => {
                     return "RED";
@@ -621,15 +621,13 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
 
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
             entity.polyline = {material: {
-                color: "RED"
+                color: "white"
             }};
             entity.wasDrawn = true;
-            store.commit("Tools/Modeler3D/setCurrentModelId", "entityId");
-            await wrapper.vm.$nextTick();
-            store.commit("Tools/Modeler3D/setIsDragging", true);
 
             wrapper.vm.highlightEntity(entity);
-            expect(entity.originalColor).to.eql(entity.polyline.material.color);
+            await wrapper.vm.$nextTick();
+            expect(entity.originalColor).to.eql("white");
             expect(entity.polyline.material.color).to.eql(
                 global.Cesium.Color.fromAlpha(global.Cesium.Color.fromCssColorString("RED"), parseFloat(1.0))
             );

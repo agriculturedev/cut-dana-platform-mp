@@ -158,6 +158,7 @@ export default {
 
                 outlines.forEach(outline => entities.remove(outline));
                 entity.polygon.hierarchy = new Cesium.ConstantProperty(new Cesium.PolygonHierarchy(this.activeShapePoints));
+                entity.polygon.outline = true;
                 this.setExtrudedHeight(20);
             }
             else if (entity.polyline) {
@@ -633,15 +634,13 @@ export default {
 
             if (entity.wasDrawn) {
                 if (entity.polygon) {
+                    entity.polygon.outline = false;
                     this.generateOutlines(entity);
                 }
                 else if (entity.polyline) {
                     entity.originalWidth = entity.polyline.width;
                     entity.originalColor = entity.polyline.material.color;
-                    entity.polyline.material.color = Cesium.Color.fromAlpha(
-                        Cesium.Color.fromCssColorString(silhouetteColor),
-                        parseFloat(1)
-                    );
+                    entity.polyline.material.color = Cesium.Color.fromCssColorString(silhouetteColor);
                     entity.polyline.width += 2;
                 }
             }

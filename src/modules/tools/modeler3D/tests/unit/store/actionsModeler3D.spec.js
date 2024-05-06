@@ -720,10 +720,15 @@ describe("Actions", () => {
                 newFillColor: "#ff0000"
             };
 
+            getters = {
+                getEntityType: sinon.stub().returns("polygon")
+            };
+
             entity = {
                 id: 1,
-                polygon: { },
-                originalColor: {red: 0, green: 0, blue: 0, alpha: 1}
+                polygon: {
+                    material: {color: {red: 0, green: 0, blue: 0, alpha: 1}}
+                }
             };
 
             global.Cesium = {
@@ -735,18 +740,23 @@ describe("Actions", () => {
                     })
                 },
                 ColorMaterialProperty:
-                    sinon.stub()
+                    sinon.stub().returns({color: {red: 1, green: 0, blue: 0, alpha: 1}})
             };
 
-            actions.editLayout({state}, "fillColor");
+            actions.editLayout({getters, state}, "fillColor");
 
             expect(entities.getById.calledWith(1)).to.be.true;
-            expect(entity.originalColor).eql({red: 1, green: 0, blue: 0, alpha: 1});
+            expect(entity.polygon.material.color).eql({red: 1, green: 0, blue: 0, alpha: 1});
         });
         it("should edit polygon stroke color", () => {
             const state = {
-                currentModelId: 1,
-                newStrokeColor: "#ff0000"
+                    currentModelId: 1,
+                    newStrokeColor: "#ff0000"
+                },
+                commit = sinon.spy();
+
+            getters = {
+                getEntityType: sinon.stub().returns("polygon")
             };
 
             entity = {
@@ -763,20 +773,25 @@ describe("Actions", () => {
                 }
             };
 
-            actions.editLayout({state}, "strokeColor");
+            actions.editLayout({commit, getters, state}, "strokeColor");
 
             expect(entities.getById.calledWith(1)).to.be.true;
             expect(entity.originalOutlineColor).eql({red: 1, green: 0, blue: 0});
         });
         it("should edit polyline stroke color", () => {
             const state = {
-                currentModelId: 1,
-                newStrokeColor: "#ff0000"
+                    currentModelId: 1,
+                    newStrokeColor: "#ff0000"
+                },
+                commit = sinon.spy();
+
+            getters = {
+                getEntityType: sinon.stub().returns("polyline")
             };
 
             entity = {
                 id: 1,
-                polyline: {material: {}},
+                polyline: {material: {color: {getValue: () => ({red: 0, green: 0, blue: 0})}}},
                 originalColor: {red: 0, green: 0, blue: 0}
             };
 
@@ -788,7 +803,7 @@ describe("Actions", () => {
                 }
             };
 
-            actions.editLayout({state}, "strokeColor");
+            actions.editLayout({commit, getters, state}, "strokeColor");
 
             expect(entities.getById.calledWith(1)).to.be.true;
             expect(entity.originalColor).eql({red: 1, green: 0, blue: 0});

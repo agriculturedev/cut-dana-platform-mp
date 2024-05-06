@@ -323,28 +323,50 @@ const actions = {
      * @param {String} keyword - The keyword defines which part of the layout is being edited.
      * @returns {void}
      */
-    editLayout ({state}, keyword) {
+    editLayout ({commit, getters, state}, keyword) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-            entity = entities?.getById(state.currentModelId);
+            entity = entities?.getById(state.currentModelId),
+            entityType = getters.getEntityType(entity);
 
         if (keyword === "fillColor" && entity.polygon) {
-            const alpha = entity?.originalColor.alpha ? entity?.originalColor.alpha : entity?.originalColor.getValue().alpha,
+            const alpha = entity[entityType].material.color.alpha,
                 newFillColor = Cesium.Color.fromBytes(...convertColor(state.newFillColor, "rgb")).withAlpha(alpha);
 
             entity.polygon.material = new Cesium.ColorMaterialProperty(newFillColor);
-
-            entity.originalColor = newFillColor;
         }
         else if (keyword === "strokeColor") {
             const newStrokeColor = Cesium.Color.fromBytes(...convertColor(state.newStrokeColor, "rgb"));
 
+            if (state.highlightTimeout) {
+                clearTimeout(state.highlightTimeout);
+            }
             if (entity.polygon) {
+                const outlines = entities.values.filter(ent => ent.outline);
+
+                outlines.forEach(outline => {
+                    outline.show = false;
+                    entity.polygon.outline = true;
+                });
+
                 entity.polygon.outlineColor = newStrokeColor;
                 entity.originalOutlineColor = newStrokeColor;
+
+                commit("setHighlightTimeout", setTimeout(() => {
+                    outlines.forEach(outline => {
+                        outline.show = true;
+                        entity.polygon.outline = false;
+                    });
+                }, 2000));
             }
             else if (entity.polyline) {
+                const highlightColor = entity.polyline.material.color.getValue();
+
                 entity.polyline.material.color = newStrokeColor;
                 entity.originalColor = newStrokeColor;
+
+                commit("setHighlightTimeout", setTimeout(() => {
+                    entity.polyline.material.color = highlightColor;
+                }, 2000));
             }
         }
     },
