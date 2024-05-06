@@ -67,6 +67,7 @@ export default {
             <select
                 ref="select-option"
                 v-model="selectedOption"
+                :aria-label="Dropdown"
                 class="form-select dropdown"
                 @input="changedValue"
             >

@@ -76,8 +76,7 @@ export default {
                     this.capabilitiesFilter.layouts.length > 0) {
                     filterArray = this.capabilitiesFilter.layouts;
                 }
-                else
-                if (Object.keys(this.defaultCapabilitiesFilter).length > 0 &&
+                else if (Object.keys(this.defaultCapabilitiesFilter).length > 0 &&
                     this.defaultCapabilitiesFilter.layouts &&
                     this.defaultCapabilitiesFilter.layouts.length > 0) {
                     filterArray = this.defaultCapabilitiesFilter.layouts;
@@ -107,8 +106,7 @@ export default {
                     this.capabilitiesFilter.outputFormats.length > 0) {
                     filterArray = this.capabilitiesFilter.outputFormats;
                 }
-                else
-                if (Object.keys(this.defaultCapabilitiesFilter).length > 0 &&
+                else if (Object.keys(this.defaultCapabilitiesFilter).length > 0 &&
                     this.defaultCapabilitiesFilter.outputFormats &&
                     this.defaultCapabilitiesFilter.outputFormats.length > 0) {
                     filterArray = this.defaultCapabilitiesFilter.outputFormats;

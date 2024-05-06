@@ -46,10 +46,44 @@
 - The following packages have been updated:
     - dependencies:
         - @masterportal/masterportalapi: 2.35.0 to 2.37.0 (This also raised ol to version 9.1.0)
+        - @popperjs/core: 2.11.6 to 2.11.8
+        - axios: 1.3.4 to 1.6.8
+        - crypto-js: 4.1.1 to 4.2.0
+        - dom-parser: 0.1.6 to 1.1.5
+        - i18next: 22.4.11 to 23.11.3
+        - i18next-browser-languagedetector: 7.0.1 to 7.2.1
+        - i18next-http-backend: 2.2.0 to 2.5.1
+        - jquery: 3.6.4 to 3.7.1
+        - jquery-ui: 1.13.2 to 1.13.3
+        - mqtt: 4.3.7 to 4.3.8
         - rbush: 2.0.2 to 3.0.1
         - rbush-knn: 2.1.0 to 3.0.1
+        - three: 0.163.0 to 0.164.1
+        - vue: 2.7.14 to 2.7.16
+        - vue-multiselect 2.1.6 to 2.1.9
+        - vue-template-compiler: 2.7.14 to 2.7.16
+        - vue2-datepicker: 3.11.0 to 3.11.1
     - devDependencies:
         - @geoblocks/print: 0.7.4 to 0.7.8
+        - @sinonjs/fake-timers: 10.0.2 to 11.2.2
+        - @vue/test-utils: 1.3.0 to 1.3.6
+        - chai: 4.3.7 to 4.4.1
+        - esbuild-loader: 3.1.0 to 4.1.0
+        - eslint: 8.36.0 to 8.57.0
+        - eslint-plugin-chai-friendly: 0.7.2 to 0.7.4
+        - eslint-plugin-vue: 8.3.0 to 9.3.0
+        - eslint-plugin-vuejs-accessibility: 2.2.0 to 2.3.0
+        - fs-extra: 10.1.0 to 11.2.0
+        - husky: 8.0.3 to 9.0.11
+        - inquirer: 8.2.4 to 8.2.6
+        - markdown-it: 13.0.1 to 14.1.0
+        - mocha: 10.2.0 to 10.4.0
+        - node-fetch: 3.3.0 to 3.3.2
+        - regenerator-runtime: 0.13.11 to 0.14.1
+        - replace-in-file: 6.3.5 to 7.1.0
+        - sass-loader: 10 to 10.5.2
+        - webpack-bundle-analyzer: 4.9.1 to 4.10.2
+        - zip-a-folder: 1.1.5 to 3.1.6
 - The version of node was updated to `^16.13.2 || ^18.16.0 || ^20.12.2`.
 - The version of npm was updated to `^8.1.2 || ^9.5.1 || ^10.5.0`
 
