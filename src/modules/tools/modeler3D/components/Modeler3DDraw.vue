@@ -628,7 +628,7 @@ export default {
          * Starts placing of a ready to place 3D element.
          * @returns {void}
          */
-        startPlacing () {
+        async startPlacing () {
             if (this.isDrawing) {
                 this.stopDrawing();
             }
@@ -643,9 +643,11 @@ export default {
                 this.setSelectedDrawType("rectangle");
                 this.setExtrudedHeight(20);
                 this.drawShape();
-            }
+                this.setCurrentModelId(this.shapeId);
 
-            this.$emit("select-and-move", this.shapeId);
+                await this.$nextTick();
+                this.$emit("emit-move");
+            }
         },
         /**
          * Generate the corners of a rectangle given a center position.

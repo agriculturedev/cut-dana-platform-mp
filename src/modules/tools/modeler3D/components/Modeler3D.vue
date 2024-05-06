@@ -427,16 +427,6 @@ export default {
             }
         },
         /**
-         * Selects and moves an object based on the provided ID.
-         * @param {string} id - The ID of the object to select and move.
-         * @returns {void}
-         */
-        async selectAndMove (id) {
-            this.setCurrentModelId(id);
-            await this.$nextTick();
-            this.moveEntity();
-        },
-        /**
          * Handles the mouse move event and performs actions when dragging a cylinder.
          * @param {Event} event - The event object containing the position information.
          * @returns {void}
@@ -520,23 +510,13 @@ export default {
             if (!this.isDragging) {
                 return;
             }
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                scene = mapCollection.getMap("3D").getCesiumScene();
+            const scene = mapCollection.getMap("3D").getCesiumScene();
 
             eventHandler?.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_UP);
             eventHandler?.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             this.setIsDragging(false);
 
             if (this.cylinderId || this.wasDrawn) {
-                const cylinders = entities.values.filter(ent => ent.cylinder),
-                    entity = entities.getById(this.currentModelId);
-
-                cylinders.forEach(cyl => {
-                    cyl.position = entity?.clampToGround ?
-                        adaptCylinderToGround(cyl, cyl.position.getValue()) :
-                        adaptCylinderToEntity(entity, cyl, cyl.position.getValue());
-                });
-
                 this.setCylinderId(null);
             }
 
@@ -988,7 +968,6 @@ export default {
                     :is="currentView"
                     v-if="currentView"
                     @emit-move="moveEntity"
-                    @select-and-move="(id) => selectAndMove(id)"
                 />
                 <div
                     v-if="!currentView"

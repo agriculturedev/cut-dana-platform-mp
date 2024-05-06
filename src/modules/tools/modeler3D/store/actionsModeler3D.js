@@ -401,7 +401,7 @@ const actions = {
     },
     /**
      * Updates the dimensions of the currently selected rectangle.
-     * @param {object} context - The context of the Vuex module.
+     * @param {Object} context - The context of the Vuex module.
      * @param {Object} dimensions - The new dimensions of the rectangle.
      * @returns {void}
      */
