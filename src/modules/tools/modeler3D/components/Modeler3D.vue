@@ -404,7 +404,7 @@ export default {
                 picked = scene.pick(event.position),
                 entity = Cesium.defaultValue(picked?.id, picked?.primitive?.id);
 
-            if (!Cesium.defined(picked) || entity.outline) {
+            if (!Cesium.defined(picked) || entity?.outline) {
                 return;
             }
 
