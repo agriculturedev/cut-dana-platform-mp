@@ -22,6 +22,9 @@
 ### Fixed
 - Measure module:
   - Entities from other tools are now ignored when pressing "delete measurements".
+- Modeler3D:
+  - The line width of polylines can be edited again.
+  - The color picker for editing polylines shows the right color again.
 
 ---
 ## v2.45.0 - 2024-04-30

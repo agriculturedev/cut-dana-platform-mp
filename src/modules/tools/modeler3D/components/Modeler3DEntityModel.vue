@@ -128,7 +128,7 @@ export default {
                     adjustedValue = 0.01;
                 }
                 this.setLineWidth(adjustedValue);
-                entities.getById(this.currentModelId).polyline.width = this.lineWidth;
+                entities.getById(this.currentModelId).polyline.width = this.lineWidth + 2;
                 entities.getById(this.currentModelId).originalWidth = this.lineWidth;
             }
         },
@@ -196,7 +196,7 @@ export default {
             get () {
                 const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                     entity = entities?.getById(this.currentModelId),
-                    outlineColor = entity.polygon ? entity?.polygon?.outlineColor.getValue() : entity?.originalColor,
+                    outlineColor = entity.polygon ? entity?.polygon?.outlineColor.getValue() : entity?.originalColor.getValue(),
                     colorToByte = [Cesium.Color.floatToByte(outlineColor.red), Cesium.Color.floatToByte(outlineColor.green), Cesium.Color.floatToByte(outlineColor.blue)];
 
                 return convertColor(colorToByte, "hex");

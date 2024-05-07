@@ -144,7 +144,9 @@ const actions = {
             }
         }
         else if (entity?.polyline instanceof Cesium.PolylineGraphics) {
-            commit("setLineWidth", entity.polyline.width.getValue());
+            const lineWidth = entity.originalWidth ? entity.originalWidth.getValue() : entity.polyline.width.getValue();
+
+            commit("setLineWidth", lineWidth);
             commit("setDrawRotation", 0);
         }
         else if (entity?.model instanceof Cesium.ModelGraphics) {
@@ -371,7 +373,7 @@ const actions = {
                 }, 2000));
             }
             else if (entity.polyline) {
-                const highlightColor = entity.polyline.material.color.getValue();
+                const highlightColor = entity.polyline.material.color;
 
                 entity.polyline.material.color = newStrokeColor;
                 entity.originalColor = newStrokeColor;

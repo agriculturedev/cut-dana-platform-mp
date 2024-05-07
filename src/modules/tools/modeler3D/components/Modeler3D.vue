@@ -639,6 +639,7 @@ export default {
                 }
                 else if (entity.polyline) {
                     entity.originalWidth = entity.polyline.width;
+                    this.setLineWidth(entity.originalWidth);
                     entity.originalColor = entity.polyline.material.color;
                     entity.polyline.material.color = Cesium.Color.fromCssColorString(silhouetteColor);
                     entity.polyline.width += 2;
