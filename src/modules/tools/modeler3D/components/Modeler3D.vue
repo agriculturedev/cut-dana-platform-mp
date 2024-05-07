@@ -18,7 +18,8 @@ import Feature from "ol/Feature.js";
 import {Point} from "ol/geom.js";
 import {Fill, Style, Circle} from "ol/style.js";
 
-let eventHandler = null;
+let eventHandler = null,
+    preRenderListener;
 
 export default {
     name: "Modeler3D",
@@ -759,52 +760,27 @@ export default {
                 }
             });
 
-            this.movePovCamera(scene.camera);
             scene.screenSpaceCameraController.enableZoom = false;
             scene.screenSpaceCameraController.enableRotate = false;
+            scene.screenSpaceCameraController.enableTilt = false;
+            scene.screenSpaceCameraController.enableLook = true;
+            scene.screenSpaceCameraController.lookEventTypes = Cesium.CameraEventType.LEFT_DRAG;
+            preRenderListener = scene.preRender.addEventListener(() => {
+                scene.camera.setView({
+                    orientation: {
+                        heading: scene.camera.heading,
+                        pitch: Cesium.Math.clamp(
+                            scene.camera.pitch,
+                            -Cesium.Math.PI_OVER_TWO + Cesium.Math.EPSILON1,
+                            Cesium.Math.PI_OVER_TWO - Cesium.Math.EPSILON1),
+                        roll: 0
+                    }
+                });
+            });
 
             document.addEventListener("keydown", this.escapePedView);
         },
 
-        /**
-         * Use the mouse to move the camera to a pedestrian's point of view while holding down the left mouse button.
-         * @param {Cesium.Camera} camera - A cesium camera.
-         * @returns {void}
-         */
-        movePovCamera (camera) {
-            let startMousePosition,
-                mousePosition,
-                letUsMove;
-
-            eventHandler.setInputAction((movement) => {
-                letUsMove = true;
-                mousePosition = startMousePosition = Cesium.Cartesian3.clone(movement.position);
-            }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
-
-            eventHandler.setInputAction(() => {
-                letUsMove = false;
-            }, Cesium.ScreenSpaceEventType.LEFT_UP);
-
-            eventHandler.setInputAction((movement) => {
-                if (letUsMove) {
-                    mousePosition = movement.endPosition;
-                    const deltaY = -mousePosition.y + startMousePosition.y,
-                        deltaX = mousePosition.x - startMousePosition.x,
-
-                        sensitivity = 0.002,
-                        pitch = Cesium.Math.clamp(camera.pitch - sensitivity * deltaY, -Cesium.Math.PI_OVER_TWO, Cesium.Math.PI_OVER_TWO),
-                        heading = camera.heading - sensitivity * deltaX;
-
-                    camera.setView({
-                        orientation: {
-                            pitch: pitch,
-                            roll: 0,
-                            heading: heading
-                        }
-                    });
-                }
-            }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-        },
 
         /**
          * Reset the camera perspective.
@@ -820,6 +796,9 @@ export default {
             scene.camera.flyTo({
                 destination: this.currentCartesian,
                 complete: () => {
+                    scene.preRender.removeEventListener(preRenderListener);
+                    scene.screenSpaceCameraController.enableLook = false;
+                    scene.screenSpaceCameraController.enableTilt = true;
                     scene.screenSpaceCameraController.enableZoom = true;
                     scene.screenSpaceCameraController.enableRotate = true;
 
