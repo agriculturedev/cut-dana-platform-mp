@@ -157,28 +157,20 @@ export default {
         },
         widthString: {
             get () {
-                const width = Cesium.Cartesian3.distance(this.activeShapePoints[0], this.activeShapePoints[1]);
-
-                return width.toFixed(2);
+                return this.rectWidth.toFixed(2);
             },
             set (value) {
-                const width = parseFloat(value),
-                    depth = parseFloat(this.depthString);
-
-                this.updateRectangleDimensions({width, depth});
+                this.setRectWidth(parseFloat(value));
+                this.updateRectangleDimensions({width: this.rectWidth, depth: this.rectDepth});
             }
         },
         depthString: {
             get () {
-                const depth = Cesium.Cartesian3.distance(this.activeShapePoints[0], this.activeShapePoints[3]);
-
-                return depth.toFixed(2);
+                return this.rectDepth.toFixed(2);
             },
             set (value) {
-                const width = parseFloat(this.widthString),
-                    depth = parseFloat(value);
-
-                this.updateRectangleDimensions({width, depth});
+                this.setRectDepth(parseFloat(value));
+                this.updateRectangleDimensions({width: this.rectWidth, depth: this.rectDepth});
             }
         },
         editedFillColor: {

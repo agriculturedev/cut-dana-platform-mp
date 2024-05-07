@@ -166,6 +166,7 @@ export default {
                 entity.polyline.material.color = entity.originalColor;
                 entity.polyline.width = entity.originalWidth;
             }
+            entity.rotation = (entity.rotation || 0) + this.drawRotation;
             this.removeCylinders();
             this.setActiveShapePoints([]);
             this.setCylinderId(null);
@@ -188,8 +189,6 @@ export default {
         setupNewEntity (newEntity) {
             if (newEntity.wasDrawn) {
                 this.generateCylinders();
-                newEntity.lastRotationAngle = 0;
-                this.setDrawRotation(0);
                 if (newEntity.polygon) {
                     this.setActiveShapePoints(newEntity.polygon.hierarchy.getValue().positions);
                     newEntity.polygon.hierarchy = new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(this.activeShapePoints), false);

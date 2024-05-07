@@ -142,8 +142,20 @@ describe("Actions", () => {
             Transforms: {
                 eastNorthUpToFixedFrame: () => ({x: 10, y: 20, z: 30})
             },
-            Matrix4: {
-                multiplyByPoint: () => ({x: 10, y: 20, z: 30})
+            Matrix4: class {
+                /**
+                 * Represents a Matrix4 object.
+                 */
+                constructor () {
+                    return {
+                        0: 1, 1: 0, 2: 0, 3: 0,
+                        4: 0, 5: 1, 6: 0, 7: 0,
+                        8: 0, 9: 0, 10: 1, 11: 0,
+                        12: 0, 13: 0, 14: 0, 15: 1
+                    };
+                }
+                static multiplyByPoint = () => ({x: 10, y: 20, z: 30});
+                static inverse = () => new Cesium.Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
             },
             Math: {
                 toDegrees: () => 9.99455657887449,
@@ -945,7 +957,8 @@ describe("Actions", () => {
         it("should update the dimensions of the rectangle", () => {
             const state = {
                     currentModelId: 1,
-                    activeShapePoints: []
+                    activeShapePoints: [],
+                    drawRotation: 10
                 },
                 commit = sinon.spy(),
                 dimensions = {width: 10, depth: 10};
@@ -958,7 +971,7 @@ describe("Actions", () => {
 
             actions.updateRectangleDimensions({commit, getters, state}, dimensions);
 
-            expect(commit.firstCall.args[1]).to.be.an("array").with.lengthOf(4);
+            expect(state.activeShapePoints).to.be.an("array").with.lengthOf(4);
         });
     });
 });

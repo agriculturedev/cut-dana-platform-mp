@@ -133,9 +133,19 @@ const actions = {
 
         if (entity?.polygon instanceof Cesium.PolygonGraphics) {
             commit("setExtrudedHeight", entity.polygon.extrudedHeight.getValue() - entity.polygon.height.getValue());
+            commit("setDrawRotation", 0);
+            entity.lastRotationAngle = 0;
+
+            if (entity.polygon.rectangle) {
+                const positions = entity.polygon.hierarchy.getValue().positions;
+
+                commit("setRectWidth", Cesium.Cartesian3.distance(positions[0], positions[1]));
+                commit("setRectDepth", Cesium.Cartesian3.distance(positions[0], positions[3]));
+            }
         }
         else if (entity?.polyline instanceof Cesium.PolylineGraphics) {
             commit("setLineWidth", entity.polyline.width.getValue());
+            commit("setDrawRotation", 0);
         }
         else if (entity?.model instanceof Cesium.ModelGraphics) {
             const modelFromState = state.importedModels.find(ent => ent.id === entity.id);
@@ -426,7 +436,7 @@ const actions = {
      * @param {Object} dimensions - The new dimensions of the rectangle.
      * @returns {void}
      */
-    updateRectangleDimensions ({commit, getters, state}, dimensions) {
+    updateRectangleDimensions ({getters, state}, dimensions) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(state.currentModelId),
             cylinders = entities.values.filter(ent => ent.cylinder),
@@ -438,9 +448,16 @@ const actions = {
                 new Cesium.Cartesian3(dimensions.width / 2, dimensions.depth / 2, 0),
                 new Cesium.Cartesian3(-dimensions.width / 2, dimensions.depth / 2, 0)
             ],
-            cornersRelative = corners.map(cr => Cesium.Matrix4.multiplyByPoint(localFrame, cr, new Cesium.Cartesian3()));
+            cornersRelative = corners.map(cr => Cesium.Matrix4.multiplyByPoint(localFrame, cr, new Cesium.Cartesian3())),
+            angle = Cesium.Math.toRadians((-entity.rotation || 0) - state.drawRotation);
 
-        commit("setActiveShapePoints", cornersRelative);
+        cornersRelative.forEach((corner, index) => {
+            const rotatedPoint = entity.rotation || state.drawRotation ?
+                calculateRotatedPointCoordinates({angle, center: Cesium.Cartographic.fromCartesian(position), position: corner}) :
+                corner;
+
+            state.activeShapePoints[index] = rotatedPoint;
+        });
 
         cylinders.forEach(cyl => {
             state.cylinderPosition[cyl.positionIndex] = entity.clampToGround ?
