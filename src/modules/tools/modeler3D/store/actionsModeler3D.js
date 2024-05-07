@@ -15,9 +15,11 @@ const actions = {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(id),
             stateArray = entity?.wasDrawn ? state.drawnModels : state.importedModels,
-            modelIndex = stateArray.findIndex(x => x.id === id);
+            modelIndex = stateArray.findIndex(x => x.id === id),
+            outlines = entities.values.filter(ent => ent.outline && ent.polyline);
 
         if (modelIndex > -1 && entity) {
+            outlines.forEach(outline => entities.remove(outline));
             dispatch("removeCylinders");
             commit("setActiveShapePoints", []);
             commit("setCylinderId", null);
