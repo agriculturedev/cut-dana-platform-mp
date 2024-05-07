@@ -129,6 +129,7 @@ export default {
                 }
                 this.setLineWidth(adjustedValue);
                 entities.getById(this.currentModelId).polyline.width = this.lineWidth;
+                entities.getById(this.currentModelId).originalWidth = this.lineWidth;
             }
         },
         eastingString: {
