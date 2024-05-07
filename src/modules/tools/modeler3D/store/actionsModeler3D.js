@@ -399,19 +399,16 @@ const actions = {
      * @param {object} context - The context of the Vuex module.
      * @returns {void}
      */
-    rotateDrawnEntity ({state, getters, commit}) {
+    rotateDrawnEntity ({state, getters}) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(state.currentModelId),
             angle = Cesium.Math.toRadians(entity.lastRotationAngle - state.drawRotation),
-            center = Cesium.Cartographic.fromCartesian(getters.getCenterFromGeometry(entity)),
-            newPositions = [];
+            center = Cesium.Cartographic.fromCartesian(getters.getCenterFromGeometry(entity));
 
-        state.activeShapePoints.forEach(position => {
-            const newPoint = calculateRotatedPointCoordinates({angle, center, position});
-
-            newPositions.push(newPoint);
+        state.activeShapePoints.forEach((position, index) => {
+            state.activeShapePoints[index] = calculateRotatedPointCoordinates({angle, center, position});
         });
-        commit("setActiveShapePoints", newPositions);
+
         state.activeShapePoints.forEach((pos, index) => {
             const cyl = entities.values.filter(ent => ent.cylinder).find(e => e.positionIndex === index);
 

@@ -835,10 +835,9 @@ describe("Actions", () => {
 
     describe("rotateDrawnEntity", () => {
         const result = [{x: 10, y: 20, z: 30}, {x: 10, y: 20, z: 30}, {x: 10, y: 20, z: 30}];
-        let commit, state, position, posIndex, length;
+        let state, position, posIndex, length;
 
         beforeEach(() => {
-            commit = sinon.spy();
             state = {
                 currentModelId: 1,
                 drawRotation: 10,
@@ -930,13 +929,13 @@ describe("Actions", () => {
             sinon.restore();
         });
         it("should commit setActiveShapePoints", () => {
-            actions.rotateDrawnEntity({state, getters, commit});
+            actions.rotateDrawnEntity({state, getters});
 
-            expect(commit.calledWith("setActiveShapePoints", result)).to.be.true;
+            expect(state.activeShapePoints).to.eql(result);
         });
 
         it("should set the lastRotationAngle", () => {
-            actions.rotateDrawnEntity({state, getters, commit});
+            actions.rotateDrawnEntity({state, getters});
 
             expect(entity.lastRotationAngle).to.eql(10);
         });
