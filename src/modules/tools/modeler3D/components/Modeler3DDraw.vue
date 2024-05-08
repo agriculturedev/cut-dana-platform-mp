@@ -718,6 +718,7 @@ export default {
                 this.setCurrentModelId(this.shapeId);
 
                 await this.$nextTick();
+                this.setUseAnchorMove(false);
                 this.$emit("emit-move");
             }
         },
