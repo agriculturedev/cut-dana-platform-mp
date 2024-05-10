@@ -300,10 +300,10 @@ export default {
                 return;
             }
             const scene = mapCollection.getMap("3D").getCesiumScene(),
-                picked = scene.pick(event.endPosition),
-                entity = Cesium.defaultValue(picked?.id, picked?.primitive?.id);
+                picked = scene.drillPick(event.endPosition).filter(pickedObj => !pickedObj?.id?.label && !pickedObj?.id?.outline),
+                entity = Cesium.defaultValue(picked[0]?.id, picked[0]?.primitive?.id);
 
-            if (Cesium.defined(entity) && entity instanceof Cesium.Entity && !entity.outline) {
+            if (Cesium.defined(entity) && entity instanceof Cesium.Entity) {
                 if (this.currentModelId && entity.id === this.currentModelId || entity.cylinder) {
                     document.getElementById("map").style.cursor = "grab";
                 }
@@ -311,7 +311,7 @@ export default {
                     document.getElementById("map").style.cursor = "pointer";
                 }
             }
-            else if (this.hideObjects && Cesium.defined(picked) && picked instanceof Cesium.Cesium3DTileFeature) {
+            else if (this.hideObjects && Cesium.defined(picked[0]) && picked[0] instanceof Cesium.Cesium3DTileFeature) {
                 document.getElementById("map").style.cursor = "pointer";
             }
             else {
@@ -332,9 +332,9 @@ export default {
 
             if (event) {
                 const scene = mapCollection.getMap("3D").getCesiumScene(),
-                    picked = scene.pick(event.position);
+                    picked = scene.drillPick(event.position).filter(pickedObj => !pickedObj?.id?.label && !pickedObj?.id?.outline);
 
-                entity = Cesium.defaultValue(picked?.id, picked?.primitive?.id);
+                entity = Cesium.defaultValue(picked[0]?.id, picked[0]?.primitive?.id);
             }
 
             if (entity instanceof Cesium.Entity || !event) {
@@ -400,13 +400,15 @@ export default {
             if (this.isDrawing) {
                 return;
             }
+            let entity = null;
             const scene = mapCollection.getMap("3D").getCesiumScene(),
-                picked = scene.pick(event.position),
-                entity = Cesium.defaultValue(picked?.id, picked?.primitive?.id);
+                picked = scene.drillPick(event.position).filter(pickedObj => !pickedObj?.id?.label && !pickedObj?.id?.outline);
 
-            if (!Cesium.defined(picked) || entity?.outline) {
+            if (!Cesium.defined(picked[0])) {
                 return;
             }
+
+            entity = Cesium.defaultValue(picked[0]?.id, picked[0]?.primitive?.id);
 
             if (entity instanceof Cesium.Entity && !entity.cylinder) {
                 this.setCurrentModelId(entity.id);
@@ -415,12 +417,12 @@ export default {
                     this.setArea(calculatePolygonArea(entity));
                 }
             }
-            else if (this.hideObjects && picked instanceof Cesium.Cesium3DTileFeature) {
-                const features = getGfiFeatures.getGfiFeaturesByTileFeature(picked),
+            else if (this.hideObjects && picked[0] instanceof Cesium.Cesium3DTileFeature) {
+                const features = getGfiFeatures.getGfiFeaturesByTileFeature(picked[0]),
                     gmlId = features[0]?.getProperties()[this.gmlIdPath],
                     tileSetModels = this.updateAllLayers ?
                         Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D"}) :
-                        Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D", id: picked.tileset.layerReferenceId});
+                        Radio.request("ModelList", "getModelsByAttributes", {typ: "TileSet3D", id: picked[0].tileset.layerReferenceId});
 
                 tileSetModels.forEach(model => model.hideObjects([gmlId], this.updateAllLayers));
 
@@ -536,6 +538,9 @@ export default {
          * @returns {void}
          */
         catchUndoRedo (event) {
+            if (this.isDrawing) {
+                return;
+            }
             if (event.ctrlKey && event.key === "z" && this.originalPosition) {
                 this.lastAction = "undo";
                 this.applyEntityMovement(this.originalPosition);
@@ -597,7 +602,6 @@ export default {
                         adaptCylinderToGround(movedEntity, entityObject.position) :
                         adaptCylinderToEntity(attachedEntity, movedEntity, entityObject.position);
                 }
-
             }
             else if (movedEntity.wasDrawn) {
                 const cylinders = entities.values.filter(ent => ent.cylinder);

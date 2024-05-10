@@ -77,7 +77,7 @@ export default {
          */
         async createEntity (blob, fileName) {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                lastElement = entities.values.slice().pop(),
+                lastElement = entities.values.filter(ent => !ent.cylinder && !ent.label).pop(),
                 lastId = lastElement?.id,
                 models = this.importedModels,
                 entity = new Cesium.Entity({

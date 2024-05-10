@@ -101,6 +101,11 @@ describe("Actions", () => {
                     y: 659341.4057539968,
                     z: 5107613.232959453
                 });
+                static fromRadians = () => ({
+                    x: 3739310.9273738265,
+                    y: 659341.4057539968,
+                    z: 5107613.232959453
+                });
                 static subtract = (pos1, pos2, res) => {
                     res.x = pos1.x - pos2.x;
                     res.y = pos1.y - pos2.y;
@@ -113,6 +118,15 @@ describe("Actions", () => {
                     res.z = pos1.z + pos2.z;
                     return res;
                 };
+                static cross = (pos1, pos2, res) => {
+                    res.x = pos1.y * pos2.z - pos1.z * pos2.y;
+                    res.y = pos1.z * pos2.x - pos1.x * pos2.z;
+                    res.z = pos1.x * pos2.y - pos1.y * pos2.x;
+                    return res;
+                };
+                static magnitude = (pos) => Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+                static distance = () => 123;
+                static midpoint = () => ({x: 100, y: 100, z: 100});
             },
             Cartographic: class {
                 /**
@@ -157,6 +171,9 @@ describe("Actions", () => {
                 static multiplyByPoint = () => ({x: 10, y: 20, z: 30});
                 static inverse = () => new Cesium.Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
             },
+            PolygonPipeline: {
+                triangulate: () => [0, 1, 2]
+            },
             Math: {
                 toDegrees: () => 9.99455657887449,
                 toRadians: () => 0.97
@@ -181,6 +198,7 @@ describe("Actions", () => {
             }),
             getById: sinon.spy(() => entity),
             removeById: sinon.spy(),
+            remove: sinon.spy(),
             values: []
         };
     });
@@ -1095,6 +1113,22 @@ describe("Actions", () => {
             expect(state.drawnModels).to.eql([{id: nextId, name: name + " copy", show: true, edit: false}]);
             expect(entities.values[0]).to.have.property("polyline");
             expect(entities.values[0]).to.not.have.property("polygon");
+        });
+    });
+
+    describe("removeLabels", () => {
+        it("should remove all labels of the given entity", () => {
+            const labels = [
+                {label: {id: "label1"}, attachedEntityId: 1},
+                {label: {id: "label2"}, attachedEntityId: 1}
+            ];
+
+            entity = {id: 1};
+            entities.values.push(...labels);
+
+            actions.removeLabels(_, entity);
+
+            expect(entities.remove.callCount).to.equal(2);
         });
     });
 });

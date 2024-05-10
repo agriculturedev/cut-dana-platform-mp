@@ -6,7 +6,6 @@ import mutations from "../store/mutationsModeler3D";
 import crs from "@masterportal/masterportalapi/src/crs";
 import EntityModel from "./Modeler3DEntityModel.vue";
 import {adaptCylinderToEntity, adaptCylinderToGround, adaptCylinderUnclamped, calculatePolygonArea} from "../utils/draw";
-
 import DrawTypes from "./ui/DrawTypes.vue";
 import DrawLayout from "./ui/DrawLayout.vue";
 import EntityList from "./ui/EntityList.vue";
@@ -31,12 +30,10 @@ export default {
             currentPosition: null,
             shapeId: null,
             undonePointInfo: null,
-            labelId: null,
             lastAddedPosition: null,
             dimensions: true,
-            areaLabelId: null,
-            labelList: [],
-            undoneLabelInfo: null
+            undoneLabelInfo: null,
+            labelList: []
         };
     },
     computed: {
@@ -149,19 +146,6 @@ export default {
                 if (shape?.polygon?.rectangle && this.activeShapePoints.length > 1) {
                     this.moveAdjacentRectangleCorners({movedCornerIndex: 3, clampToGround: this.clampToGround});
                 }
-
-                if (this.activeShapePoints.length > 1 && this.shapeId !== null && this.dimensions) {
-                    const areaLabel = entities.getById(this.areaLabelId);
-
-                    if (shape?.polygon && this.labelList.length !== 0) {
-                        const area = calculatePolygonArea(shape);
-
-                        areaLabel.label.text = Math.round(area * 100) / 100 + " m²";
-                        areaLabel.label.show = this.dimensions;
-                        this.setArea(area);
-                    }
-                    this.calculateDistances();
-                }
             }
         },
         /**
@@ -175,12 +159,13 @@ export default {
             }
             this.lastAddedPosition = this.currentPosition;
 
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
 
-            let floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId),
-                entity = null,
+            let entity = null,
                 label = null;
 
+            // Creates the entity, sets its height and creates the variable distance label
             if (this.activeShapePoints.length === 1 && !this.shapeId) {
                 const scene = mapCollection.getMap("3D").getCesiumScene();
 
@@ -189,14 +174,33 @@ export default {
                     scene.sampleHeight(Cesium.Cartographic.fromCartesian(this.currentPosition), [floatingPoint])
                 );
                 this.drawShape();
-                this.addLabel("area");
+                label = this.addLabel("distance", {
+                    position: new Cesium.CallbackProperty(() => Cesium.Cartesian3.midpoint(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3()), false),
+                    text: new Cesium.CallbackProperty(() => {
+                        const distance = Cesium.Cartesian3.distance(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3());
+
+                        return Math.round(distance * 100) / 100 + " m";
+                    }, false)
+                });
+                this.labelList.push(label);
             }
             entity = entities.getById(this.shapeId);
-            label = this.addLabel("distance");
-            this.labelList.push(label);
+
+            // Creates new permanent label for the distance between the last two points
+            if (this.activeShapePoints.length >= 2) {
+                const arrayLength = this.activeShapePoints.length,
+                    midpoint = Cesium.Cartesian3.midpoint(this.activeShapePoints[arrayLength - 2], this.activeShapePoints[arrayLength - 1], new Cesium.Cartesian3()),
+                    distance = Cesium.Cartesian3.distance(this.activeShapePoints[arrayLength - 2], this.activeShapePoints[arrayLength - 1], new Cesium.Cartesian3());
+
+                label = this.addLabel("distance", {
+                    position: midpoint,
+                    text: Math.round(distance * 100) / 100 + " m"
+                });
+                this.labelList.push(label);
+            }
 
             if (entity?.polygon?.rectangle) {
-                if (this.activeShapePoints.length > 1) {
+                if (this.activeShapePoints.length > 2) {
                     this.activeShapePoints.push({});
                     this.stopDrawing();
                     return;
@@ -204,11 +208,35 @@ export default {
                 this.activeShapePoints.splice(1, 0, Cesium.Cartesian3.clone(this.activeShapePoints[0]));
                 this.activeShapePoints.unshift(Cesium.Cartesian3.clone(this.activeShapePoints[0]));
             }
+
+            this.updateFloatingPointPosition(floatingPoint, entity);
+            this.activeShapePoints.push(this.currentPosition);
+
+            // Create area and height labels when its a polygon
             if ((this.activeShapePoints.length === 2 && entity?.polygon) || entity?.polygon?.rectangle) {
-                label = this.addLabel("distance");
-                this.labelList.push(label);
+                this.createPolygonLabels(entity);
             }
 
+            // Create distance label when its a polygon for the side between the first and last point
+            if ((this.activeShapePoints.length === 3 && entity?.polygon) || entity?.polygon?.rectangle) {
+                label = this.addLabel("distance", {
+                    position: new Cesium.CallbackProperty(() => Cesium.Cartesian3.midpoint(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3()), false),
+                    text: new Cesium.CallbackProperty(() => {
+                        const distance = Cesium.Cartesian3.distance(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3());
+
+                        return Math.round(distance * 100) / 100 + " m";
+                    }, false)
+                });
+                this.labelList.splice(1, 0, label);
+            }
+        },
+        /**
+         * Creates a new cylinder entity and sets its position and length.
+         * @param {Cesium.Entity} floatingPoint - The cylinder that should be updated.
+         * @param {Cesium.Entity} entity - The entity that the cylinder should be attached to.
+         * @returns {void}
+         */
+        updateFloatingPointPosition (floatingPoint, entity) {
             if (this.clampToGround) {
                 floatingPoint.position = adaptCylinderToGround(floatingPoint, this.currentPosition);
                 this.createCylinder({
@@ -223,12 +251,43 @@ export default {
                     length: entity?.polygon ? this.extrudedHeight + entity.polygon.height + 5 : undefined
                 });
             }
-            floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
-            floatingPoint.position = this.clampToGround ?
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                newFloatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
+
+            newFloatingPoint.position = this.clampToGround ?
                 new Cesium.CallbackProperty(() => adaptCylinderToGround(floatingPoint, this.currentPosition), false) :
                 new Cesium.CallbackProperty(() => entity ? adaptCylinderToEntity(entity, floatingPoint, this.currentPosition) : adaptCylinderUnclamped(floatingPoint, this.currentPosition), false);
+        },
+        /**
+         * Creates area and height labels for a drawn polygon.
+         * @param {Cesium.Entity} entity - The entity to create the labels for.
+         * @returns {void}
+         */
+        createPolygonLabels (entity) {
+            const lblHeight = entity.polygon.extrudedHeight.getValue(),
+                positionArea = Cesium.Cartographic.fromCartesian(this.activeShapePoints[0 + (entity.polygon?.rectangle ? 1 : 0)]);
 
-            this.activeShapePoints.push(this.currentPosition);
+            this.addLabel("area", {
+                position: Cesium.Cartesian3.fromRadians(positionArea.longitude, positionArea.latitude, lblHeight + 12),
+                text: new Cesium.CallbackProperty(() => {
+                    const area = calculatePolygonArea(entity);
+
+                    this.setArea(area);
+                    return Math.round(area * 100) / 100 + " m²";
+                }, false)
+            });
+            this.addLabel("height", {
+                position: new Cesium.CallbackProperty(() => {
+                    const positionHeight = Cesium.Cartographic.fromCartesian(this.activeShapePoints[1 + (entity.polygon?.rectangle ? 1 : 0)]);
+
+                    return Cesium.Cartesian3.fromRadians(positionHeight.longitude, positionHeight.latitude, lblHeight + 6);
+                }, false),
+                text: new Cesium.CallbackProperty(() => {
+                    const height = entity.polygon.extrudedHeight.getValue() - entity.polygon.height.getValue();
+
+                    return Math.round(height * 100) / 100 + " m";
+                }, false)
+            });
         },
         /**
          * Called on CTRL + Z. Deletes the last set geometry position.
@@ -236,9 +295,15 @@ export default {
          * @returns {void}
          */
         undoGeometryPosition () {
-            if (!this.isDrawing || this.activeShapePoints.length <= 1) {
+            if (!this.isDrawing || this.activeShapePoints.length < 2) {
                 return;
             }
+            if (this.activeShapePoints.length < 3) {
+                this.stopDrawing();
+                this.startDrawing();
+                return;
+            }
+
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 lastPositionIndex = this.activeShapePoints.length - 2,
                 lastFloatingPoint = entities.values.find(cyl => cyl.positionIndex === lastPositionIndex),
@@ -285,23 +350,23 @@ export default {
             }
 
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                lastLabelPositionIndex = this.labelList.length === 1 ? this.labelList.length - 1 : this.labelList.length - 2,
-                lastLabel = this.labelList[lastLabelPositionIndex]?.id,
-                areaLabel = entities.values.find(lab => lab.id === this.areaLabelId),
-                currentLabel = entities.values.find(lab => lab.id === lastLabel);
+                lastLabelIndex = this.labelList.length - 1,
+                lastLabelId = this.labelList[lastLabelIndex].id;
 
             this.undoneLabelInfo = {
-                position: this.labelList[lastLabelPositionIndex].position,
-                text: this.labelList[lastLabelPositionIndex].label.text
+                position: this.labelList[lastLabelIndex].position,
+                text: this.labelList[lastLabelIndex].label.text
             };
 
-            if (this.labelList.length === 1) {
-                entities.remove(currentLabel);
-                areaLabel.label.show = false;
-            }
-            entities.remove(currentLabel);
+            entities.removeById(lastLabelId);
+            this.labelList.splice(lastLabelIndex, 1);
 
-            this.labelList.splice(lastLabelPositionIndex, 1);
+            if (this.labelList.length === 2) {
+                const joiningLabelIndex = this.labelList.length - 1;
+
+                entities.removeById(this.labelList[joiningLabelIndex].id);
+                this.labelList.splice(joiningLabelIndex, 1);
+            }
         },
         /**
          * Called on CTRL + Y and redoes the last undone label, if dimensions is true.
@@ -312,21 +377,23 @@ export default {
                 return;
             }
 
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                undoneLabelPositionIndex = this.labelList.length === 0 ? null : this.labelList.length - 1,
-                lastLabel = this.labelList.length === 0 ? null : this.labelList[undoneLabelPositionIndex]?.id,
-                currentLabel = this.labelList.length === 0 ? null : entities.values.find(lab => lab?.id === lastLabel),
-                areaLabel = entities.values.find(lab => lab.id === this.areaLabelId);
+            const newLabel = this.addLabel("distance", this.undoneLabelInfo);
 
-            this.addLabel("distance", this.undoneLabelInfo);
-            if (this.labelList.length === 0) {
-                areaLabel.label.show = true;
-                areaLabel.label.text = "0 m²";
-            }
-
-            this.labelList.splice(undoneLabelPositionIndex, 0, entities.getById(this.labelId));
-            this.labelId = currentLabel !== null ? currentLabel.id : this.labelId;
+            this.labelList.push(newLabel);
             this.undoneLabelInfo = null;
+
+            if (this.labelList.length === 2) {
+                const joiningLabel = this.addLabel("distance", {
+                    position: new Cesium.CallbackProperty(() => Cesium.Cartesian3.midpoint(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3()), false),
+                    text: new Cesium.CallbackProperty(() => {
+                        const distance = Cesium.Cartesian3.distance(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3());
+
+                        return Math.round(distance * 100) / 100 + " m";
+                    }, false)
+                });
+
+                this.labelList.splice(1, 0, joiningLabel);
+            }
         },
         /**
          * Called on mouse rightclick. Completes the polygon when there are at least 3 corners or deletes it when it has less.
@@ -339,23 +406,29 @@ export default {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 shape = entities.getById(this.shapeId);
 
+            this.removeLabels(shape);
             this.activeShapePoints.pop();
 
-            if (shape?.polygon && this.activeShapePoints.length > 2) {
-                shape.polygon.hierarchy = new Cesium.ConstantProperty(new Cesium.PolygonHierarchy(this.activeShapePoints));
+            if (shape) {
+                shape.showDimensions = false;
 
-            }
-            if (shape?.polyline && this.activeShapePoints.length >= 2) {
-                shape.polyline.positions = this.activeShapePoints;
-            }
-            else if (shape && shape.polygon && (this.activeShapePoints.length < 3 || (shape.polygon.rectangle && this.activeShapePoints.length < 4))) {
-                this.deleteEntity(shape.id);
+                if (shape.polygon && this.activeShapePoints.length > 2) {
+                    shape.polygon.hierarchy = new Cesium.ConstantProperty(new Cesium.PolygonHierarchy(this.activeShapePoints));
+
+                }
+                if (shape.polyline && this.activeShapePoints.length >= 2) {
+                    shape.polyline.positions = this.activeShapePoints;
+                }
+                else if (shape.polygon && (this.activeShapePoints.length < 3 || (shape.polygon.rectangle && this.activeShapePoints.length < 4))) {
+                    this.deleteEntity(shape.id);
+                }
             }
 
             this.setActiveShapePoints([]);
             this.removeCylinders();
-            this.removeLabel();
             this.labelList = [];
+            this.undonePointInfo = null;
+            this.undoneLabelInfo = null;
             this.currentPosition = null;
             this.shapeId = null;
             this.setIsDrawing(false);
@@ -369,7 +442,7 @@ export default {
          */
         getNextId () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                drawnEntities = entities.values.filter(ent => !ent.cylinder),
+                drawnEntities = entities.values.filter(ent => !ent.cylinder && !ent.label),
                 lastElement = drawnEntities.pop(),
                 lastId = lastElement && typeof lastElement === "object" ?
                     Number(lastElement.id) : undefined;
@@ -378,7 +451,7 @@ export default {
         },
         /**
          * Creates the drawn shape in the EntityCollection and sets its attributes.
-         * @returns {void}
+         * @returns {Cesium.Entity} - The created shape.
          */
         drawShape () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
@@ -394,7 +467,8 @@ export default {
                     id: shapeId,
                     name: this.drawName ? this.drawName : i18next.t("common:modules.tools.modeler3D.draw.captions.drawing") + ` ${shapeId}`,
                     wasDrawn: true,
-                    clampToGround: this.clampToGround
+                    clampToGround: this.clampToGround,
+                    showDimensions: this.dimensions
                 });
 
             if (this.selectedDrawType === "line") {
@@ -560,22 +634,22 @@ export default {
         /**
          * Creates the label in the EntityCollection depending on "distance" or "area" type.
          * @param {String} type - label type can be "distance" or "area".
-         * @param {Object} labelInfo - set specific text and position. Default is false.
+         * @param {Object} labelInfo - set specific text, position and attached Entity Id.
          * @returns {Cesium.Entity} - The created label.
          */
-        addLabel (type, labelInfo = false) {
+        addLabel (type, labelInfo) {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                lastElement = entities.values.filter(ent => !ent.cylinder).pop(),
-                lastId = lastElement ? lastElement.id : undefined,
-                labelId = lastId ? lastId + 1 : 1;
+                attachedEntity = labelInfo.attachedEntity || entities.getById(this.shapeId),
+                position = labelInfo.position;
             let label;
 
             if (type === "distance") {
                 label = {
-                    position: !labelInfo ? this.currentPosition : labelInfo.position,
-                    id: labelId,
+                    position: position,
+                    attachedEntityId: attachedEntity.id,
+                    type: type,
                     label: {
-                        text: !labelInfo ? "text" : labelInfo.text,
+                        text: labelInfo.text || "",
                         wasDrawn: true,
                         fillColor: Cesium.Color.BLACK,
                         font: "10px",
@@ -583,66 +657,44 @@ export default {
                         backgroundColor: Cesium.Color.fromCssColorString("#DCE2F3"),
                         style: Cesium.LabelStyle.FILL,
                         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        show: !labelInfo ? false : this.dimensions
+                        show: attachedEntity.showDimensions
                     }
                 };
-                this.labelId = label.id;
+            }
+            else if (type === "height") {
+                label = {
+                    position: position,
+                    attachedEntityId: attachedEntity.id,
+                    type: type,
+                    label: {
+                        text: labelInfo.text || "",
+                        fillColor: Cesium.Color.BLACK,
+                        font: "10px",
+                        showBackground: true,
+                        backgroundColor: Cesium.Color.fromCssColorString("#9CAFE4"),
+                        style: Cesium.LabelStyle.FILL,
+                        show: attachedEntity.showDimensions
+                    }
+                };
             }
             else if (type === "area") {
                 label = {
-                    position: this.activeShapePoints[0],
-                    id: labelId,
+                    position: position,
+                    attachedEntityId: attachedEntity.id,
+                    type: type,
                     label: {
-                        text: "text",
-                        wasDrawn: true,
+                        text: labelInfo.text || "",
                         fillColor: Cesium.Color.WHITE,
                         font: "10px",
                         showBackground: true,
                         backgroundColor: Cesium.Color.fromCssColorString("#3C5F94"),
                         style: Cesium.LabelStyle.FILL,
-                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        show: false,
-                        pixelOffset: new Cesium.Cartesian2(30, -30)
+                        show: attachedEntity.showDimensions
                     }
                 };
-                this.areaLabelId = label.id;
             }
-            entities.add(label);
-            return label;
-        },
-        /**
-        * Removes all Label from the the Cesium EntityCollection.
-        * @returns {void}
-        */
-        removeLabel () {
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                labelEntities = entities.values.filter(entity => entity.label);
 
-            labelEntities.forEach(entity => {
-                entities.remove(entity);
-            });
-        },
-        /**
-        * Calculate the distance between two points and update the label.
-        * @param {Cesium.Cartesian3} position1 - The first position.
-        * @param {Cesium.Cartesian3} position2 - The second position.
-        * @param {Number} labelId - The id of the label.
-        * @returns {void}
-        */
-        calculateDistances () {
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
-
-            this.labelList.forEach((label, index) => {
-                const labelEntity = entities.getById(label.id),
-                    position1 = this.activeShapePoints[index % this.activeShapePoints.length],
-                    position2 = this.activeShapePoints[(index + 1) % this.activeShapePoints.length],
-                    distance = Cesium.Cartesian3.distance(position1, position2),
-                    labelPosition = Cesium.Cartesian3.midpoint(position1, position2, new Cesium.Cartesian3());
-
-                labelEntity.label.text = Math.round(distance * 100) / 100 + "m";
-                labelEntity.position = labelPosition;
-                labelEntity.label.show = this.dimensions;
-            });
+            return entities.add(label);
         },
         /**
          * Starts placing of a ready to place 3D element.
@@ -683,14 +735,95 @@ export default {
                 halfWidth = 15 / 2,
                 corners = [
                     new Cesium.Cartesian3(-halfWidth, -halfDepth, 0),
-                    new Cesium.Cartesian3(halfWidth, -halfDepth, 0),
+                    new Cesium.Cartesian3(-halfWidth, halfDepth, 0),
                     new Cesium.Cartesian3(halfWidth, halfDepth, 0),
-                    new Cesium.Cartesian3(-halfWidth, halfDepth, 0)
+                    new Cesium.Cartesian3(halfWidth, -halfDepth, 0)
                 ],
 
                 cornersCartesian = corners.map(cr => Cesium.Matrix4.multiplyByPoint(localFrame, cr, new Cesium.Cartesian3()));
 
             return cornersCartesian;
+        },
+        /**
+         * Toggles the visibility of the dimensions of the drawn entities.
+         * @param {Number} id - The ID of the entity to toggle the dimensions.
+         * @returns {void}
+         */
+        toggleDimensions (id) {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                entity = entities.getById(id);
+
+            if (!entity) {
+                return;
+            }
+
+            entity.showDimensions = !entity.showDimensions;
+
+            if (entity.showDimensions) {
+                this.generateLabels(entity);
+            }
+            else {
+                this.removeLabels(entity);
+            }
+        },
+        /**
+         * Generates all auto updating labels for the drawn entity.
+         * @param {Cesium.Entity} entity - The entity to generate the labels for.
+         * @returns {void}
+         */
+        generateLabels (entity) {
+            const positions = entity.polygon ? entity.polygon.hierarchy.getValue().positions : entity.polyline.positions.getValue(),
+                distanceLabelCount = entity.polygon ? positions.length : positions.length - 1;
+
+            if (entity.polygon) {
+                this.addLabel("area", {
+                    attachedEntity: entity,
+                    position: new Cesium.CallbackProperty(() => {
+                        const height = entity.polygon.extrudedHeight.getValue() + 12,
+                            position = Cesium.Cartographic.fromCartesian(positions[0 + (entity.polygon?.rectangle ? 1 : 0)]);
+
+                        return Cesium.Cartesian3.fromRadians(position.longitude, position.latitude, height);
+                    }, false),
+                    text: new Cesium.CallbackProperty(() => {
+                        const area = calculatePolygonArea(entity);
+
+                        this.setArea(area);
+                        return Math.round(area * 100) / 100 + " m²";
+                    }, false)
+                });
+                this.addLabel("height", {
+                    attachedEntity: entity,
+                    position: new Cesium.CallbackProperty(() => {
+                        const height = entity.polygon.extrudedHeight.getValue() + 6,
+                            position = Cesium.Cartographic.fromCartesian(positions[1 + (entity.polygon?.rectangle ? 1 : 0)]);
+
+                        return Cesium.Cartesian3.fromRadians(position.longitude, position.latitude, height);
+                    }, false),
+                    text: new Cesium.CallbackProperty(() => {
+                        const height = entity.polygon.extrudedHeight.getValue() - entity.polygon.height.getValue();
+
+                        return Math.round(height * 100) / 100 + " m";
+                    }, false)
+                });
+            }
+
+            positions.forEach((_, index) => {
+                if (!entity.polygon?.rectangle || index < 2) {
+                    const rectangleOffset = entity.polygon?.rectangle ? 2 : 0;
+
+                    this.addLabel("distance", {
+                        attachedEntity: entity,
+                        position: new Cesium.CallbackProperty(() => {
+                            return Cesium.Cartesian3.midpoint(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % distanceLabelCount], new Cesium.Cartesian3());
+                        }, false),
+                        text: new Cesium.CallbackProperty(() => {
+                            const distance = Cesium.Cartesian3.distance(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % distanceLabelCount], new Cesium.Cartesian3());
+
+                            return Math.round(distance * 100) / 100 + " m";
+                        }, false)
+                    });
+                }
+            });
         }
     }
 };
@@ -739,6 +872,7 @@ export default {
                     @change-visibility="changeVisibility"
                     @export-geojson="exportToGeoJson"
                     @zoom-to="zoomTo"
+                    @toggle-dimensions="toggleDimensions"
                 />
             </AccordionItem>
             <hr class="m-0">

@@ -407,7 +407,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             let currentModelId = "";
             const pickObject = new global.Cesium.Entity("entityId");
 
-            scene.pick = sinon.stub().returns(pickObject);
+            scene.drillPick = sinon.stub().returns([pickObject]);
             global.Cesium.defined = sinon.stub().returns(true);
             global.Cesium.defaultValue = sinon.stub().returns(pickObject);
 
@@ -427,7 +427,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
                 },
                 radioStub = sinon.stub(Radio, "request").returns([tileSetModel]);
 
-            scene.pick = sinon.stub().returns(pickObject);
+            scene.drillPick = sinon.stub().returns([pickObject]);
             global.Cesium.defined = sinon.stub().returns(true);
             global.Cesium.defaultValue = sinon.stub().returns(false);
             sinon.stub(getGfiFeaturesByTileFeatureModule, "getGfiFeaturesByTileFeature").returns([{
@@ -646,31 +646,26 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             });
         });
 
-        it("should undo the last non-drawn entity movement when CTRL+Z is pressed", (done) => {
+        it("should undo the last non-drawn entity movement when CTRL+Z is pressed", async () => {
             entities.values.push({id: "TestModel", position: {x: 200, y: 300, z: 400}});
 
-            wrapper.vm.applyEntityMovement({entityId: "TestModel", position: {x: 100, y: 200, z: 300}});
+            await wrapper.vm.applyEntityMovement({entityId: "TestModel", position: {x: 100, y: 200, z: 300}});
 
-            setTimeout(() => {
-                const entity = entities.getById("TestModel");
+            const entity = entities.getById("TestModel");
 
-                expect(entity.position).to.eql({x: 100, y: 200, z: 300});
-                done();
-            }, 10);
+            expect(entity.position).to.eql({x: 100, y: 200, z: 300});
         });
 
-        it("should redo the last undone non-drawn entity movement when CTRL+Y is pressed", (done) => {
+        it("should redo the last undone non-drawn entity movement when CTRL+Y is pressed", async () => {
             entities.values.push({id: "TestModel", position: {x: 100, y: 200, z: 300}});
+
             wrapper.vm.undonePosition = {entityId: "TestModel", position: {x: 200, y: 300, z: 400}};
 
-            wrapper.vm.applyEntityMovement(wrapper.vm.undonePosition);
+            await wrapper.vm.applyEntityMovement(wrapper.vm.undonePosition);
 
-            setTimeout(() => {
-                const entity = entities.getById("TestModel");
+            const entity = entities.getById("TestModel");
 
-                expect(entity.position).to.eql({x: 200, y: 300, z: 400});
-                done();
-            }, 10);
+            expect(entity.position).to.eql({x: 200, y: 300, z: 400});
         });
 
         it("should generate outlines for the given entity", () => {

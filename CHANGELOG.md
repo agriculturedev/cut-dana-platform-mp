@@ -14,6 +14,8 @@
 ### Changed
 - Modeler3D:
   - Polygon and line highlighting has been changed
+  - Measurement labels of drawn entities can now be toggled on/off individually.
+  - Labels now move and get updated when the corresponding entity gets changed or moves.
 
 ### Deprecated
 

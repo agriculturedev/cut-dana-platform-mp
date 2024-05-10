@@ -26,24 +26,20 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             origin: {},
             direction: {}
         },
-        entity = {
-            id: "1",
-            orientation: null,
-            position: {
-                getValue: () => {
-                    return {x: 100, y: 100, z: 100};
-                }
-            },
-            model: {scale: 1}
-        },
         entities = {
             getById: (val) => {
                 return entities.values.find(x => x.id === val);
             },
             values: [],
-            add: () => entity,
+            add: (val) => {
+                entities.values.push(val);
+                return val;
+            },
             remove: (val) => {
                 entities.values.splice(entities.values.indexOf(val), 1);
+            },
+            removeById: (id) => {
+                entities.remove(entities.getById(id));
             }
         },
         map3D = {
@@ -83,8 +79,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         mapCollection.clear();
         mapCollection.addMap(map3D, "3D");
 
-        entities.add = sinon.stub();
-        entities.values = [{id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}}];
+        entities.values = [];
 
         scene = {
             camera: {
@@ -162,6 +157,13 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                  * @returns {void} Nothing.
                  */
                 static subtract () {
+                    return {x: 100, y: 100, z: 100};
+                }
+                /**
+                 * Mock static method
+                 * @returns {void} Nothing.
+                    */
+                static fromRadians () {
                     return {x: 100, y: 100, z: 100};
                 }
             },
@@ -265,6 +267,8 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                 endPosition: {x: 0, y: 0}
             };
 
+            entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
+
             wrapper.vm.clampToGround = true;
             wrapper.vm.onMouseMove(mouseMoveEvent);
 
@@ -278,6 +282,8 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             const mouseMoveEvent = {
                 endPosition: {x: 0, y: 0}
             };
+
+            entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
 
             wrapper.vm.clampToGround = false;
             wrapper.vm.onMouseMove(mouseMoveEvent);
@@ -295,9 +301,13 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                 clampToGround: true,
                 polygon: {
                     height: 10,
-                    extrudedHeight: 0
+                    extrudedHeight: {
+                        getValue: () => 10
+                    }
                 }
             };
+
+            entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
 
             store.commit("Tools/Modeler3D/setSelectedDrawType", "polygon");
             wrapper.vm.clampToGround = true;
@@ -314,7 +324,10 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             expect(scene.globe.pick.called).to.be.false;
             expect(wrapper.vm.activeShapePoints).to.have.lengthOf(2);
         });
-        it("should call addLabel when activeShapePoints length is 1", () => {
+        it("should call addLabel three times when activeShapePoints length is 1 and entity is a polygon", () => {
+            entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
+            entities.values.push({id: "someId", polygon: {height: {getValue: () => 5}, extrudedHeight: {getValue: () => 10}}});
+            wrapper.vm.shapeId = "someId";
             wrapper.vm.addLabel = sinon.spy();
 
             store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300}]);
@@ -324,6 +337,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             expect(wrapper.vm.addLabel).to.be.called;
         });
         it("should call addLabel when activeShapePoints length is more than 1", () => {
+            entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
             wrapper.vm.addLabel = sinon.spy();
 
             store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300},
@@ -338,6 +352,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300}, {x: 200, y: 300, z: 400}, {x: 300, y: 400, z: 500}, {x: 400, y: 500, z: 600}]);
             store.commit("Tools/Modeler3D/setIsDrawing", true);
             entities.values.push(
+                {id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}},
                 {id: "FloatingPointId2", positionIndex: 1, cylinder: {length: 4}},
                 {id: "FloatingPointId3", position: {
                     getValue: () => {
@@ -400,17 +415,20 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                         text: "text3",
                         show: false
                     }
+                },
+                mockEntity = {
+                    id: "someId"
                 };
 
-            entities.values.push(mockLabel1, mockLabel2, mockLabel3);
+            entities.values.push(mockEntity, mockLabel1, mockLabel2, mockLabel3);
             await wrapper.setData({labelList: [mockLabel1, mockLabel2, mockLabel3]});
-            await wrapper.setData({dimensions: true});
+            await wrapper.setData({dimensions: true, shapeId: "someId"});
             wrapper.vm.undoLabelPosition();
             wrapper.vm.$nextTick();
 
-            expect(wrapper.vm.labelList).to.have.lengthOf(2);
-            expect(entities.values).to.have.lengthOf(3);
-            expect(entities.values[2].id).to.equal("4");
+            expect(wrapper.vm.labelList).to.have.lengthOf(1);
+            expect(entities.values).to.have.lengthOf(2);
+            expect(entities.values[1].id).to.equal("2");
         });
 
         it("should redo the last label when CTRL+Y is pressed", async () => {
@@ -441,18 +459,24 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                         text: "text3",
                         show: false
                     }
-                };
+                },
+                mockEntity = {
+                    id: "someId"
+                },
+                addLabelSpy = sinon.spy(wrapper.vm, "addLabel");
 
-            entities.values.push(mockLabel1, mockLabel2, mockLabel3);
+            entities.values.push(mockEntity, mockLabel1, mockLabel2, mockLabel3);
             await wrapper.setData({labelList: [mockLabel1, mockLabel2, mockLabel3]});
-            await wrapper.setData({dimensions: true});
+            await wrapper.setData({dimensions: true, shapeId: "someId"});
             wrapper.vm.undoLabelPosition();
             wrapper.vm.$nextTick();
             wrapper.vm.redoLabelPosition();
             wrapper.vm.$nextTick();
 
+            expect(addLabelSpy.calledTwice).to.be.true;
             expect(wrapper.vm.labelList).to.have.lengthOf(3);
-            expect(entities.values[2].position).to.deep.equal({x: 400, y: 500, z: 300});
+            expect(entities.values).to.have.lengthOf(4);
+            expect(wrapper.vm.labelList[2].position).to.deep.equal({x: 400, y: 500, z: 300});
         });
 
         it("should export the GeoJson", () => {
@@ -491,6 +515,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         it("should draw shapes when selectedGeometry is 'line' and activeShapePoints has at least 2 points", () => {
             store.commit("Tools/Modeler3D/setSelectedDrawType", "line");
             store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300}, {x: 200, y: 300, z: 400}, {x: 300, y: 400, z: 500}]);
+            entities.add = sinon.spy();
             wrapper.vm.drawShape();
 
             expect(entities.add.calledWith(sinon.match({id: sinon.match.number, polyline: sinon.match.object}))).to.be.true;
@@ -505,77 +530,28 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                 {x: 300, y: 400, z: 500},
                 {x: 400, y: 500, z: 600}
             ]);
+            entities.add = sinon.spy();
             wrapper.vm.drawShape();
             expect(entities.add.calledWith(sinon.match({id: sinon.match.number, polygon: sinon.match.object}))).to.be.true;
         });
 
-        it("should add label", () => {
-            store.commit("Tools/Modeler3D/setSelectedDrawType", "polygon");
+        it("should add a label to the entities", () => {
+            let label = null;
+            const labelType = "distance",
+                options = {
+                    attachedEntity: {id: 1},
+                    position: [0, 0, 0]
+                };
 
-            store.commit("Tools/Modeler3D/setActiveShapePoints", [
-                {x: 100, y: 200, z: 300},
-                {x: 200, y: 300, z: 400}
-            ]);
-            wrapper.vm.addLabel("distance");
-            expect(entities.add.calledWith(sinon.match({id: sinon.match.number, label: sinon.match.object}))).to.be.true;
-        });
-        it("should remove label", () => {
-            const mockLabel = {
-                position: {x: 100, y: 200, z: 300},
-                id: 1,
-                label: {
-                    text: "text",
-                    fillColor: Cesium.Color.BLACK,
-                    font: "10px",
-                    showBackground: true,
-                    show: true
-                }
-            };
+            entities.add = sinon.spy();
+            wrapper.vm.addLabel(labelType, options);
 
-            entities.values.push(mockLabel);
+            expect(entities.add.calledOnce).to.be.true;
+            label = entities.add.firstCall.args[0];
 
-            wrapper.vm.removeLabel();
-            expect(entities.values).to.have.lengthOf(1);
-        });
-
-        it("should return calculated distances in label with correct position", async () => {
-            let labels = null;
-            const mockLabelList = [
-                {
-                    position: {x: 100, y: 200, z: 300},
-                    id: "2",
-                    label: {
-                        text: "text",
-                        show: false
-                    }
-                },
-                {
-                    position: {x: 200, y: 300, z: 400},
-                    id: "3",
-                    label: {
-                        text: "text2",
-                        show: false
-                    }
-                }
-            ];
-
-            entities.values.push(...mockLabelList);
-            store.commit("Tools/Modeler3D/setActiveShapePoints", [
-                {x: 100, y: 200, z: 300},
-                {x: 200, y: 300, z: 400},
-                {x: 300, y: 400, z: 500}
-            ]);
-            wrapper.vm.labelList = mockLabelList;
-
-            wrapper.vm.calculateDistances();
-
-            labels = entities.values.filter(ent => ent.label);
-
-            labels.forEach((label) => {
-                expect(label.label.text).to.equal("123m");
-                expect(label.position).to.eql({x: 100, y: 100, z: 100});
-                expect(label.label.show).to.be.true;
-            });
+            expect(label.label).to.exist;
+            expect(label.attachedEntityId).to.equal(options.attachedEntity.id);
+            expect(label.position).to.equal(options.position);
         });
 
         it("should generate the remaining corners of a rectangle given one corner", () => {
@@ -589,10 +565,56 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         });
 
         it("should return the next id", () => {
-            entities.values.push(entity);
-            const nextId = wrapper.vm.getNextId();
+            const entity = {id: 1};
 
-            expect(nextId).to.equal(Number(entity.id) + 1);
+            entities.values.push(entity);
+
+            expect(wrapper.vm.getNextId()).to.equal(Number(entity.id) + 1);
+        });
+
+        it("should toggle showDimensions and call generateLabels if showDimensions is true", () => {
+            const ent = {
+                    id: "someId",
+                    showDimensions: false
+                },
+                generateLabelsStub = sinon.stub(wrapper.vm, "generateLabels");
+
+            entities.values.push(ent);
+            wrapper.vm.toggleDimensions("someId");
+
+            expect(ent.showDimensions).to.be.true;
+            expect(generateLabelsStub.calledWith(ent)).to.be.true;
+        });
+
+        it("should toggle showDimensions and call removeLabels if showDimensions is false", () => {
+            const ent = {
+                    id: "someId",
+                    showDimensions: true
+                },
+                removeLabelsStub = sinon.stub(wrapper.vm, "removeLabels");
+
+            entities.values.push(ent);
+            wrapper.vm.toggleDimensions("someId");
+
+            expect(ent.showDimensions).to.be.false;
+            expect(removeLabelsStub.calledWith(ent)).to.be.true;
+        });
+
+        it("should generate labels for the given entity", () => {
+            const ent = {
+                    polygon: {
+                        hierarchy: {
+                            getValue: sinon.stub().returns({
+                                positions: [1, 2, 3]
+                            })
+                        }
+                    }
+                },
+                addLabelStub = sinon.stub(wrapper.vm, "addLabel");
+
+            wrapper.vm.generateLabels(ent);
+
+            expect(addLabelStub.callCount).to.equal(5);
         });
     });
 });

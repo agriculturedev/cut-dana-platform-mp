@@ -21,6 +21,7 @@ const actions = {
         if (modelIndex > -1 && entity) {
             outlines.forEach(outline => entities.remove(outline));
             dispatch("removeCylinders");
+            dispatch("removeLabels", entity);
             commit("setActiveShapePoints", []);
             commit("setCylinderId", null);
             commit("setCurrentModelId", null);
@@ -139,8 +140,8 @@ const actions = {
             if (entity.polygon.rectangle) {
                 const positions = entity.polygon.hierarchy.getValue().positions;
 
-                commit("setRectWidth", Cesium.Cartesian3.distance(positions[0], positions[1]));
-                commit("setRectDepth", Cesium.Cartesian3.distance(positions[0], positions[3]));
+                commit("setRectWidth", Cesium.Cartesian3.distance(positions[1], positions[2]));
+                commit("setRectDepth", Cesium.Cartesian3.distance(positions[1], positions[0]));
             }
         }
         else if (entity?.polyline instanceof Cesium.PolylineGraphics) {
@@ -393,8 +394,8 @@ const actions = {
     moveAdjacentRectangleCorners ({state}, {movedCornerIndex, clampToGround}) {
         const corner1 = Cesium.Cartographic.fromCartesian(state.activeShapePoints[movedCornerIndex]),
             corner2 = Cesium.Cartographic.fromCartesian(state.activeShapePoints[(movedCornerIndex + 2) % 4]),
-            corner3 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner1.longitude, corner2.latitude, corner1.height)),
-            corner4 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner2.longitude, corner1.latitude, corner1.height)),
+            corner3 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner2.longitude, corner1.latitude, corner1.height)),
+            corner4 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner1.longitude, corner2.latitude, corner1.height)),
             entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(state.currentModelId),
             cylinders = entities.values.filter(ent => ent.cylinder);
@@ -446,9 +447,9 @@ const actions = {
             localFrame = Cesium.Transforms.eastNorthUpToFixedFrame(position),
             corners = [
                 new Cesium.Cartesian3(-dimensions.width / 2, -dimensions.depth / 2, 0),
-                new Cesium.Cartesian3(dimensions.width / 2, -dimensions.depth / 2, 0),
+                new Cesium.Cartesian3(-dimensions.width / 2, dimensions.depth / 2, 0),
                 new Cesium.Cartesian3(dimensions.width / 2, dimensions.depth / 2, 0),
-                new Cesium.Cartesian3(-dimensions.width / 2, dimensions.depth / 2, 0)
+                new Cesium.Cartesian3(dimensions.width / 2, -dimensions.depth / 2, 0)
             ],
             cornersRelative = corners.map(cr => Cesium.Matrix4.multiplyByPoint(localFrame, cr, new Cesium.Cartesian3())),
             angle = Cesium.Math.toRadians((-entity.rotation || 0) - state.drawRotation);
@@ -531,6 +532,20 @@ const actions = {
         });
         commit("setDrawnModels", models);
         commit("setCurrentModelId", copiedEntity.id);
+    },
+    /**
+    * Removes all Labels of the entity from the the Cesium EntityCollection.
+    * @param {object} context - The context of the Vuex module.
+    * @param {Cesium.Entity} entity - The entity to remove the labels from.
+    * @returns {void}
+    */
+    removeLabels (context, entity) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+            labelEntities = entities.values.filter(ent => ent.label && ent.attachedEntityId === entity.id);
+
+        labelEntities.forEach(label => {
+            entities.remove(label);
+        });
     }
 
 };
