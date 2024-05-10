@@ -411,6 +411,7 @@
                         "copyTitle": "3D Modeli kopyala \"{{name}}\"",
                         "delete": "Modeli Sil",
                         "deletionTitle": "3D Modeli Sil \"{{name}}\"",
+                        "dimensionsModel": "3D Model için boyutları göster \"{{name}}\"",
                         "editInfo": "Seçilen modelin özelliklerini değiştirin.",
                         "editModel": "3D Modeli Düzenle \"{{name}}\"",
                         "incrementTooltip": "Değerleri daha kaba bir şekilde artırmak için Shift tuşunu basılı tutun.",

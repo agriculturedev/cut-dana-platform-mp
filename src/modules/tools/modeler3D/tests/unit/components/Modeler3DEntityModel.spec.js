@@ -11,7 +11,12 @@ localVue.use(Vuex);
 config.mocks.$t = key => key;
 
 describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () => {
-    const entity = {
+    const provide = {
+            toggleDimensions: () => {
+                sinon.stub();
+            }
+        },
+        entity = {
             id: 1,
             orientation: null,
             clampToGround: true,
@@ -101,6 +106,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         origUpdatePositionUI = Modeler3D.actions.updatePositionUI;
         Modeler3D.actions.updateEntityPosition = sinon.spy();
         Modeler3D.actions.updatePositionUI = sinon.spy();
+        entity.wasDrawn = false;
 
         store = new Vuex.Store({
             namespaces: true,
@@ -154,7 +160,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
     });
 
     it("renders Modeler3DEntityModel", () => {
-        wrapper = mount(Modeler3DEntityModelComponent, {store, localVue});
+        wrapper = mount(Modeler3DEntityModelComponent, {store, localVue, provide});
 
         expect(wrapper.find("#modeler3D-entity-view").exists()).to.be.true;
         expect(wrapper.find("#projection").exists()).to.be.true;
@@ -168,7 +174,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
     });
 
     it("renders projection warning with id 4326 and hides buttons", async () => {
-        wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+        wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
 
         store.commit("Tools/Modeler3D/setCurrentProjection", {id: "http://www.opengis.net/gml/srs/epsg.xml#4326"});
         await wrapper.vm.$nextTick();
@@ -180,7 +186,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
     });
 
     it("renders height buttons when adaptHeight is unchecked", async () => {
-        wrapper = mount(Modeler3DEntityModelComponent, {store, localVue});
+        wrapper = mount(Modeler3DEntityModelComponent, {store, localVue, provide});
 
         store.commit("Tools/Modeler3D/setAdaptToHeight", false);
         await wrapper.vm.$nextTick();
@@ -196,7 +202,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
 
         const projections = store.state.Tools.Modeler3D.projections;
 
-        wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+        wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
 
         projWrapper = wrapper.find("#projection");
         options = projWrapper.findAll("option");
@@ -205,6 +211,20 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         selected = options.filter(o => o.attributes().selected === "true");
         expect(selected.length).to.equal(1);
         expect(selected.at(0).attributes().value).to.equal("http://www.opengis.net/gml/srs/epsg.xml#25832");
+    });
+
+    it("renders the buttons from the options section", () => {
+        entity.wasDrawn = true;
+        wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide,
+            computed: {
+                editedStrokeColor: () => ""
+            }
+        });
+
+        expect(wrapper.find("#options-section").exists()).to.be.true;
+        expect(wrapper.find("#copy-entity").exists()).to.be.true;
+        expect(wrapper.find("#measure-entity").exists()).to.be.true;
+        expect(wrapper.find("#rotate-entity").exists()).to.be.true;
     });
 
     describe("Modeler3DEntityModel.vue methods", () => {
@@ -216,14 +236,14 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
                     }
                 };
 
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.selectionChanged(event);
             expect(store.state.Tools.Modeler3D.currentProjection.name).to.be.equals(value);
             expect(store.state.Tools.Modeler3D.currentProjection.projName).to.be.equals("longlat");
         });
 
         it("method checkedAdapt sets adaptToHeight and updates entity position", () => {
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.checkedAdapt(true);
 
             expect(store.state.Tools.Modeler3D.adaptToHeight).to.be.equals(true);
@@ -240,7 +260,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
                 },
                 ret = "";
 
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.selectionChanged(event);
 
             ret = wrapper.vm.getLabel(key);
@@ -272,7 +292,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
                 extrudedHeight: 20,
                 height: 5
             });
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.extrudedHeightString = "25";
 
             expect(store.state.Tools.Modeler3D.extrudedHeight).to.eql(25);
@@ -281,7 +301,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
 
         it("updates the new fill color of the polygon", () => {
             entity.originalColor = {red: 0, green: 0, blue: 0, alpha: 1};
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.editedFillColor = "#ff0000";
 
             expect(store.state.Tools.Modeler3D.newFillColor).to.eql("#ff0000");
@@ -290,7 +310,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         });
 
         it("updates the new stroke color of the polygon", () => {
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.editedStrokeColor = "#ff0000";
 
             expect(store.state.Tools.Modeler3D.newStrokeColor).to.eql("#ff0000");
@@ -301,7 +321,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         it("rotates the entity model based on input", () => {
             global.Cesium.HeadingPitchRoll = sinon.spy();
 
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.rotationString = "90";
 
             expect(global.Cesium.Transforms.headingPitchRollQuaternion).to.be.calledOnce;
@@ -309,7 +329,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         });
 
         it("changes the scale of the entity model", () => {
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.scaleString = "2";
 
             expect(store.state.Tools.Modeler3D.scale).to.eql(2);
@@ -317,7 +337,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         });
 
         it("changes coordinates of the entity", () => {
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.eastingString = "120.50";
 
             expect(store.state.Tools.Modeler3D.coordinateEasting).to.eql(120.5);
@@ -335,7 +355,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         });
 
         it("updates dimensions of the entity", () => {
-            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue});
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             const updateRectangleDimensionsStub = sinon.stub(wrapper.vm, "updateRectangleDimensions");
 
             wrapper.vm.widthString = "120.50";

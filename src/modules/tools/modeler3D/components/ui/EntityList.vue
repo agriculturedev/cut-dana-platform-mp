@@ -101,16 +101,6 @@ export default {
                             @focusout="isHovering = false"
                         />
                         <i
-                            v-if="geometry"
-                            id="list-dimensions"
-                            class="inline-button bi bi-rulers"
-                            :title="$t(`common:modules.tools.modeler3D.entity.captions.dimensionsModel`, {name: object.name})"
-                            role="button"
-                            tabindex="0"
-                            @click="$emit('toggle-dimensions', object.id)"
-                            @keydown.enter="$emit('toggle-dimensions', object.id)"
-                        />
-                        <i
                             v-if="object.show"
                             id="list-show"
                             class="inline-button bi"

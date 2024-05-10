@@ -17,6 +17,13 @@ export default {
         AccordionItem,
         IconButton
     },
+    inject: {
+        toggleDimensions: {
+            default: () => {
+                console.warn("toggleDimensions is not provided from parent component");
+            }
+        }
+    },
     computed: {
         ...mapGetters("Tools/Modeler3D", Object.keys(getters)),
 
@@ -326,6 +333,13 @@ export default {
             }
 
             this.copyEntity({id: this.currentModelId, nextId: nextId});
+        },
+        jumpToSection (id) {
+            const element = document.getElementById(`accordion-container-${id}`);
+
+            if (element) {
+                element.scrollIntoView({behavior: "smooth"});
+            }
         }
     }
 };
@@ -351,13 +365,29 @@ export default {
             icon="bi bi-tools"
             :is-open="true"
         >
-            <IconButton
-                id="copy-entity"
-                :interaction="copySelectedEntity"
-                :aria="$t('modules.tools.modeler3D.entity.captions.copyTitle', {name: selectedModelName})"
-                :class-array="['btn-primary']"
-                icon="bi bi-stickies"
-            />
+            <div class="d-flex mb-2 align-items-center">
+                <IconButton
+                    id="copy-entity"
+                    :interaction="() => copySelectedEntity()"
+                    :aria="$t('common:modules.tools.modeler3D.entity.captions.copyTitle', {name: selectedModelName})"
+                    :class-array="['btn-primary', 'me-3']"
+                    icon="bi bi-stickies"
+                />
+                <IconButton
+                    id="measure-entity"
+                    :interaction="() => toggleDimensions(currentModelId)"
+                    :aria="$t('common:modules.tools.modeler3D.entity.captions.dimensionsModel', {name: selectedModelName})"
+                    :class-array="['btn-primary', 'me-3']"
+                    icon="bi bi-rulers"
+                />
+                <IconButton
+                    id="rotate-entity"
+                    :interaction="() => jumpToSection('transformation-section')"
+                    :aria="$t('common:modules.tools.modeler3D.entity.captions.rotation')"
+                    :class-array="['btn-primary', 'me-3']"
+                    icon="bi bi-arrow-repeat"
+                />
+            </div>
         </AccordionItem>
         <hr
             v-if="showPositioning"
@@ -661,7 +691,7 @@ export default {
         >
             <button
                 id="tool-import3d-deactivateEditing"
-                class="col-5 btn btn-primary btn-sm primary-button-wrapper"
+                class="col-5 btn btn-return btn-sm primary-button-wrapper"
                 @click="setCurrentModelId(null)"
             >
                 {{ $t("modules.tools.modeler3D.entity.captions.backToList") }}
@@ -756,7 +786,7 @@ export default {
         align-items: center;
     }
 
-    .btn-primary {
+    .btn-return {
         &:focus {
             @include primary_action_focus;
         }
@@ -767,4 +797,5 @@ export default {
             transform: scale(0.98);
         }
     }
+
 </style>

@@ -649,6 +649,7 @@
                         "copyTitle": "3D-Modell \"{{name}}\" kopieren",
                         "delete": "Modell löschen",
                         "deletionTitle": "3D-Modell \"{{name}}\" löschen",
+                        "dimensionsModel": "Maße für 3D Model \"{{name}}\" anzeigen",
                         "editInfo": "Ändern Sie die Attribute des ausgewählten Modells.",
                         "editModel": "3D-Modell \"{{name}}\" bearbeiten",
                         "incrementTooltip": "Halten Sie Shift gedrückt, um den Wert gröber zu erhöhen.",

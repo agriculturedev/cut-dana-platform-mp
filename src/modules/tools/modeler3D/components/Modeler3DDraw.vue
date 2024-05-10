@@ -24,6 +24,11 @@ export default {
         EntityModel,
         AccordionItem
     },
+    provide () {
+        return {
+            toggleDimensions: this.toggleDimensions
+        };
+    },
     data () {
         return {
             clampToGround: true,
@@ -33,7 +38,8 @@ export default {
             lastAddedPosition: null,
             dimensions: true,
             undoneLabelInfo: null,
-            labelList: []
+            labelList: [],
+            isStandardRectangle: false
         };
     },
     computed: {
@@ -497,6 +503,7 @@ export default {
             entities.add(shape);
             if (this.selectedDrawType === "rectangle") {
                 shape.polygon.rectangle = true;
+                shape.showDimensions = !this.isStandardRectangle;
             }
 
             models.push({
@@ -507,6 +514,7 @@ export default {
             });
             this.setDrawnModels(models);
             this.shapeId = shape.id;
+            this.isStandardRectangle = false;
         },
         /**
          * Resets the drawing to adjust to changes
@@ -709,6 +717,7 @@ export default {
                 position = Cesium.Cartographic.fromCartesian(camera.position);
 
             if (this.selectedDrawModelType === "rectangle") {
+                this.isStandardRectangle = true;
                 const corners = this.generateRectangleCorners(position);
 
                 this.setActiveShapePoints(corners);
@@ -873,7 +882,6 @@ export default {
                     @change-visibility="changeVisibility"
                     @export-geojson="exportToGeoJson"
                     @zoom-to="zoomTo"
-                    @toggle-dimensions="toggleDimensions"
                 />
             </AccordionItem>
             <hr class="m-0">
