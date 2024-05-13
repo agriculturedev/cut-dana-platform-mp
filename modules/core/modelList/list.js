@@ -1137,7 +1137,7 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
      */
     scrollToLayer: function (overlayerName) {
         const $Overlayer = $("#Overlayer"),
-            element = $Overlayer.find("span").toArray().find(layer => layer.title === overlayerName);
+            element = $Overlayer.find("span").toArray().find(layer => layer.title.trim() === overlayerName);
 
         let overlayOffsetToTop,
             overlayerHeight,
