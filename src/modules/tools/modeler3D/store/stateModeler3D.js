@@ -11,7 +11,6 @@
  * @property {Cartesian3}   currentModelPosition - position of the currently selected or added model
  * @property {Object}       currentProjection - the currently selected projection
  * @property {String}       cylinderId - the id of the currently selected cylinder
- * @property {Object[]}     cylinderPosition - an array of all active cylinder positions
  * @property {Boolean}      deactivateGFI - if true, component activation deactivates gfi component
  * @property {String}       drawName name of drawing model
  * @property {Number}       drawRotation angle of a selected drawn entity
@@ -69,7 +68,6 @@ export default {
     currentProjection: {id: "http://www.opengis.net/gml/srs/epsg.xml#25832", name: "EPSG:25832", projName: "utm"},
     currentView: "import",
     cylinderId: null,
-    cylinderPosition: [],
     drawDepth: 0,
     drawName: "",
     drawnModels: [],

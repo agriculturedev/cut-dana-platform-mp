@@ -7,9 +7,6 @@ import EntityAttribute from "./ui/EntityAttribute.vue";
 import EntityAttributeSlider from "./ui/EntityAttributeSlider.vue";
 import AccordionItem from "./ui/AccordionItem.vue";
 import IconButton from "./ui/IconButton.vue";
-import {adaptCylinderToEntity, adaptCylinderToGround} from "../utils/draw";
-
-
 import {convertColor} from "../../../../utils/convertColor";
 
 export default {
@@ -264,7 +261,7 @@ export default {
             }
         },
         /**
-         * Updates the extrudedHeight of the polygon and adjusts the active cylinders length and position.
+         * Updates the extrudedHeight of the polygon.
          * @returns {void}
          */
         updateExtrudedHeight () {
@@ -275,7 +272,6 @@ export default {
                 entity.polygon.extrudedHeight = this.extrudedHeight + entity.polygon.height;
                 entities.values.filter(ent => ent.cylinder).forEach(cyl => {
                     cyl.cylinder.length = this.extrudedHeight + 5;
-                    cyl.position = entity.clampToGround ? adaptCylinderToGround(cyl, cyl.position.getValue()) : adaptCylinderToEntity(entity, cyl, cyl.position.getValue());
                 });
             }
         },

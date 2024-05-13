@@ -93,9 +93,6 @@ const actions = {
 
             cylinders.forEach(cyl => {
                 cyl.cylinder.length = entity.polygon.extrudedHeight - entity.polygon.height + 5;
-                cyl.position = entity.clampToGround ?
-                    adaptCylinderToGround(cyl, state.cylinderPosition[cyl.positionIndex]) :
-                    adaptCylinderToEntity(entity, cyl, state.cylinderPosition[cyl.positionIndex]);
             });
         }
         else {
@@ -213,29 +210,16 @@ const actions = {
     /**
      * Generates Cesium cylinders at all polygon positions.
      * @param {object} context - The context of the Vuex module.
+     * @param {object} entity - The entity to generate the cylinders for.
      * @returns {void}
     */
-    generateCylinders ({commit, dispatch, state}) {
-        let positions, length;
-        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-            entity = entities.getById(state.currentModelId);
+    generateCylinders ({dispatch, state}, entity) {
+        const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
 
-        if (entity?.polygon) {
-            length = entity.polygon.extrudedHeight - entity.polygon.height + 5;
-            positions = entity.polygon.hierarchy.getValue().positions;
-
-        }
-        else if (entity?.polyline) {
-            length = 4;
-            positions = entity.polyline.positions.getValue();
-
-        }
-        commit("setActiveShapePoints", positions);
-
-        positions.forEach((_, index) => {
+        state.activeShapePoints.forEach((_, index) => {
             dispatch("createCylinder", {
                 posIndex: index,
-                length: length
+                length: entity.polygon ? entity.polygon.extrudedHeight.getValue() - entity.polygon.height.getValue() + 5 : 5
             });
             const cylinder = entities.values.find(cyl => cyl.id === state.cylinderId);
 
@@ -303,9 +287,8 @@ const actions = {
             entity.polygon.height = state.height;
             entity.polygon.extrudedHeight = state.extrudedHeight + state.height;
 
-            positions.forEach((pos, index) => {
+            positions.forEach(pos => {
                 Cesium.Cartesian3.add(pos, positionDelta, pos);
-                state.cylinderPosition[index] = pos;
             });
 
             dispatch("transformFromCartesian", getters.getCenterFromGeometry(entity));
@@ -317,7 +300,7 @@ const actions = {
      * @param {object} moveOptions - Contains the polyline and new position it shall be moved to.
      * @returns {void}
     */
-    movePolyline ({state, getters}, {entityId, position, anchor = null}) {
+    movePolyline ({getters}, {entityId, position, anchor = null}) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(entityId);
 
@@ -326,9 +309,8 @@ const actions = {
                 center = getters.getCenterFromGeometry(entity),
                 positionDelta = Cesium.Cartesian3.subtract(position, anchor || center, new Cesium.Cartesian3());
 
-            positions.forEach((pos, index) => {
+            positions.forEach(pos => {
                 Cesium.Cartesian3.add(pos, positionDelta, pos);
-                state.cylinderPosition[index] = pos;
             });
         }
     },
@@ -391,23 +373,14 @@ const actions = {
      * @param {Object} moveOptions - Contains the moved corner index and a boolean to clamp the new position to the ground.
      * @returns {void}
      */
-    moveAdjacentRectangleCorners ({state}, {movedCornerIndex, clampToGround}) {
+    moveAdjacentRectangleCorners ({state}, {movedCornerIndex}) {
         const corner1 = Cesium.Cartographic.fromCartesian(state.activeShapePoints[movedCornerIndex]),
             corner2 = Cesium.Cartographic.fromCartesian(state.activeShapePoints[(movedCornerIndex + 2) % 4]),
-            corner3 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner2.longitude, corner1.latitude, corner1.height)),
-            corner4 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner1.longitude, corner2.latitude, corner1.height)),
-            entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-            entity = entities.getById(state.currentModelId),
-            cylinders = entities.values.filter(ent => ent.cylinder);
+            corner3 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner1.longitude, corner2.latitude, corner1.height)),
+            corner4 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner2.longitude, corner1.latitude, corner1.height));
 
         state.activeShapePoints.splice((movedCornerIndex + 1) % 4, 1, corner3);
         state.activeShapePoints.splice((movedCornerIndex + 3) % 4, 1, corner4);
-
-        cylinders.forEach(cyl => {
-            state.cylinderPosition[cyl.positionIndex] = clampToGround ?
-                adaptCylinderToGround(cyl, state.activeShapePoints[cyl.positionIndex]) :
-                adaptCylinderToEntity(entity, cyl, state.activeShapePoints[cyl.positionIndex]);
-        });
     },
     /**
      * Rotates the currently selected drawn entity.
@@ -424,13 +397,6 @@ const actions = {
             state.activeShapePoints[index] = calculateRotatedPointCoordinates({angle, center, position});
         });
 
-        state.activeShapePoints.forEach((pos, index) => {
-            const cyl = entities.values.filter(ent => ent.cylinder).find(e => e.positionIndex === index);
-
-            cyl.position = entity.clampToGround ?
-                adaptCylinderToGround(cyl, pos) :
-                adaptCylinderToEntity(entity, cyl, pos);
-        });
         entity.lastRotationAngle = state.drawRotation;
     },
     /**
@@ -442,7 +408,6 @@ const actions = {
     updateRectangleDimensions ({getters, state}, dimensions) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
             entity = entities.getById(state.currentModelId),
-            cylinders = entities.values.filter(ent => ent.cylinder),
             position = getters.getCenterFromGeometry(entity),
             localFrame = Cesium.Transforms.eastNorthUpToFixedFrame(position),
             corners = [
@@ -460,12 +425,6 @@ const actions = {
                 corner;
 
             state.activeShapePoints[index] = rotatedPoint;
-        });
-
-        cylinders.forEach(cyl => {
-            state.cylinderPosition[cyl.positionIndex] = entity.clampToGround ?
-                adaptCylinderToGround(cyl, state.activeShapePoints[cyl.positionIndex]) :
-                adaptCylinderToEntity(entity, cyl, state.activeShapePoints[cyl.positionIndex]);
         });
     },
     /**

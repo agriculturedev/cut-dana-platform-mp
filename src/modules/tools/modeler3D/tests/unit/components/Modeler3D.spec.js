@@ -513,7 +513,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             global.Cesium.defined = sinon.stub().returns(true);
 
             wrapper.vm.moveCylinder(event);
-            expect(wrapper.vm.cylinderPosition[0]).to.eql([11.549606597773037, 48.17285700012215]);
+            expect(wrapper.vm.activeShapePoints[0]).to.eql([11.549606597773037, 48.17285700012215]);
         });
 
         it("should update the position when moving a cylinder with clampToGround set to false", async () => {
@@ -528,7 +528,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             global.Cesium.defined = sinon.stub().returns(true);
 
             wrapper.vm.moveCylinder(event);
-            expect(wrapper.vm.cylinderPosition[0]).to.eql({
+            expect(wrapper.vm.activeShapePoints[0]).to.eql({
                 x: 3739310.9273738265,
                 y: 659341.4057539968,
                 z: 5107613.232959453

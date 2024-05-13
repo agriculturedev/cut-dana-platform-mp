@@ -308,8 +308,7 @@ describe("Actions", () => {
         describe("updateEntityPosition with polygons", () => {
             const state = {
                 currentModelId: "polygonId",
-                currentModelPosition: {x: 10, y: 20, z: 30},
-                cylinderPosition: [{x: 11, y: 21, z: 31}, {x: 12, y: 22, z: 32}, {x: 13, y: 23, z: 33}]
+                currentModelPosition: {x: 10, y: 20, z: 30}
             };
 
             it("should update the polygon position clamped to ground when it exists", () => {
@@ -324,8 +323,6 @@ describe("Actions", () => {
                 expect(entities.getById.calledWith("polygonId")).to.be.true;
                 expect(dispatch.calledWith("transformToCartesian")).to.be.true;
                 expect(dispatch.calledWith("movePolygon", {entityId: "polygonId", position: {x: 10, y: 20, z: 30}})).to.be.true;
-                expect(cylinders[0].cylinder.length).to.equal(25);
-                expect(cylinders[0].position).to.eql({x: 10, y: 20, z: 30});
             });
 
             it("should update the polygon position not clamped to ground when it exists", () => {
@@ -340,8 +337,6 @@ describe("Actions", () => {
                 expect(entities.getById.calledWith("polygonId")).to.be.true;
                 expect(dispatch.calledWith("transformToCartesian")).to.be.true;
                 expect(dispatch.calledWith("movePolygon", {entityId: "polygonId", position: {x: 10, y: 20, z: 30}})).to.be.true;
-                expect(cylinders[0].cylinder.length).to.equal(21);
-                expect(cylinders[0].position).to.eql({x: 10, y: 20, z: 30});
             });
         });
 
@@ -594,24 +589,21 @@ describe("Actions", () => {
 
     describe("generateCylinders", () => {
         it("should generate cylinder on every polygon point", () => {
-            const commit = sinon.spy(),
-                dispatch = sinon.stub().callsFake(() => {
+            const dispatch = sinon.stub().callsFake(() => {
                     state.cylinderId += 1;
                 }),
                 state = {
                     currentModelId: "polygonId",
-                    cylinderId: 0
+                    cylinderId: 0,
+                    activeShapePoints: [{x: 10, y: 20, z: 30}, {x: 20, y: 30, z: 10}, {x: 30, y: 10, z: 20}]
                 };
 
             entity = {
                 wasDrawn: true,
                 clampToGround: true,
                 polygon: {
-                    extrudedHeight: 20,
-                    height: 5,
-                    hierarchy: {
-                        getValue: () => ({positions: [{x: 10, y: 20, z: 30}, {x: 20, y: 30, z: 10}, {x: 30, y: 10, z: 20}]})
-                    }
+                    extrudedHeight: {getValue: () => 20},
+                    height: {getValue: () => 5}
                 }
             };
 
@@ -630,9 +622,8 @@ describe("Actions", () => {
                 }
             ];
 
-            actions.generateCylinders({commit, dispatch, state});
+            actions.generateCylinders({dispatch, state}, entity);
 
-            expect(commit.calledWith("setActiveShapePoints", entity.polygon.hierarchy.getValue().positions)).to.be.true;
             expect(dispatch.callCount).to.eql(3);
             entities.values.forEach(ent => {
                 expect(ent.position.getValue()).to.eql({x: 10, y: 20, z: 30});
@@ -640,21 +631,18 @@ describe("Actions", () => {
         });
 
         it("should generate cylinder on every polyline point", () => {
-            const commit = sinon.spy(),
-                dispatch = sinon.stub().callsFake(() => {
+            const dispatch = sinon.stub().callsFake(() => {
                     state.cylinderId += 1;
                 }),
                 state = {
                     currentModelId: "polylineId",
-                    cylinderId: 0
+                    cylinderId: 0,
+                    activeShapePoints: [{x: 10, y: 20, z: 30}, {x: 20, y: 30, z: 10}, {x: 30, y: 10, z: 20}]
                 };
 
             entity = {
                 wasDrawn: true,
-                clampToGround: true,
-                polyline: {
-                    positions: {getValue: () => [{x: 10, y: 20, z: 30}, {x: 20, y: 30, z: 10}, {x: 30, y: 10, z: 20}]}
-                }
+                clampToGround: true
             };
 
             entities.values = [
@@ -672,9 +660,8 @@ describe("Actions", () => {
                 }
             ];
 
-            actions.generateCylinders({commit, dispatch, state});
+            actions.generateCylinders({dispatch, state}, entity);
 
-            expect(commit.calledWith("setActiveShapePoints", entity.polyline.positions.getValue())).to.be.true;
             expect(dispatch.callCount).to.eql(3);
             entities.values.forEach(ent => {
                 expect(ent.position.getValue()).to.eql({x: 10, y: 20, z: 30});
@@ -720,7 +707,6 @@ describe("Actions", () => {
                 state = {
                     height: 10,
                     extrudedHeight: 20,
-                    cylinderPosition: [],
                     currentModelId: 1
                 },
                 position = {x: 50, y: 50, z: 50};

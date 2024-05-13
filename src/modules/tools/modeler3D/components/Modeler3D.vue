@@ -11,7 +11,7 @@ import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
 import crs from "@masterportal/masterportalapi/src/crs";
 import getGfiFeatures from "../../../../api/gfi/getGfiFeaturesByTileFeature";
-import {adaptCylinderToGround, adaptCylinderToEntity, adaptCylinderUnclamped, calculatePolygonArea} from "../utils/draw";
+import {adaptCylinderUnclamped, calculatePolygonArea} from "../utils/draw";
 import VectorLayer from "ol/layer/Vector.js";
 import VectorSource from "ol/source/Vector.js";
 import Feature from "ol/Feature.js";
@@ -190,7 +190,6 @@ export default {
         setupNewEntity (newEntity) {
             if (newEntity.wasDrawn) {
                 this.setCurrentView("draw");
-                this.generateCylinders();
                 if (newEntity.polygon) {
                     this.setActiveShapePoints(newEntity.polygon.hierarchy.getValue().positions);
                     newEntity.polygon.hierarchy = new Cesium.CallbackProperty(() => new Cesium.PolygonHierarchy(this.activeShapePoints), false);
@@ -199,6 +198,7 @@ export default {
                     this.setActiveShapePoints(newEntity.polyline.positions.getValue());
                     newEntity.polyline.positions = new Cesium.CallbackProperty(() => this.activeShapePoints);
                 }
+                this.generateCylinders(newEntity);
             }
             if (newEntity.model) {
                 this.setCurrentView("import");
@@ -355,32 +355,16 @@ export default {
 
                 if (entity?.cylinder) {
                     const geometry = entities.getById(this.currentModelId),
-                        position = geometry.polygon ? geometry.polygon.hierarchy.getValue().positions[entity.positionIndex] : geometry.polyline.positions.getValue()[entity.positionIndex],
-                        cylinders = entities.values.filter(ent => ent.cylinder);
+                        position = geometry.polygon ? geometry.polygon.hierarchy.getValue().positions[entity.positionIndex] : geometry.polyline.positions.getValue()[entity.positionIndex];
 
                     this.currentPosition = position;
                     this.originalPosition = {entityId: entity.positionIndex, attachedEntityId: entity.attachedEntityId, position};
-
-                    cylinders.forEach((cyl) => {
-                        this.cylinderPosition[cyl.positionIndex] = cyl.position.getValue();
-                        cyl.position = geometry.clampToGround ?
-                            new Cesium.CallbackProperty(() => adaptCylinderToGround(cyl, this.cylinderPosition[cyl.positionIndex]), false) :
-                            new Cesium.CallbackProperty(() => adaptCylinderToEntity(geometry, cyl, this.cylinderPosition[cyl.positionIndex]), false);
-                    });
 
                     this.setCylinderId(entity.id);
 
                     eventHandler.setInputAction(this.moveCylinder, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
                 }
                 else if (entity?.wasDrawn) {
-                    entities.values.filter(ent => ent.cylinder).forEach((cyl, index) => {
-                        this.cylinderPosition[index] = cyl.position.getValue();
-
-                        cyl.position = entity.clampToGround ?
-                            new Cesium.CallbackProperty(() => adaptCylinderToGround(cyl, this.cylinderPosition[index]), false) :
-                            new Cesium.CallbackProperty(() => adaptCylinderToEntity(entity, cyl, this.cylinderPosition[index]), false);
-                    });
-
                     this.originalPosition = {entityId: entity.id, position: this.getCenterFromGeometry(entity)};
 
                     if (this.currentModelId && this.currentModelId === entity.id) {
@@ -456,8 +440,8 @@ export default {
                     const ray = scene.camera.getPickRay(event.endPosition),
                         position = scene.globe.pick(ray, scene);
 
-                    if (this.cylinderPosition[cylinder.positionIndex] !== position) {
-                        this.cylinderPosition[cylinder.positionIndex] = scene.globe.pick(ray, scene);
+                    if (this.activeShapePoints[cylinder.positionIndex] !== position) {
+                        this.activeShapePoints[cylinder.positionIndex] = scene.globe.pick(ray, scene);
                         this.updatePositionUI();
                     }
                 }
@@ -467,13 +451,12 @@ export default {
 
                     cartographic.height = scene.sampleHeight(cartographic, [cylinder, entity]);
 
-                    if (this.cylinderPosition[cylinder.positionIndex] !== Cesium.Cartographic.toCartesian(cartographic)) {
-                        this.cylinderPosition[cylinder.positionIndex] = Cesium.Cartographic.toCartesian(cartographic);
+                    if (this.activeShapePoints[cylinder.positionIndex] !== Cesium.Cartographic.toCartesian(cartographic)) {
+                        this.activeShapePoints[cylinder.positionIndex] = Cesium.Cartographic.toCartesian(cartographic);
                         this.updatePositionUI();
                     }
                 }
-                if (Cesium.defined(this.cylinderPosition[cylinder.positionIndex])) {
-                    this.activeShapePoints.splice(cylinder.positionIndex, 1, this.cylinderPosition[cylinder.positionIndex]);
+                if (Cesium.defined(this.activeShapePoints[cylinder.positionIndex])) {
                     if (entity.polygon?.rectangle) {
                         this.moveAdjacentRectangleCorners({movedCornerIndex: cylinder.positionIndex, clampToGround: entity.clampToGround});
                     }
@@ -597,36 +580,16 @@ export default {
 
                 this.activeShapePoints.splice(movedEntity.positionIndex, 1, entityObject.position);
                 if (attachedEntity.polygon?.rectangle) {
-                    const cylinders = entities.values.filter(ent => ent.cylinder);
-
                     this.moveAdjacentRectangleCorners({movedCornerIndex: movedEntity.positionIndex, clampToGround: attachedEntity.clampToGround});
-                    cylinders.forEach(cyl => {
-                        cyl.position = attachedEntity.clampToGround ?
-                            adaptCylinderToGround(cyl, this.cylinderPosition[cyl.positionIndex]) :
-                            adaptCylinderToEntity(attachedEntity, cyl, this.cylinderPosition[cyl.positionIndex]);
-                    });
-                }
-                else {
-                    movedEntity.position = attachedEntity.clampToGround ?
-                        adaptCylinderToGround(movedEntity, entityObject.position) :
-                        adaptCylinderToEntity(attachedEntity, movedEntity, entityObject.position);
                 }
             }
             else if (movedEntity.wasDrawn) {
-                const cylinders = entities.values.filter(ent => ent.cylinder);
-
                 if (movedEntity.polygon) {
                     this.movePolygon(entityObject);
                 }
                 else if (movedEntity.polyline) {
                     this.movePolyline(entityObject);
                 }
-
-                cylinders.forEach((cyl) => {
-                    cyl.position = movedEntity?.clampToGround ?
-                        adaptCylinderToGround(cyl, this.cylinderPosition[cyl.positionIndex]) :
-                        adaptCylinderToEntity(movedEntity, cyl, this.cylinderPosition[cyl.positionIndex]);
-                });
             }
             else {
                 movedEntity.position = entityObject.position;

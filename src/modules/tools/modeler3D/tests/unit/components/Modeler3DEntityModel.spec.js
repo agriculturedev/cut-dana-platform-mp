@@ -277,7 +277,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
 
             expect(store.state.Tools.Modeler3D.extrudedHeight).to.eql(25);
             expect(entities.values[0].cylinder.length).to.eql(30);
-            expect(entities.values[0].position).to.eql({x: 10, y: 20, z: 30});
         });
 
         it("updates the new fill color of the polygon", () => {
