@@ -1,5 +1,5 @@
 <script>
-import {mapActions, mapMutations} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 
 export default {
     name: "EntityList",
@@ -26,28 +26,15 @@ export default {
     },
     data () {
         return {
-            isHovering: "",
-            activeId: "",
-            isActive: false
+            isHovering: ""
         };
+    },
+    computed: {
+        ...mapGetters("Tools/Modeler3D", ["currentModelId"])
     },
     methods: {
         ...mapActions("Tools/Modeler3D", ["confirmDeletion"]),
-        ...mapMutations("Tools/Modeler3D", ["setCurrentModelId"]),
-
-        getActiveClass (id) {
-            if (!this.isActive) {
-                this.isActive = !this.isActive;
-                this.activeId = id;
-            }
-            else if (this.isActive && this.activeId !== id) {
-                this.activeId = id;
-            }
-            else if (this.isActive && this.activeId === id) {
-                this.isActive = !this.isActive;
-                this.setCurrentModelId(null);
-            }
-        }
+        ...mapMutations("Tools/Modeler3D", ["setCurrentModelId"])
     }
 };
 </script>
@@ -71,8 +58,8 @@ export default {
                     type="button"
                     data-toggle="button"
                     class="listButton list-group-item list-group-item-action"
-                    :class="{active: isActive === true && object.id === activeId}"
-                    @click="getActiveClass(object.id), setCurrentModelId(object.id)"
+                    :class="{active: object.id === currentModelId}"
+                    @click="setCurrentModelId(object.id)"
                 >
                     <input
                         v-if="entity && object.edit"
