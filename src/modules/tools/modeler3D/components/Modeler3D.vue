@@ -189,6 +189,7 @@ export default {
          */
         setupNewEntity (newEntity) {
             if (newEntity.wasDrawn) {
+                this.setCurrentView("draw");
                 this.generateCylinders();
                 if (newEntity.polygon) {
                     this.setActiveShapePoints(newEntity.polygon.hierarchy.getValue().positions);
@@ -198,6 +199,9 @@ export default {
                     this.setActiveShapePoints(newEntity.polyline.positions.getValue());
                     newEntity.polyline.positions = new Cesium.CallbackProperty(() => this.activeShapePoints);
                 }
+            }
+            if (newEntity.model) {
+                this.setCurrentView("import");
             }
             this.highlightEntity(newEntity);
             this.setCurrentModelPosition(newEntity?.position?.getValue() || this.getCenterFromGeometry(newEntity));
