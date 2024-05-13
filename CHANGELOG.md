@@ -28,6 +28,7 @@
 - Modeler3D:
   - The line width of polylines can be edited again.
   - The color picker for editing polylines shows the right color again.
+  - Selected drawn entities can be exported again as geojson.
 
 ---
 ## v2.45.0 - 2024-04-30

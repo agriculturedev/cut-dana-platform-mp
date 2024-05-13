@@ -22,10 +22,9 @@
  * @property {Object[]}     hiddenObjects - array of hidden objects
  * @property {Boolean}      hideObjects - if true, user can hide TileFeatures with click
  * @property {Object}       highlightStyle default style for highlighting models
- * @property {String}       highlightStyle.color default color of highlighted model
- * @property {Number}       highlightStyle.alpha default transparency for color of highlighted model
  * @property {String}       highlightStyle.silhouetteColor default color of highlighted models silhouette
  * @property {Number}       highlightStyle.size default size for silhouette of highlighted model
+ * @property {Number}       highlightTimeout - id of timeout function for highlighting
  * @property {String}       icon - icon next to title
  * @property {String}       id - internal id of component
  * @property {Object[]}     importedModels - array of imported 3D models

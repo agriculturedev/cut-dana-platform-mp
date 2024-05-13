@@ -568,7 +568,7 @@ export default {
                 features = [];
 
             entities.values.forEach(entity => {
-                if (!entity.model) {
+                if (!entity.model && !entity.cylinder && !entity.outline) {
                     drawnEntitiesCollection.push(entity);
                 }
             });
