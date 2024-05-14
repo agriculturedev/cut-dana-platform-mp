@@ -21,8 +21,6 @@ function create2DMap (mapViewSettings) {
             layerConf: rawLayerList.getLayerList()
         }, "2D", {});
 
-    // Vue shall not observe the map, see vue.runtime.esm.js function observe
-    map.__v_skip = true;
     mapCollection.addMap(map, "2D");
     store.dispatch("Maps/initView");
     store.dispatch("Maps/setMapAttributes", {map: map});

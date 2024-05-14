@@ -49,12 +49,8 @@ export default {
             /* eslint-disable no-process-env */
             if (process.env.NODE_ENV === "development") {
                 setInterval(() => {
-                    const map2D = mapCollection.getMap("2D"),
-                        map3D = mapCollection.getMap("3D");
+                    const map3D = mapCollection.getMap("3D");
 
-                    if (map2D?.__ob__) {
-                        console.error("map2D is observed by vue:", map2D, " This leads to extreme performance problems, and the cause must be eliminated.");
-                    }
                     if (map3D?.__ob__) {
                         console.error("map3d is observed by vue:", map3D, " This leads to extreme performance problems, and the cause must be eliminated.");
                     }
