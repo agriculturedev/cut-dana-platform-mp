@@ -95,6 +95,7 @@ export default {
                 document.addEventListener("keydown", this.catchUndoRedo);
             }
             else {
+                this.setCurrentModelId(null);
                 eventHandler.destroy();
                 document.removeEventListener("keydown", this.catchUndoRedo);
             }
