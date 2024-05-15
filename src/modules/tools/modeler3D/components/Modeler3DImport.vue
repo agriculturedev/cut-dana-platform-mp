@@ -262,7 +262,6 @@ export default {
             class="p-0"
             :title="$t('modules.tools.modeler3D.import.captions.info')"
             icon="bi bi-info-circle"
-            :is-open="true"
         >
             <p
                 class="cta"

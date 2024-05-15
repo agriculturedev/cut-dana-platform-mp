@@ -79,5 +79,19 @@ export default {
         // adjust line-height to use same height as ::before Element
         line-height: 0;
     }
+
+    &.active {
+        background-color: lighten($primary, 20%);
+        color: $light_grey_contrast;
+    }
+
+    &:focus {
+        @include primary_action_focus;
+    }
+    &:hover {
+        background-color: lighten($primary, 10%);
+        color: $light_grey_contrast;
+        cursor: pointer;
+    }
 }
 </style>

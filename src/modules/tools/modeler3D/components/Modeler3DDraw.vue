@@ -438,6 +438,7 @@ export default {
             this.currentPosition = null;
             this.shapeId = null;
             this.setIsDrawing(false);
+            this.setSelectedDrawType("");
             document.body.style.cursor = "auto";
             eventHandler.destroy();
             window.removeEventListener("keydown", this.catchUndoRedo);
@@ -729,6 +730,9 @@ export default {
                 await this.$nextTick();
                 this.setUseAnchorMove(false);
                 this.$emit("emit-move");
+
+                this.setSelectedDrawType("");
+                this.setSelectedDrawModelType("");
             }
         },
         /**
@@ -846,7 +850,6 @@ export default {
             class="p-0"
             :title="$t('modules.tools.modeler3D.draw.captions.info')"
             icon="bi bi-info-circle"
-            :is-open="true"
         >
             <p
                 class="cta"
@@ -925,7 +928,7 @@ export default {
                         class="form-check-label"
                         for="clampToGroundSwitch"
                     >
-                        {{ "Maße anzeigen" }}
+                        {{ $t("modules.tools.modeler3D.draw.captions.showDimensions") }}
                     </label>
                 </div>
             </div>

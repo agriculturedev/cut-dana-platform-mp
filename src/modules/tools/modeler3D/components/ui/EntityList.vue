@@ -34,7 +34,15 @@ export default {
     },
     methods: {
         ...mapActions("Tools/Modeler3D", ["confirmDeletion"]),
-        ...mapMutations("Tools/Modeler3D", ["setCurrentModelId"])
+        ...mapMutations("Tools/Modeler3D", ["setCurrentModelId"]),
+
+        setFocusToInput (id) {
+            this.$nextTick(() => {
+                const input = document.getElementById(`input-${id}`);
+
+                input.focus();
+            });
+        }
     }
 };
 </script>
@@ -63,6 +71,7 @@ export default {
                 >
                     <input
                         v-if="entity && object.edit"
+                        :id="`input-${object.id}`"
                         v-model="object.name"
                         class="input-name editable"
                         @blur="object.edit = false"
@@ -71,9 +80,9 @@ export default {
                     <span
                         v-else-if="entity && !object.edit"
                         role="button"
-                        class="input-name editable"
+                        class="span-name editable"
                         tabindex="-1"
-                        @click="object.edit = true"
+                        @click="object.edit = true; setFocusToInput(object.id)"
                         @keyup.enter="object.edit = true"
                     >
                         {{ object.name }}
@@ -205,12 +214,13 @@ export default {
         border: none;
     }
 
-    .index {
-        width: 15%;
+    .input-name {
+        width: 95%;
+        white-space: nowrap;
     }
 
-    .input-name {
-        width: 50%;
+    .span-name {
+        max-width: 50%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -227,6 +237,10 @@ export default {
 
     .buttons {
         margin-left: auto;
+        padding-left: 0.5em;
+        display: flex;
+        gap: 0.3em;
+        justify-content: end;
     }
 
     .inline-button {

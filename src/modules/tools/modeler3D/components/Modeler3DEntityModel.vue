@@ -586,16 +586,15 @@ export default {
                         v-if="wasDrawn"
                         class="col col-md-12"
                     >
-                        <EntityAttribute
-                            v-model="drawRotationString"
-                            :label="$t('modules.tools.modeler3D.entity.captions.rotation') + ' [°]'"
-                            :width-classes="['col-md-8', 'col-md-3']"
-                            :buttons="false"
-                        />
                         <EntityAttributeSlider
+                            id="rotation"
                             v-model="drawRotationString"
                             title="rotation"
-                            :label="$t('modules.tools.modeler3D.entity.captions.rotationSwitch')"
+                            :value-label="$t('modules.tools.modeler3D.entity.captions.rotation') + ' [°]'"
+                            :step-label="$t('modules.tools.modeler3D.entity.captions.rotationSwitch')"
+                            :min="-180"
+                            :max="180"
+                            unit="°"
                             @increment="val => drawRotationString = drawRotation + val"
                             @decrement="val => drawRotationString = drawRotation - val"
                         />
@@ -604,19 +603,17 @@ export default {
                         v-else
                         class="col col-md-12"
                     >
-                        <EntityAttribute
-                            id="rotation"
-                            v-model="rotationString"
-                            :label="$t('modules.tools.modeler3D.entity.captions.rotation') + ' [°]'"
-                            :width-classes="['col-md-8', 'col-md-3']"
-                            :buttons="false"
-                        />
                         <EntityAttributeSlider
-                            v-model="rotationString"
+                            id="rotation"
+                            v-model="drawRotationString"
                             title="rotation"
-                            :label="$t('modules.tools.modeler3D.entity.captions.rotationSwitch')"
-                            @increment="val => rotationString = rotation + val"
-                            @decrement="val => rotationString = rotation - val"
+                            :value-label="$t('modules.tools.modeler3D.entity.captions.rotation') + ' [°]'"
+                            :step-label="$t('modules.tools.modeler3D.entity.captions.rotationSwitch')"
+                            :min="-180"
+                            :max="180"
+                            unit="°"
+                            @increment="val => drawRotationString = drawRotation + val"
+                            @decrement="val => drawRotationString = drawRotation - val"
                         />
                     </div>
                     <div

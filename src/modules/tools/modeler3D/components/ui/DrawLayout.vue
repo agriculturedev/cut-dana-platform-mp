@@ -316,6 +316,15 @@ export default {
             width: 2rem;
         }
     }
+
+    &:focus {
+        @include primary_action_focus;
+    }
+    &:hover {
+        background-color: lighten($primary, 10%);
+        color: $light_grey_contrast;
+        cursor: pointer;
+    }
 }
 
 .btn.active {
