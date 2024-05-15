@@ -170,7 +170,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
         expect(wrapper.find("#height").exists()).to.be.true;
         expect(wrapper.find("#rotation").exists()).to.be.true;
         expect(wrapper.find("#scale").exists()).to.be.true;
-        expect(wrapper.find("#footer-buttons").exists()).to.be.true;
     });
 
     it("renders projection warning with id 4326 and hides buttons", async () => {

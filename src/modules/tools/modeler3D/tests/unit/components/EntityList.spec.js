@@ -55,6 +55,40 @@ describe("src/modules/tools/modeler3D/components/EntityList.vue", () => {
         expect(deleteButton.exists()).to.be.true;
     });
 
+    it("should render checkboxes", () => {
+        wrapper = mount(EntityListComponent, {store, localVue, propsData: {
+            objects: [{
+                id: "id",
+                name: "name",
+                show: false
+            }],
+            objectsLabel: "Test",
+            entity: true
+        }});
+
+        const checkbox = wrapper.find(".checkbox-selected-entity");
+
+        expect(checkbox.exists()).to.be.true;
+    });
+
+    it("should not render checkboxes if enableCheckboxes is false", () => {
+        wrapper = mount(EntityListComponent, {store, localVue, propsData: {
+            objects: [{
+                id: "id",
+                name: "name",
+                show: false
+            }],
+            objectsLabel: "Test",
+            entity: true,
+            enableCheckboxes: false
+        }});
+
+        const checkbox = wrapper.find(".checkbox-selected-entity");
+
+        expect(checkbox.exists()).to.be.false;
+    });
+
+
     it("shows buttons for hiddenObjects", () => {
         wrapper = mount(EntityListComponent, {store, localVue, propsData: {
             objects: [{
@@ -94,5 +128,32 @@ describe("src/modules/tools/modeler3D/components/EntityList.vue", () => {
 
         expect(buttons.at(0).classes()).to.not.include("active");
         expect(buttons.at(1).classes()).to.include("active");
+    });
+
+    it("should remove active class if active class exists", async () => {
+        store.commit("Tools/Modeler3D/setCurrentModelId", "someId");
+        wrapper = mount(EntityListComponent, {store, localVue, propsData: {
+            objects: [
+                {
+                    id: "id",
+                    name: "name",
+                    show: false
+                },
+                {
+                    id: "someId",
+                    name: "name2",
+                    show: false
+                }
+            ],
+            objectsLabel: "Test",
+            entity: true
+        }});
+
+        const button = wrapper.findAll("button.listButton").at(1);
+
+        expect(button.classes()).to.include("active");
+        await button.trigger("click");
+        expect(button.classes()).to.not.include("active");
+
     });
 });

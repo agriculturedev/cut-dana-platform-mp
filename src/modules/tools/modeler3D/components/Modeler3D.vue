@@ -1048,6 +1048,7 @@ export default {
                     >
                         <EntityList
                             :objects="hiddenObjects"
+                            :enable-checkboxes="false"
                             @change-visibility="showObject"
                         />
                     </AccordionItem>

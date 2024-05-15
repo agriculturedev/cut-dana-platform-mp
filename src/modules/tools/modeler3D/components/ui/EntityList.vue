@@ -22,6 +22,11 @@ export default {
             type: Boolean,
             default: false,
             required: false
+        },
+        enableCheckboxes: {
+            type: Boolean,
+            default: true,
+            required: false
         }
     },
     data () {
@@ -42,7 +47,22 @@ export default {
 
                 input.focus();
             });
+        },
+        /**
+         * Check if 'active' CSS class exists.
+         * @param {Event} evt - The button event.
+         * @param {Number} id - The current object id.
+         * @returns {void}
+        */
+        hasActiveClass (evt, id) {
+            if (evt.target.classList.contains("active")) {
+                this.setCurrentModelId(null);
+            }
+            else {
+                this.setCurrentModelId(id);
+            }
         }
+
     }
 };
 </script>
@@ -67,8 +87,16 @@ export default {
                     data-toggle="button"
                     class="listButton list-group-item list-group-item-action"
                     :class="{active: object.id === currentModelId}"
-                    @click="setCurrentModelId(object.id)"
+                    @click="enableCheckboxes ? hasActiveClass($event, object.id) : ''"
                 >
+                    <input
+                        v-if="enableCheckboxes"
+                        type="checkbox"
+                        :value="object.id"
+                        :checked="object.id === currentModelId"
+                        class="checkbox-selected-entity"
+                        @change="$event.target.checked ? setCurrentModelId(object.id) : setCurrentModelId(null)"
+                    >
                     <input
                         v-if="entity && object.edit"
                         :id="`input-${object.id}`"
@@ -273,5 +301,8 @@ export default {
         &:hover {
             @include primary_action_hover;
         }
+    }
+    .checkbox-selected-entity {
+        margin-right: 0.5rem;
     }
 </style>

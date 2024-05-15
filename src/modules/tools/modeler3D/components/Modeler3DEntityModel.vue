@@ -682,25 +682,6 @@ export default {
                 />
             </div>
         </AccordionItem>
-        <div
-            id="footer-buttons"
-            class="row justify-content-between"
-        >
-            <button
-                id="tool-import3d-deactivateEditing"
-                class="col-5 btn btn-return btn-sm primary-button-wrapper"
-                @click="setCurrentModelId(null)"
-            >
-                {{ $t("modules.tools.modeler3D.entity.captions.backToList") }}
-            </button>
-            <button
-                id="tool-import3d-deleteEntity"
-                class="col-5 btn btn-danger btn-sm delete-button-wrapper"
-                @click="confirmDeletion(currentModelId)"
-            >
-                {{ $t("modules.tools.modeler3D.entity.captions.delete") }}
-            </button>
-        </div>
     </div>
 </template>
 
