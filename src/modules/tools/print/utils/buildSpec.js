@@ -524,10 +524,14 @@ const BuildSpecModel = {
             styles.forEach((style, index) => {
 
                 if (style !== null) {
-                    const styleObjectFromStyleList = styleList.returnStyleObject(layer.get("styleId")),
+                    const styleObjectFromStyleList = styleList.returnStyleObject(layer.get("styleId"));
+
+                    let limiter = ",",
                         styleFromStyleList = styleObjectFromStyleList ? createStyle.getGeometryStyle(feature, styleObjectFromStyleList.rules, false, Config.wfsImgPath) : undefined;
 
-                    let limiter = ",";
+                    if (Array.isArray(styleFromStyleList)) {
+                        styleFromStyleList = styleFromStyleList[0];
+                    }
 
                     clonedFeature = feature.clone();
                     styleAttributes.forEach(attribute => {
