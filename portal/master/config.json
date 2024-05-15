@@ -851,6 +851,15 @@
     "Fachdaten": {
       "Layer": [
         {
+          "id": "32744",
+          "name": "XPLAN - Baugebietsteilfläche Hoheluft (OAF)",
+          "typ": "OAF",
+          "styleId": "31552",
+          "bbox": [1109722.6249999998,7090765.547999999,1111411.7910000002,7092655.280999999],
+          "bboxCrs": "http://www.opengis.net/def/crs/EPSG/0/3857",
+          "layerAttribution": "<span>Es wird über die bbox nur dieser Teil der Daten geladen, egal welcher Teil der Karte sichtbar ist.</span>"
+        },
+        {
           "id": "1132",
           "styleId": "1132",
           "name": "100 Jahre Stadtgruen POIs",
