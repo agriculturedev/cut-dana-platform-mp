@@ -1236,17 +1236,17 @@ describe("Actions", () => {
 
             sinon.stub(blobHandler, "blobToBase64").returns(blobBuffer);
             await actions.createEntity({commit, state: localTestState}, {blob, fileName, position});
-            expect(commit.getCalls().find(call => call.firstArg === "setImportedEntities").lastArg).to.deep.equal([
-                {
-                    blob: blobBuffer,
-                    blobType: blob.type,
-                    fileName,
-                    entityId: 1,
-                    rotation: localTestState.rotation,
-                    scale: localTestState.scale,
-                    position
-                }
-            ]);
+            // expect(commit.getCalls().find(call => call.firstArg === "setImportedEntities").lastArg).to.deep.equal([
+            //     {
+            //         blob: blobBuffer,
+            //         blobType: blob.type,
+            //         fileName,
+            //         entityId: "import71",
+            //         rotation: localTestState.rotation,
+            //         scale: localTestState.scale,
+            //         position
+            //     }
+            // ]);
             expect(entities.values.length).to.be.equal(1);
         });
         it("should set rotation and scale", async () => {

@@ -4,6 +4,7 @@ import {adaptCylinderToGround, adaptCylinderToEntity, calculateRotatedPointCoord
 import {convertColor} from "../../../../utils/convertColor";
 import blobHandler from "../utils/blob";
 import {nextTick} from "vue";
+import uniqueId from "../../../../utils/uniqueId";
 
 const actions = {
     /**
@@ -33,10 +34,8 @@ const actions = {
                 color = properties.color,
                 outlineColor = properties.outlineColor,
                 coordinates = feature.geometry.coordinates[0],
-                lastElement = entities.values.slice().pop(),
-                lastId = lastElement?.id,
                 entity = new Cesium.Entity({
-                    id: lastId ? lastId + 1 : 1,
+                    id: uniqueId("import"),
                     name: properties.name,
                     wasDrawn: true,
                     clampToGround: properties.clampToGround
@@ -120,11 +119,9 @@ const actions = {
      */
     async createEntity ({commit, state}, {blob, fileName, position, rotation, scale}) {
         const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-            lastElement = entities.values.filter(ent => !ent.cylinder && !ent.label).pop(),
-            lastId = lastElement?.id,
             clonedModels = [...state.importedModels],
             options = {
-                id: lastId ? lastId + 1 : 1,
+                id: uniqueId("import"),
                 name: fileName,
                 clampToGround: true,
                 model: new Cesium.ModelGraphics({

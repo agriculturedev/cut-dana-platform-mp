@@ -8,6 +8,7 @@ import EntityAttributeSlider from "./ui/EntityAttributeSlider.vue";
 import AccordionItem from "./ui/AccordionItem.vue";
 import IconButton from "./ui/IconButton.vue";
 import {convertColor} from "../../../../utils/convertColor";
+import uniqueId from "../../../../utils/uniqueId";
 
 export default {
     name: "Modeler3DEntityModel",
@@ -342,18 +343,10 @@ export default {
         },
         /**
          * Copies the specified entity with the given id. The copied entity will be placed next to the original.
-         * @param {Number} id - The ID of the entity to copy.
-         * @param {Number} nextId - The ID of the new entity.
          * @returns {void}
          */
         copySelectedEntity () {
-            let nextId = 1;
-
-            if (this.drawnModels.length > 0) {
-                nextId = Math.max(nextId, Math.max(...this.drawnModels.map(model => model.id))) + 1;
-            }
-
-            this.copyEntity({id: this.currentModelId, nextId: nextId});
+            this.copyEntity({id: this.currentModelId, nextId: uniqueId()});
         },
         jumpToSection (id) {
             const element = document.getElementById(`accordion-container-${id}`);

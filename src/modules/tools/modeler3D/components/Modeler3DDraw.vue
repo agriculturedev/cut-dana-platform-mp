@@ -11,6 +11,7 @@ import DrawLayout from "./ui/DrawLayout.vue";
 import EntityList from "./ui/EntityList.vue";
 import DrawModels from "./ui/DrawModels.vue";
 import AccordionItem from "./ui/AccordionItem.vue";
+import uniqueId from "../../../../utils/uniqueId";
 
 let eventHandler = null;
 
@@ -487,19 +488,7 @@ export default {
             eventHandler.destroy();
             window.removeEventListener("keydown", this.catchUndoRedo);
         },
-        /**
-         * Returns the next free id for all entities that have been drawn until then.
-         * @returns {Number} - the next free id.
-         */
-        getNextId () {
-            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                drawnEntities = entities.values.filter(ent => !ent.cylinder && !ent.label),
-                lastElement = drawnEntities.pop(),
-                lastId = lastElement && typeof lastElement === "object" ?
-                    Number(lastElement.id) : undefined;
 
-            return lastId ? lastId + 1 : 1;
-        },
         /**
          * Creates the drawn shape in the EntityCollection and sets its attributes.
          * @returns {Cesium.Entity} - The created shape.
@@ -507,7 +496,7 @@ export default {
         drawShape () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 models = this.drawnModels,
-                shapeId = this.getNextId(),
+                shapeId = uniqueId("draw"),
                 positionData = new Cesium.CallbackProperty(() => {
                     if (this.selectedDrawType === "polygon" || this.selectedDrawType === "rectangle") {
                         return new Cesium.PolygonHierarchy(this.activeShapePoints);

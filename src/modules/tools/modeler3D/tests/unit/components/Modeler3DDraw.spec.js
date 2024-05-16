@@ -566,14 +566,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             });
         });
 
-        it("should return the next id", () => {
-            const entity = {id: 1};
-
-            entities.values.push(entity);
-
-            expect(wrapper.vm.getNextId()).to.equal(Number(entity.id) + 1);
-        });
-
         it("should toggle showDimensions and call generateLabels if showDimensions is true", () => {
             const ent = {
                     id: "someId",
