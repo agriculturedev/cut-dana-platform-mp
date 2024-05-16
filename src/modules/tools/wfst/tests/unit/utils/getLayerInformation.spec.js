@@ -2,7 +2,7 @@ import {expect} from "chai";
 import sinon from "sinon";
 import getLayerInformationModule from "../../../utils/getLayerInformation";
 
-const relevantKeys = ["featureNS", "featurePrefix", "featureType", "gfiAttributes", "id", "style", "isSelected", "isSecured", "name", "url", "version"],
+const relevantKeys = ["featureNS", "featurePrefix", "featureType", "gfiAttributes", "id", "style", "isSelected", "isVisibleInMap", "isSecured", "name", "url", "version"],
     exampleLayer = {
         get: key => exampleLayer[key],
         altitudeMode: "clampToGround",

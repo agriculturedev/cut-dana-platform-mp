@@ -11,7 +11,7 @@ function getLayerInformation (layerIds) {
         const layer = getComponent(id);
 
         if (layer) {
-            return ["featureNS", "featurePrefix", "featureType", "gfiAttributes", "style", "isSelected", "name", "url", "version"]
+            return ["featureNS", "featurePrefix", "featureType", "gfiAttributes", "style", "isSelected", "isVisibleInMap", "name", "url", "version"]
                 .reduce((previous, key) => ({...previous, [key]: layer?.get(key)}),
                     {
                         id,

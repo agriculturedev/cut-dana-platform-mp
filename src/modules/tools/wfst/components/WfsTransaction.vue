@@ -9,36 +9,30 @@ export default {
     name: "WfsTransaction",
     components: {SimpleButton, ToolTemplate},
     computed: {
-        ...mapGetters("Tools/Wfst", ["currentInteractionConfig", "currentLayerIndex", "featureProperties", "layerIds", "layerInformation", "layerSelectDisabled", "layerSelectLabel", "selectedInteraction", "showInteractionsButtons", "active", "deactivateGFI", "icon", "name", "id", "isFormDisabled"])
+        ...mapGetters("Tools/Wfst", ["currentInteractionConfig", "currentLayerIndex", "featureProperties", "layerIds", "layersLoading", "layerInformation", "layerSelectDisabled", "layerSelectLabel", "selectedInteraction", "showInteractionsButtons", "isLayerVisible", "active", "deactivateGFI", "icon", "name", "id", "isFormDisabled"]),
+
+        loadedLayerIds () {
+            return this.$store.getters["Maps/loadedLayers"];
+        }
     },
     watch: {
         active (val) {
             this.setActive(val);
+        },
+
+        loadedLayerIds (val) {
+            if (this.layerIds.every(id => val?.includes(id))) {
+                this.setLayersLoading(false);
+            }
         }
     },
     created () {
         this.$on("close", this.close);
-        Backbone.Events.listenTo(Radio.channel("ModelList"), {
-            "updatedSelectedLayerList": async () => {
-                const newLayerInformation = await getLayerInformationModule.getLayerInformation(this.layerIds),
-                    firstActiveLayer = newLayerInformation.findIndex(layer => layer.isSelected),
-                    currentLayerDeactivated = this.currentLayerIndex > -1 && !newLayerInformation[this.currentLayerIndex].isSelected;
-
-                this.setLayerInformation(newLayerInformation);
-                if ((this.currentLayerIndex === -1 && firstActiveLayer > -1) ||
-                    (this.currentLayerIndex > -1 && firstActiveLayer === -1) ||
-                    (currentLayerDeactivated && firstActiveLayer > -1)) {
-                    this.setCurrentLayerIndex(firstActiveLayer);
-                }
-                if (currentLayerDeactivated) {
-                    this.reset();
-                }
-                this.setFeatureProperties();
-            }
-        });
+        this.updateLayerSelection();
+        Backbone.Events.listenTo(Radio.channel("ModelList"), "updatedSelectedLayerList", this.updateLayerSelection);
     },
     methods: {
-        ...mapMutations("Tools/Wfst", ["setCurrentLayerIndex", "setLayerInformation"]),
+        ...mapMutations("Tools/Wfst", ["setCurrentLayerIndex", "setLayerInformation", "setLayersLoading"]),
         ...mapActions("Tools/Wfst", ["prepareInteraction", "reset", "save", "setActive", "updateFeatureProperty", "setFeatureProperties"]),
         close () {
             this.setActive(false);
@@ -47,6 +41,22 @@ export default {
             if (model) {
                 model.set("isActive", false);
             }
+        },
+        updateLayerSelection () {
+            const newLayerInformation = getLayerInformationModule.getLayerInformation(this.layerIds),
+                firstActiveLayer = newLayerInformation.findIndex(layer => layer.isSelected),
+                currentLayerDeactivated = this.currentLayerIndex > -1 && !newLayerInformation[this.currentLayerIndex].isSelected;
+
+            this.setLayerInformation(newLayerInformation);
+            if ((this.currentLayerIndex === -1 && firstActiveLayer > -1) ||
+                (this.currentLayerIndex > -1 && firstActiveLayer === -1) ||
+                (currentLayerDeactivated && firstActiveLayer > -1)) {
+                this.setCurrentLayerIndex(firstActiveLayer);
+            }
+            if (currentLayerDeactivated) {
+                this.reset();
+            }
+            this.setFeatureProperties();
         },
         layerChanged (index) {
             this.setCurrentLayerIndex(index);
@@ -128,15 +138,22 @@ export default {
                         <option
                             v-for="(layer, index) of layerInformation"
                             :key="layer.id"
+                            :disabled="!loadedLayerIds?.includes(layer.id)"
                             :selected="index === currentLayerIndex"
                         >
                             {{ $t(layer.name) }}
                         </option>
                     </select>
+                    <div
+                        v-if="layersLoading && currentLayerIndex > -1"
+                        id="tool-wfs-transaction-layers-loading"
+                    >
+                        <div class="spinner-border spinner-border-sm" />
+                    </div>
                 </div>
-                <template v-if="typeof featureProperties === 'string'">
+                <template v-if="!isLayerVisible || currentLayerIndex === -1">
                     <div class="tool-wfs-transaction-layer-failure">
-                        {{ $t(featureProperties) }}
+                        {{ $t("common:modules.tools.wfsTransaction.error.layerNotSelected") }}
                     </div>
                 </template>
                 <div
@@ -250,6 +267,12 @@ $margin: 1rem;
             width: 10em;
             align-self: center;
         }
+    }
+
+    #tool-wfs-transaction-layers-loading {
+        display: flex;
+        align-items: center;
+        margin-left: $margin;
     }
 
     .tool-wfs-transaction-layer-failure {

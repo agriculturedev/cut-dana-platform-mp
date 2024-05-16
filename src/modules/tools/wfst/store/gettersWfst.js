@@ -121,6 +121,14 @@ const getters = {
     },
     showInteractionsButtons (state) {
         return [null, "delete", "update"].includes(state.selectedInteraction);
+    },
+    isLayerVisible ({currentLayerIndex}, {layerInformation}) {
+        if (currentLayerIndex >= 0 && currentLayerIndex < layerInformation.length) {
+            const layer = layerInformation[currentLayerIndex];
+
+            return layer.isVisibleInMap;
+        }
+        return false;
     }
 };
 

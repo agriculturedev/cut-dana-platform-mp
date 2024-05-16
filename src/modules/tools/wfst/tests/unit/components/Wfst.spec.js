@@ -93,6 +93,12 @@ describe("src/modules/tools/wfst/components/WfsTransaction.vue", () => {
                     modules: {
                         Wfst: WfstModule
                     }
+                },
+                Maps: {
+                    namespaced: true,
+                    getters: {
+                        getLayerById: () => sinon.spy()
+                    }
                 }
             },
             getters: {
@@ -117,7 +123,7 @@ describe("src/modules/tools/wfst/components/WfsTransaction.vue", () => {
             expect(wrapper.find("#tool-wfsTransaction-container").exists()).to.be.true;
         });
     });
-    it("renders a container for the layer selection including a select element and its label", () => {
+    it("renders a container for the layer selection including a select element and its label, respecting loaded layers", () => {
         const requestStub = sinon.stub(Radio, "request");
 
         requestStub.withArgs("ModelList", "getModelByAttributes", {id: layerIds[0]}).returns(exampleLayerOne);
@@ -136,6 +142,8 @@ describe("src/modules/tools/wfst/components/WfsTransaction.vue", () => {
             expect(wrapper.find("#tool-wfsTransaction-layerSelect").element.options[0].text).to.equal(exampleLayerOne.name);
             expect(wrapper.find("#tool-wfsTransaction-layerSelect").element.options[1].selected).to.be.false;
             expect(wrapper.find("#tool-wfsTransaction-layerSelect").element.options[1].text).to.equal(exampleLayerTwo.name);
+            expect(wrapper.find("#tool-wfs-transaction-layer-select-input").element.options[0].disabled).to.be.false;
+            expect(wrapper.find("#tool-wfs-transaction-layer-select-input").element.options[1].disabled).to.be.false;
             expect(wrapper.find("#tool-wfsTransaction-layerSelect-label").exists()).to.be.true;
             expect(wrapper.find("#tool-wfsTransaction-layerSelect-label").text()).to.equal("common:modules.tools.wfsTransaction.layerSelectLabel");
         });
@@ -251,5 +259,12 @@ describe("src/modules/tools/wfst/components/WfsTransaction.vue", () => {
             expect(wrapper.find("#tool-wfsTransaction-form-input-dateAtt").attributes().type).to.equal("date");
             expect(wrapper.find("#tool-wfsTransaction-form-buttons").exists()).to.be.true;
         });
+    });
+    it("updates layersLoading based on the loadedLayerIds", async () => {
+        store.commit("Tools/Wfst/setLayerIds", layerIds);
+
+        wrapper = mount(WfsTransaction, {localVue, store});
+
+        expect(wrapper.find("#tool-wfs-transaction-layers-loading").exists()).to.be.false;
     });
 });
