@@ -32,9 +32,11 @@
   - The color picker for editing polylines shows the right color again.
   - Selected drawn entities can be exported again as geojson.
 - Issue #1160: Fixed bug in area calculation during editing.
+- Issue #1165: Fixed a bug in scrollToLayer(), where focus-behaviour did not work as intended in tree.
+- Issue #1166: function isHTML now recognizes more HTML tags in one String as valid.
 - Issue #1181: Fixed printing multipolygon features when labelField is configured.
 - Removed empty span-Tag in Layertree for singleBaseLayer
-- Issue #1165: Fixed a bug in scrollToLayer(), where focus-behaviour did not work as intended in tree.
+
 
 ---
 
