@@ -19,6 +19,11 @@
   - Labels now move and get updated when the corresponding entity gets changed or moves.
   - Moving entities takes cursor position into account and uses it as an anchor point.
 - Tools: The active tools which are only supported in 3D mode will be closed after switching to 2D mode.
+- Wfst:
+  - Depending on the load state of the configured layers, the selection is activated automatically.
+  - A loading indicator is shown, if layers are still loading.
+  - Layer options in the dropdown are enabled once the layer is fully loaded.
+  - Improved error handling.
 
 ### Deprecated
 
