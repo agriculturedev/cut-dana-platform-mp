@@ -338,6 +338,8 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         });
         it("should call addLabel when activeShapePoints length is more than 1", () => {
             entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
+            entities.values.push({id: "someId", polygon: {height: {getValue: () => 5}, extrudedHeight: {getValue: () => 10}}});
+            wrapper.vm.shapeId = "someId";
             wrapper.vm.addLabel = sinon.spy();
 
             store.commit("Tools/Modeler3D/setActiveShapePoints", [{x: 100, y: 200, z: 300},

@@ -168,7 +168,7 @@ export default {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
 
-            let entity = null,
+            let entity = entities.getById(this.shapeId),
                 label = null;
 
             // Creates the entity, sets its height and creates the variable distance label
@@ -181,7 +181,12 @@ export default {
                 );
                 this.drawShape();
                 label = this.addLabel("distance", {
-                    position: new Cesium.CallbackProperty(() => Cesium.Cartesian3.midpoint(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3()), false),
+                    position: new Cesium.CallbackProperty(() => {
+                        const midpoint = Cesium.Cartesian3.midpoint(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3()),
+                            midPointCart = Cesium.Cartographic.fromCartesian(midpoint);
+
+                        return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, entity.polygon.extrudedHeight.getValue() + 2);
+                    }, false),
                     text: new Cesium.CallbackProperty(() => {
                         const distance = Cesium.Cartesian3.distance(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3());
 
@@ -196,10 +201,11 @@ export default {
             if (this.activeShapePoints.length >= 2) {
                 const arrayLength = this.activeShapePoints.length,
                     midpoint = Cesium.Cartesian3.midpoint(this.activeShapePoints[arrayLength - 2], this.activeShapePoints[arrayLength - 1], new Cesium.Cartesian3()),
+                    midPointCart = Cesium.Cartographic.fromCartesian(midpoint),
                     distance = Cesium.Cartesian3.distance(this.activeShapePoints[arrayLength - 2], this.activeShapePoints[arrayLength - 1], new Cesium.Cartesian3());
 
                 label = this.addLabel("distance", {
-                    position: midpoint,
+                    position: Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, entity.polygon.extrudedHeight.getValue() + 2),
                     text: Math.round(distance * 100) / 100 + " m"
                 });
                 this.labelList.push(label);
@@ -226,7 +232,12 @@ export default {
             // Create distance label when its a polygon for the side between the first and last point
             if ((this.activeShapePoints.length === 3 && entity?.polygon) || entity?.polygon?.rectangle) {
                 label = this.addLabel("distance", {
-                    position: new Cesium.CallbackProperty(() => Cesium.Cartesian3.midpoint(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3()), false),
+                    position: new Cesium.CallbackProperty(() => {
+                        const midpoint = Cesium.Cartesian3.midpoint(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3()),
+                            midPointCart = Cesium.Cartographic.fromCartesian(midpoint);
+
+                        return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, entity.polygon.extrudedHeight.getValue() + 2);
+                    }, false),
                     text: new Cesium.CallbackProperty(() => {
                         const distance = Cesium.Cartesian3.distance(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3());
 
@@ -665,7 +676,6 @@ export default {
                         showBackground: true,
                         backgroundColor: Cesium.Color.fromCssColorString("#DCE2F3"),
                         style: Cesium.LabelStyle.FILL,
-                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                         show: attachedEntity.showDimensions
                     }
                 };
@@ -828,7 +838,10 @@ export default {
                     this.addLabel("distance", {
                         attachedEntity: entity,
                         position: new Cesium.CallbackProperty(() => {
-                            return Cesium.Cartesian3.midpoint(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % distanceLabelCount], new Cesium.Cartesian3());
+                            const midpoint = Cesium.Cartesian3.midpoint(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % distanceLabelCount], new Cesium.Cartesian3()),
+                                midPointCart = Cesium.Cartographic.fromCartesian(midpoint);
+
+                            return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, entity.polygon.extrudedHeight.getValue() + 2);
                         }, false),
                         text: new Cesium.CallbackProperty(() => {
                             const distance = Cesium.Cartesian3.distance(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % distanceLabelCount], new Cesium.Cartesian3());
