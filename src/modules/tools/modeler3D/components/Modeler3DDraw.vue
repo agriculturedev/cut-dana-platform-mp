@@ -218,7 +218,7 @@ export default {
                         const midpoint = Cesium.Cartesian3.midpoint(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3()),
                             midPointCart = Cesium.Cartographic.fromCartesian(midpoint);
 
-                        return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, entity.polygon.extrudedHeight.getValue() + 2);
+                        return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, (entity.polygon?.extrudedHeight?.getValue() || midPointCart.height) + 2);
                     }, false),
                     text: new Cesium.CallbackProperty(() => {
                         const distance = Cesium.Cartesian3.distance(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3());
@@ -238,7 +238,7 @@ export default {
                     distance = Cesium.Cartesian3.distance(this.activeShapePoints[arrayLength - 2], this.activeShapePoints[arrayLength - 1], new Cesium.Cartesian3());
 
                 label = this.addLabel("distance", {
-                    position: Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, entity.polygon.extrudedHeight.getValue() + 2),
+                    position: Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, (entity.polygon?.extrudedHeight?.getValue() || midPointCart.height) + 2),
                     text: Math.round(distance * 100) / 100 + " m"
                 });
                 this.labelList.push(label);
@@ -269,7 +269,7 @@ export default {
                         const midpoint = Cesium.Cartesian3.midpoint(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3()),
                             midPointCart = Cesium.Cartographic.fromCartesian(midpoint);
 
-                        return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, entity.polygon.extrudedHeight.getValue() + 2);
+                        return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, (entity.polygon?.extrudedHeight?.getValue() || midPointCart.height) + 2);
                     }, false),
                     text: new Cesium.CallbackProperty(() => {
                         const distance = Cesium.Cartesian3.distance(this.activeShapePoints[0], this.activeShapePoints[this.activeShapePoints.length - 1], new Cesium.Cartesian3());
@@ -456,10 +456,10 @@ export default {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 shape = entities.getById(this.shapeId);
 
-            this.removeLabels(shape);
             this.activeShapePoints.pop();
 
             if (shape) {
+                this.removeLabels(shape);
                 shape.showDimensions = false;
 
                 if (shape.polygon && this.activeShapePoints.length > 2) {
@@ -810,26 +810,26 @@ export default {
                 });
             }
 
-            positions.forEach((_, index) => {
+            for (let index = 0; index < distanceLabelCount; index++) {
                 if (!entity.polygon?.rectangle || index < 2) {
                     const rectangleOffset = entity.polygon?.rectangle ? 2 : 0;
 
                     this.addLabel("distance", {
                         attachedEntity: entity,
                         position: new Cesium.CallbackProperty(() => {
-                            const midpoint = Cesium.Cartesian3.midpoint(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % distanceLabelCount], new Cesium.Cartesian3()),
+                            const midpoint = Cesium.Cartesian3.midpoint(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % positions.length], new Cesium.Cartesian3()),
                                 midPointCart = Cesium.Cartographic.fromCartesian(midpoint);
 
-                            return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, entity.polygon.extrudedHeight.getValue() + 2);
+                            return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, (entity.polygon?.extrudedHeight?.getValue() || midPointCart.height) + 2);
                         }, false),
                         text: new Cesium.CallbackProperty(() => {
-                            const distance = Cesium.Cartesian3.distance(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % distanceLabelCount], new Cesium.Cartesian3());
+                            const distance = Cesium.Cartesian3.distance(positions[index + rectangleOffset], positions[(index + 1 + rectangleOffset) % positions.length], new Cesium.Cartesian3());
 
                             return Math.round(distance * 100) / 100 + " m";
                         }, false)
                     });
                 }
-            });
+            }
         }
     }
 };
