@@ -459,7 +459,7 @@ export default {
                 }
                 if (Cesium.defined(this.activeShapePoints[cylinder.positionIndex])) {
                     if (entity.polygon?.rectangle) {
-                        this.moveAdjacentRectangleCorners({movedCornerIndex: cylinder.positionIndex, clampToGround: entity.clampToGround});
+                        this.moveAdjacentRectangleCorners({movedCornerIndex: cylinder.positionIndex});
                     }
                 }
             }
@@ -581,7 +581,7 @@ export default {
 
                 this.activeShapePoints.splice(movedEntity.positionIndex, 1, entityObject.position);
                 if (attachedEntity.polygon?.rectangle) {
-                    this.moveAdjacentRectangleCorners({movedCornerIndex: movedEntity.positionIndex, clampToGround: attachedEntity.clampToGround});
+                    this.moveAdjacentRectangleCorners({movedCornerIndex: movedEntity.positionIndex});
                 }
             }
             else if (movedEntity.wasDrawn) {

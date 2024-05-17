@@ -379,8 +379,8 @@ const actions = {
             corner3 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner1.longitude, corner2.latitude, corner1.height)),
             corner4 = Cesium.Cartographic.toCartesian(new Cesium.Cartographic(corner2.longitude, corner1.latitude, corner1.height));
 
-        state.activeShapePoints.splice((movedCornerIndex + 1) % 4, 1, corner3);
-        state.activeShapePoints.splice((movedCornerIndex + 3) % 4, 1, corner4);
+        state.activeShapePoints.splice((movedCornerIndex + 1) % 4, 1, movedCornerIndex % 2 === 0 ? corner3 : corner4);
+        state.activeShapePoints.splice((movedCornerIndex + 3) % 4, 1, movedCornerIndex % 2 === 0 ? corner4 : corner3);
     },
     /**
      * Rotates the currently selected drawn entity.

@@ -150,7 +150,7 @@ export default {
                 const shape = entities.getById(this.shapeId);
 
                 if (shape?.polygon?.rectangle && this.activeShapePoints.length > 1) {
-                    this.moveAdjacentRectangleCorners({movedCornerIndex: 3, clampToGround: this.clampToGround});
+                    this.moveAdjacentRectangleCorners({movedCornerIndex: 3});
                 }
             }
         },
