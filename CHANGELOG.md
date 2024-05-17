@@ -18,6 +18,7 @@
   - Measurement labels of drawn entities can now be toggled on/off individually.
   - Labels now move and get updated when the corresponding entity gets changed or moves.
   - Moving entities takes cursor position into account and uses it as an anchor point.
+- Tools: The active tools which are only supported in 3D mode will be closed after switching to 2D mode.
 
 ### Deprecated
 

@@ -4,6 +4,7 @@ import Button3dModel from "./model";
 import store from "../../../src/app-store";
 import Dropdown from "bootstrap/js/dist/dropdown";
 import uiStyle from "../../../src/utils/uiStyle";
+
 /**
  * @member Button3dTemplate
  * @description Template used for the 3D Button
@@ -91,8 +92,34 @@ const Button3dView = Backbone.View.extend(/** @lends Button3dView.prototype */{
             this.$("#3d-titel-close").hide();
             this.$("#3d-titel-open").show();
             this.model.setButtonTitle("3D");
+            this.deactivate3dTools(Radio.request("Tool", "getSupportedOnlyIn3d"));
         }
     },
+
+    /**
+     * Deactivating the tools only supported in 3d mode.
+     * @param {String[]} tools - the tools only supported in 3d
+     * @return {void}
+     */
+    deactivate3dTools: function (tools) {
+        if (!Array.isArray(tools) || !tools.length) {
+            return;
+        }
+
+        tools.forEach(tool => {
+            if (typeof tool !== "string") {
+                return;
+            }
+
+            const beautifiedTool = tool.charAt(0).toUpperCase() + tool.slice(1),
+                isActive = store.getters["Tools/" + beautifiedTool + "/active"];
+
+            if (isActive) {
+                store.commit("Tools/" + beautifiedTool + "/setActive", false);
+            }
+        });
+    },
+
     /**
      * Render Function
      * @fires Core#RadioRequestMapIsMap3d
