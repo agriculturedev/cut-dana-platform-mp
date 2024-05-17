@@ -287,13 +287,15 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
             expect(ret).to.be.equals("modules.tools.modeler3D.entity.projections.cartesian.key");
         });
 
-        it("updates the extruded height of the polygon and adjusts cylinders", () => {
+        it("updates the extruded height of the polygon and adjusts cylinders", async () => {
             entity.polygon = new global.Cesium.PolygonGraphics({
                 extrudedHeight: 20,
                 height: 5
             });
             wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.extrudedHeightString = "25";
+
+            await wrapper.vm.$nextTick();
 
             expect(store.state.Tools.Modeler3D.extrudedHeight).to.eql(25);
             expect(entities.values[0].cylinder.length).to.eql(30);
@@ -354,16 +356,22 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
             expect(Modeler3D.actions.updateEntityPosition.called).to.be.true;
         });
 
-        it("updates dimensions of the entity", () => {
+        it("updates width dimension of the entity", async () => {
             wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             const updateRectangleDimensionsStub = sinon.stub(wrapper.vm, "updateRectangleDimensions");
 
             wrapper.vm.widthString = "120.50";
 
+            await wrapper.vm.$nextTick();
             expect(updateRectangleDimensionsStub.called).to.be.true;
+        });
+        it("updates depth dimension of the entity", async () => {
+            wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
+            const updateRectangleDimensionsStub = sinon.stub(wrapper.vm, "updateRectangleDimensions");
 
             wrapper.vm.depthString = "150.00";
 
+            await wrapper.vm.$nextTick();
             expect(updateRectangleDimensionsStub.called).to.be.true;
         });
         describe("resetImportedModels", () => {

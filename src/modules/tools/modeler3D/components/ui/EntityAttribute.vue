@@ -45,7 +45,7 @@ export default {
             required: false
         }
     },
-    emits: ["input", "increment", "increment-shift", "decrement", "decrement-shift"]
+    emits: ["change", "input", "increment", "increment-shift", "decrement", "decrement-shift"]
 };
 </script>
 
@@ -69,6 +69,7 @@ export default {
                 :type="type"
                 :disabled="disabled"
                 :value="value"
+                @change="$emit('change')"
                 @input="$emit('input', $event.target.value)"
             >
             <div

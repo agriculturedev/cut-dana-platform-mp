@@ -25,6 +25,13 @@ export default {
             }
         }
     },
+    data () {
+        return {
+            widthString: "",
+            depthString: "",
+            extrudedHeightString: ""
+        };
+    },
     computed: {
         ...mapGetters("Tools/Modeler3D", Object.keys(getters)),
 
@@ -109,20 +116,6 @@ export default {
                 this.resetImportedModels(this.importedEntities, adjustedValue, this.currentModelId, "scale");
             }
         },
-        extrudedHeightString: {
-            get () {
-                return this.extrudedHeight.toFixed(2);
-            },
-            set (value) {
-                let adjustedValue = parseFloat(value);
-
-                if (adjustedValue < 0.01) {
-                    adjustedValue = 0.01;
-                }
-                this.setExtrudedHeight(adjustedValue);
-                this.updateExtrudedHeight();
-            }
-        },
         lineWidthString: {
             get () {
                 return this.lineWidth.toFixed(2);
@@ -164,24 +157,6 @@ export default {
             set (value) {
                 this.setHeight(this.formatCoord(value));
                 this.updateEntityPosition();
-            }
-        },
-        widthString: {
-            get () {
-                return this.rectWidth.toFixed(2);
-            },
-            set (value) {
-                this.setRectWidth(parseFloat(value));
-                this.updateRectangleDimensions({width: this.rectWidth, depth: this.rectDepth});
-            }
-        },
-        depthString: {
-            get () {
-                return this.rectDepth.toFixed(2);
-            },
-            set (value) {
-                this.setRectDepth(parseFloat(value));
-                this.updateRectangleDimensions({width: this.rectWidth, depth: this.rectDepth});
             }
         },
         editedFillColor: {
@@ -241,6 +216,8 @@ export default {
     },
     watch: {
         currentModelId () {
+            this.updateDimensions();
+
             if (!this.isApplyingState || this.isDragging || !this.importedEntities.length) {
                 return;
             }
@@ -248,9 +225,36 @@ export default {
                 this.rotationString = this.rotation;
                 this.scaleString = String(this.scale);
             });
+        },
+        widthString (newVal) {
+            const width = newVal.length !== 0 ? newVal : 0;
+
+            this.setRectWidth(parseFloat(width));
+            this.updateRectangleDimensions({width: this.rectWidth, depth: this.rectDepth});
+
+        },
+        depthString (newVal) {
+            const depth = newVal.length !== 0 ? newVal : 0;
+
+            this.setRectDepth(parseFloat(depth));
+            this.updateRectangleDimensions({width: this.rectWidth, depth: this.rectDepth});
+
+        },
+        extrudedHeightString (newVal) {
+            const extruded = newVal.length !== 0 ? newVal : 0;
+
+            let adjustedValue = parseFloat(extruded);
+
+            if (adjustedValue < 0.01) {
+                adjustedValue = 0.01;
+            }
+            this.setExtrudedHeight(adjustedValue);
+            this.updateExtrudedHeight();
         }
     },
     mounted () {
+        this.updateDimensions();
+
         if (this.isApplyingState && !this.isDragging && this.importedEntities.length) {
             this.$nextTick(() => {
                 this.rotationString = this.rotation;
@@ -271,6 +275,19 @@ export default {
         selectionChanged (event) {
             if (event.target.value) {
                 this.newProjectionSelected(event.target.value);
+            }
+        },
+        /**
+         * Update dimension values for input fields.
+         * @returns {void}
+         */
+        updateDimensions () {
+            if (this.showDimensions) {
+                this.widthString = this.rectWidth.toFixed(2);
+                this.depthString = this.rectDepth.toFixed(2);
+            }
+            if (this.showExtrudedHeight) {
+                this.extrudedHeightString = this.extrudedHeight.toFixed(2);
             }
         },
         /**
@@ -518,6 +535,7 @@ export default {
                         :label="$t('modules.tools.modeler3D.entity.projections.width') + ' [m]'"
                         :width-classes="['col', 'col-md']"
                         :buttons="true"
+                        @change="widthString = widthString.length !== 0 ? parseFloat(widthString.replace(',', '.')).toFixed(2) : '0.00'"
                         @increment="widthString = (parseFloat(widthString) + 0.1).toFixed(2)"
                         @increment-shift="widthString = (parseFloat(widthString) + 1).toFixed(2)"
                         @decrement="widthString = (parseFloat(widthString) - 0.1).toFixed(2)"
@@ -531,6 +549,7 @@ export default {
                         :label="$t('modules.tools.modeler3D.entity.projections.depth') + ' [m]'"
                         :width-classes="['col', 'col-md']"
                         :buttons="true"
+                        @change="depthString = depthString.length !== 0 ? parseFloat(depthString.replace(',', '.')).toFixed(2) : '0.00'"
                         @increment="depthString = (parseFloat(depthString) + 0.1).toFixed(2)"
                         @increment-shift="depthString = (parseFloat(depthString) + 1).toFixed(2)"
                         @decrement="depthString = (parseFloat(depthString) - 0.1).toFixed(2)"
@@ -596,6 +615,7 @@ export default {
                             title="extruded-height"
                             :label="$t('modules.tools.modeler3D.draw.captions.extrudedHeight') + ' [m]'"
                             :width-classes="['col', 'col-md']"
+                            @change="extrudedHeightString = extrudedHeightString.length !== 0 ? parseFloat(extrudedHeightString.replace(',', '.')).toFixed(2) : '0.00'"
                             @increment="extrudedHeightString = (extrudedHeight + 0.1).toFixed(2)"
                             @increment-shift="extrudedHeightString = (extrudedHeight + 1).toFixed(2)"
                             @decrement="extrudedHeightString = (extrudedHeight - 0.1).toFixed(2)"
