@@ -1036,8 +1036,17 @@ describe("Actions", () => {
                     this.green = green;
                     this.blue = blue;
                     this.alpha = alpha;
+                },
+                Entity: class {
+                    /**
+                     * Represents an Entity object.
+                     */
+                    constructor ({id}) {
+                        this.show = true;
+                        this.name = name + " copy";
+                        this.id = id;
+                    }
                 }
-
             };
         });
         afterEach(() => {

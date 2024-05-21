@@ -666,13 +666,13 @@ const actions = {
         if (!entity) {
             return;
         }
-        copiedEntity = {
+        copiedEntity = new Cesium.Entity({
             id: nextId,
             name: entity.name + " copy",
             clampToGround: entity.clampToGround,
             show: true,
             wasDrawn: true
-        };
+        });
 
         if (entity.polygon) {
             copiedEntity.polygon = {
@@ -692,6 +692,10 @@ const actions = {
         }
 
         entities.add(copiedEntity);
+
+        if (entity.polygon?.rectangle) {
+            copiedEntity.polygon.rectangle = true;
+        }
 
         models.push({
             id: copiedEntity.id,
