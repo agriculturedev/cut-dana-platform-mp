@@ -89,7 +89,6 @@ export default {
                     :class="{active: object.id === currentModelId}"
                     @click="enableCheckboxes ? hasActiveClass($event, object.id) : ''"
                 >
-                    <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -->
                     <input
                         v-if="enableCheckboxes"
                         type="checkbox"
