@@ -835,18 +835,6 @@ export default {
                 class="cta"
                 v-html="$t('modules.tools.modeler3D.draw.captions.introInfo')"
             />
-            <p
-                class="cta"
-                v-html="$t('modules.tools.modeler3D.draw.captions.controlInfo')"
-            />
-            <p
-                class="cta"
-                v-html="$t('modules.tools.modeler3D.entity.captions.editInfo')"
-            />
-            <p
-                class="cta"
-                v-html="$t('modules.tools.modeler3D.entity.captions.pickupPlace')"
-            />
         </AccordionItem>
         <hr class="m-0">
         <div v-if="drawnModels.length > 0">
