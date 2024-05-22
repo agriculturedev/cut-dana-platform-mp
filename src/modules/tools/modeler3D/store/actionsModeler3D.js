@@ -235,7 +235,6 @@ const actions = {
             commit("setActiveShapePoints", []);
             commit("setCylinderId", null);
             commit("setCurrentModelId", null);
-            commit("setArea", null);
 
             stateArray.splice(modelIndex, 1);
             entities.removeById(id);
@@ -604,7 +603,7 @@ const actions = {
             center = Cesium.Cartographic.fromCartesian(getters.getCenterFromGeometry(entity));
 
         state.activeShapePoints.forEach((position, index) => {
-            state.activeShapePoints[index] = calculateRotatedPointCoordinates({angle, center, position});
+            state.activeShapePoints.splice(index, 1, calculateRotatedPointCoordinates({angle, center, position}));
         });
 
         entity.lastRotationAngle = state.drawRotation;
@@ -634,7 +633,7 @@ const actions = {
                 calculateRotatedPointCoordinates({angle, center: Cesium.Cartographic.fromCartesian(position), position: corner}) :
                 corner;
 
-            state.activeShapePoints[index] = rotatedPoint;
+            state.activeShapePoints.splice(index, 1, rotatedPoint);
         });
     },
     /**

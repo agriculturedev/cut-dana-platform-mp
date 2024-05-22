@@ -53,18 +53,17 @@ export function adaptCylinderUnclamped (cylinder, position) {
 
 /**
  * Returns the calculated area.
- * @param {Cesium.Cartesian3} entity - the entity from which the area is calculated.
+ * @param {Cesium.Cartesian3[]} positions - the entity from which the area is calculated.
  * @returns {Number} - the rounded area in meters.
  */
-export function calculatePolygonArea (entity) {
-    const hierarchy = entity.polygon.hierarchy.getValue(),
-        indices = Cesium.PolygonPipeline.triangulate(hierarchy.positions, hierarchy.holes);
+export function calculatePolygonArea (positions) {
+    const indices = Cesium.PolygonPipeline.triangulate(positions, []);
     let area = 0;
 
     for (let i = 0; i < indices.length; i += 3) {
-        const vector1 = hierarchy.positions[indices[i]],
-            vector2 = hierarchy.positions[indices[i + 1]],
-            vector3 = hierarchy.positions[indices[i + 2]],
+        const vector1 = positions[indices[i]],
+            vector2 = positions[indices[i + 1]],
+            vector3 = positions[indices[i + 2]],
             vectorC = Cesium.Cartesian3.subtract(vector2, vector1, new Cesium.Cartesian3()),
             vectorD = Cesium.Cartesian3.subtract(vector3, vector1, new Cesium.Cartesian3()),
             areaVector = Cesium.Cartesian3.cross(vectorC, vectorD, new Cesium.Cartesian3());

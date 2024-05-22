@@ -303,6 +303,9 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                     height: 10,
                     extrudedHeight: {
                         getValue: () => 10
+                    },
+                    hierarchy: {
+                        getValue: () => ({positions: [1, 2, 3]})
                     }
                 }
             };
@@ -326,7 +329,20 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
         });
         it("should call addLabel three times when activeShapePoints length is 1 and entity is a polygon", () => {
             entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
-            entities.values.push({id: "someId", polygon: {height: {getValue: () => 5}, extrudedHeight: {getValue: () => 10}}});
+            entities.values.push({
+                id: "someId",
+                polygon: {
+                    height: {
+                        getValue: () => 5
+                    },
+                    extrudedHeight: {
+                        getValue: () => 10
+                    },
+                    hierarchy: {
+                        getValue: () => ({positions: [1, 2, 3]})
+                    }
+                }
+            });
             wrapper.vm.shapeId = "someId";
             wrapper.vm.addLabel = sinon.spy();
 

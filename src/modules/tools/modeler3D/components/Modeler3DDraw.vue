@@ -316,14 +316,14 @@ export default {
          */
         createPolygonLabels (entity) {
             const lblHeight = entity.polygon.extrudedHeight.getValue(),
-                positionArea = Cesium.Cartographic.fromCartesian(this.activeShapePoints[0 + (entity.polygon?.rectangle ? 1 : 0)]);
+                positionArea = Cesium.Cartographic.fromCartesian(this.activeShapePoints[0 + (entity.polygon?.rectangle ? 1 : 0)]),
+                positions = entity.polygon.hierarchy.getValue().positions;
 
             this.addLabel("area", {
                 position: Cesium.Cartesian3.fromRadians(positionArea.longitude, positionArea.latitude, lblHeight + 12),
                 text: new Cesium.CallbackProperty(() => {
-                    const area = calculatePolygonArea(entity);
+                    const area = calculatePolygonArea(positions);
 
-                    this.setArea(area);
                     return Math.round(area * 100) / 100 + " m²";
                 }, false)
             });
@@ -777,9 +777,8 @@ export default {
                         return Cesium.Cartesian3.fromRadians(position.longitude, position.latitude, height);
                     }, false),
                     text: new Cesium.CallbackProperty(() => {
-                        const area = calculatePolygonArea(entity);
+                        const area = calculatePolygonArea(positions);
 
-                        this.setArea(area);
                         return Math.round(area * 100) / 100 + " m²";
                     }, false)
                 });

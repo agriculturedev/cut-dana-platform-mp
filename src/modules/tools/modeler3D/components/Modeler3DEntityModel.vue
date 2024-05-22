@@ -9,6 +9,7 @@ import AccordionItem from "./ui/AccordionItem.vue";
 import IconButton from "./ui/IconButton.vue";
 import {convertColor} from "../../../../utils/convertColor";
 import uniqueId from "../../../../utils/uniqueId";
+import {calculatePolygonArea} from "../utils/draw";
 
 export default {
     name: "Modeler3DEntityModel",
@@ -43,31 +44,31 @@ export default {
                 this.setModelName(value);
             }
         },
-        showExtrudedHeight: function () {
+        showExtrudedHeight () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 entity = entities.getById(this.currentModelId);
 
             return Boolean(entity?.polygon && entity?.wasDrawn);
         },
-        showDimensions: function () {
+        showDimensions () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 entity = entities.getById(this.currentModelId);
 
             return Boolean(entity?.polygon?.rectangle);
         },
-        showPositioning: function () {
+        showPositioning () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 entity = entities.getById(this.currentModelId);
 
             return Boolean(entity?.polygon || !entity?.wasDrawn);
         },
-        showWidth: function () {
+        showWidth () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 entity = entities.getById(this.currentModelId);
 
             return Boolean(entity?.polyline && entity?.wasDrawn);
         },
-        showFillColor: function () {
+        showFillColor () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 entity = entities.getById(this.currentModelId);
 
@@ -158,6 +159,9 @@ export default {
                 this.setHeight(this.formatCoord(value));
                 this.updateEntityPosition();
             }
+        },
+        area () {
+            return calculatePolygonArea(this.activeShapePoints);
         },
         editedFillColor: {
             get () {

@@ -11,7 +11,7 @@ import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
 import crs from "@masterportal/masterportalapi/src/crs";
 import getGfiFeatures from "../../../../api/gfi/getGfiFeaturesByTileFeature";
-import {adaptCylinderUnclamped, calculatePolygonArea} from "../utils/draw";
+import {adaptCylinderUnclamped} from "../utils/draw";
 import VectorLayer from "ol/layer/Vector.js";
 import VectorSource from "ol/source/Vector.js";
 import Feature from "ol/Feature.js";
@@ -418,9 +418,6 @@ export default {
             if (entity instanceof Cesium.Entity && !entity.cylinder) {
                 this.setCurrentModelId(entity.id);
                 this.setCylinderId(null);
-                if (entity.polygon) {
-                    this.setArea(calculatePolygonArea(entity));
-                }
             }
             else if (this.hideObjects && picked[0] instanceof Cesium.Cesium3DTileFeature) {
                 const features = getGfiFeatures.getGfiFeaturesByTileFeature(picked[0]),
@@ -462,7 +459,7 @@ export default {
                         position = scene.globe.pick(ray, scene);
 
                     if (this.activeShapePoints[cylinder.positionIndex] !== position) {
-                        this.activeShapePoints[cylinder.positionIndex] = scene.globe.pick(ray, scene);
+                        this.activeShapePoints.splice(cylinder.positionIndex, 1, scene.globe.pick(ray, scene));
                         this.updatePositionUI();
                     }
                 }
@@ -473,7 +470,7 @@ export default {
                     cartographic.height = scene.sampleHeight(cartographic, [cylinder, entity]);
 
                     if (this.activeShapePoints[cylinder.positionIndex] !== Cesium.Cartographic.toCartesian(cartographic)) {
-                        this.activeShapePoints[cylinder.positionIndex] = Cesium.Cartographic.toCartesian(cartographic);
+                        this.activeShapePoints.splice(cylinder.positionIndex, 1, Cesium.Cartographic.toCartesian(cartographic));
                         this.updatePositionUI();
                     }
                 }
