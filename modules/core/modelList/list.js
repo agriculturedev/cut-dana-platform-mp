@@ -1136,7 +1136,7 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
      * @return {void}
      */
     scrollToLayer: function (overlayerName) {
-        const $Overlayer = $("#Overlayer"),
+        const $Overlayer = Radio.request("Parser", "getTreeType") === "light" ? $("#tree") : $("#Overlayer"),
             element = $Overlayer.find("span").toArray().find(layer => layer.innerHTML === overlayerName);
 
         let overlayOffsetToTop,
@@ -1152,7 +1152,7 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
             targetPosition = overlayOffsetToTop + overlayerHeight / 2;
             offset = elementOffsetFromTop - targetPosition;
 
-            $("#Overlayer").animate({
+            $Overlayer.animate({
                 scrollTop: offset
             }, "fast");
         }
