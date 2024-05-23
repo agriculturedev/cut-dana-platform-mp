@@ -796,6 +796,7 @@ export default {
             if (typeof e !== "undefined" && e.code !== "Escape") {
                 return;
             }
+
             const scene = mapCollection.getMap("3D").getCesiumScene();
 
             scene.camera.flyTo({
@@ -814,6 +815,8 @@ export default {
                     this.setOverviewLayer(undefined);
                 }
             });
+
+            this.resetPov();
         },
         resetPov () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities;
