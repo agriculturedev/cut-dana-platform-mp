@@ -30,7 +30,9 @@ export default {
         return {
             widthString: "",
             depthString: "",
-            extrudedHeightString: ""
+            extrudedHeightString: "",
+            eastingString: "",
+            northingString: ""
         };
     },
     computed: {
@@ -131,24 +133,6 @@ export default {
                 this.setLineWidth(adjustedValue);
                 entities.getById(this.currentModelId).polyline.width = this.lineWidth + 2;
                 entities.getById(this.currentModelId).originalWidth = this.lineWidth;
-            }
-        },
-        eastingString: {
-            get () {
-                return this.prettyCoord(this.coordinateEasting);
-            },
-            set (value) {
-                this.setCoordinateEasting(this.formatCoord(value));
-                this.updateEntityPosition();
-            }
-        },
-        northingString: {
-            get () {
-                return this.prettyCoord(this.coordinateNorthing);
-            },
-            set (value) {
-                this.setCoordinateNorthing(this.formatCoord(value));
-                this.updateEntityPosition();
             }
         },
         heightString: {
@@ -266,6 +250,12 @@ export default {
                 this.widthString = Cesium.Cartesian3.distance(positions[1], positions[2]).toFixed(2).toString();
                 this.depthString = Cesium.Cartesian3.distance(positions[1], positions[0]).toFixed(2).toString();
             }
+        },
+        coordinateEasting (newVal) {
+            this.eastingString = this.prettyCoord(newVal);
+        },
+        coordinateNorthing (newVal) {
+            this.northingString = this.prettyCoord(newVal);
         }
     },
     mounted () {
@@ -298,12 +288,33 @@ export default {
          * @returns {void}
          */
         updateDimensions () {
+            this.eastingString = this.prettyCoord(this.coordinateEasting);
+            this.northingString = this.prettyCoord(this.coordinateNorthing);
+
             if (this.showDimensions) {
                 this.widthString = this.rectWidth.toFixed(2);
                 this.depthString = this.rectDepth.toFixed(2);
             }
             if (this.showExtrudedHeight) {
                 this.extrudedHeightString = this.extrudedHeight.toFixed(2);
+            }
+        },
+        /**
+         * Handle the changes of easting and northing coordinates.
+         * @param {String} coord the new coordinate.
+         * @param {String} type the type of the coordinate. Can be either east or north.
+         * @returns {void}
+         */
+        updateCoords (coord, type) {
+            const input = coord.length !== 0 ? coord : 0;
+
+            if (type === "east") {
+                this.setCoordinateEasting(this.formatCoord(input));
+                this.updateEntityPosition();
+            }
+            else if (type === "north") {
+                this.setCoordinateNorthing(this.formatCoord(input));
+                this.updateEntityPosition();
             }
         },
         /**
@@ -511,10 +522,11 @@ export default {
                             :label="$t(getLabel('eastingLabel'))"
                             :width-classes="['col', 'col-md']"
                             :buttons="currentProjection.id !== 'http://www.opengis.net/gml/srs/epsg.xml#4326'"
-                            @increment="eastingString = prettyCoord(coordinateEasting + coordAdjusted({shift: false, coordType: 'easting'}))"
-                            @increment-shift="eastingString = prettyCoord(coordinateEasting + coordAdjusted({shift: true, coordType: 'easting'}))"
-                            @decrement="eastingString = prettyCoord(coordinateEasting - coordAdjusted({shift: false, coordType: 'easting'}))"
-                            @decrement-shift="eastingString = prettyCoord(coordinateEasting - coordAdjusted({shift: true, coordType: 'easting'}))"
+                            @change="eastingString = eastingString.length !== 0 ? parseFloat(eastingString.replace(',', '.')).toFixed(2) : '0.00', updateCoords(eastingString, 'east')"
+                            @increment="eastingString = prettyCoord(coordinateEasting + coordAdjusted({shift: false, coordType: 'easting'})), updateCoords(eastingString, 'east')"
+                            @increment-shift="eastingString = prettyCoord(coordinateEasting + coordAdjusted({shift: true, coordType: 'easting'})), updateCoords(eastingString, 'east')"
+                            @decrement="eastingString = prettyCoord(coordinateEasting - coordAdjusted({shift: false, coordType: 'easting'})), updateCoords(eastingString, 'east')"
+                            @decrement-shift="eastingString = prettyCoord(coordinateEasting - coordAdjusted({shift: true, coordType: 'easting'})), updateCoords(eastingString, 'east')"
                         />
                         <EntityAttribute
                             id="northing"
@@ -523,10 +535,11 @@ export default {
                             :label="$t(getLabel('northingLabel'))"
                             :width-classes="['col', 'col-md']"
                             :buttons="currentProjection.id !== 'http://www.opengis.net/gml/srs/epsg.xml#4326'"
-                            @increment="northingString = prettyCoord(coordinateNorthing + coordAdjusted({shift: false, coordType: 'northing'}))"
-                            @increment-shift="northingString = prettyCoord(coordinateNorthing + coordAdjusted({shift: true, coordType: 'northing'}))"
-                            @decrement="northingString = prettyCoord(coordinateNorthing - coordAdjusted({shift: false, coordType: 'northing'}))"
-                            @decrement-shift="northingString = prettyCoord(coordinateNorthing - coordAdjusted({shift: true, coordType: 'northing'}))"
+                            @change="northingString = northingString.length !== 0 ? parseFloat(northingString.replace(',', '.')).toFixed(2) : '0.00', updateCoords(northingString, 'north')"
+                            @increment="northingString = prettyCoord(coordinateNorthing + coordAdjusted({shift: false, coordType: 'northing'})), updateCoords(northingString, 'north')"
+                            @increment-shift="northingString = prettyCoord(coordinateNorthing + coordAdjusted({shift: true, coordType: 'northing'})), updateCoords(northingString, 'north')"
+                            @decrement="northingString = prettyCoord(coordinateNorthing - coordAdjusted({shift: false, coordType: 'northing'})), updateCoords(northingString, 'north')"
+                            @decrement-shift="northingString = prettyCoord(coordinateNorthing - coordAdjusted({shift: true, coordType: 'northing'})), updateCoords(northingString, 'north')"
                         />
                     </div>
                 </div>

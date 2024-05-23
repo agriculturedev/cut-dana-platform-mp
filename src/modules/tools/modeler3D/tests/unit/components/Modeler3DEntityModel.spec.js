@@ -342,10 +342,14 @@ describe("src/modules/tools/modeler3D/components/Modeler3DEntityModel.vue", () =
             wrapper = shallowMount(Modeler3DEntityModelComponent, {store, localVue, provide});
             wrapper.vm.eastingString = "120.50";
 
+            wrapper.vm.updateCoords(wrapper.vm.eastingString, "east");
+
             expect(store.state.Tools.Modeler3D.coordinateEasting).to.eql(120.5);
             expect(Modeler3D.actions.updateEntityPosition.called).to.be.true;
 
             wrapper.vm.northingString = "150.00";
+
+            wrapper.vm.updateCoords(wrapper.vm.northingString, "north");
 
             expect(store.state.Tools.Modeler3D.coordinateNorthing).to.eql(150);
             expect(Modeler3D.actions.updateEntityPosition.called).to.be.true;
