@@ -254,6 +254,18 @@ export default {
             }
             this.setExtrudedHeight(adjustedValue);
             this.updateExtrudedHeight();
+        },
+        activeShapePoints () {
+            const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
+                entity = entities.getById(this.currentModelId);
+
+
+            if (entity?.polygon?.rectangle) {
+                const positions = entity.polygon.hierarchy.getValue().positions;
+
+                this.widthString = Cesium.Cartesian3.distance(positions[1], positions[2]).toFixed(2).toString();
+                this.depthString = Cesium.Cartesian3.distance(positions[1], positions[0]).toFixed(2).toString();
+            }
         }
     },
     mounted () {
