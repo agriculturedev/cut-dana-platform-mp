@@ -421,10 +421,15 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
 
         it("selectObject picks object and adds it to list", () => {
             let hiddenObjects = [];
+
+            store.commit("Tools/Modeler3D/setHideObjects", true);
+
             const pickObject = new global.Cesium.Cesium3DTileFeature({tileset: {}}),
+
                 tileSetModel = {
                     hideObjects: sinon.stub()
                 },
+
                 radioStub = sinon.stub(Radio, "request").returns([tileSetModel]);
 
             scene.drillPick = sinon.stub().returns([pickObject]);
@@ -437,6 +442,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3D.vue", () => {
             }]);
 
             wrapper = shallowMount(Modeler3DComponent, {store, localVue});
+
             wrapper.vm.selectObject(event);
 
             hiddenObjects = store.state.Tools.Modeler3D.hiddenObjects;

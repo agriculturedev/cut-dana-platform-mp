@@ -80,7 +80,7 @@ export default {
     height: 0,
     hiddenObjects: [],
     hiddenObjectsWithLayerId: [],
-    hideObjects: true,
+    hideObjects: false,
     highlightStyle: {
         silhouetteColor: "#E20D0F",
         silhouetteSize: 4

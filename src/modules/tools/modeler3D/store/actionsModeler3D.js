@@ -747,7 +747,7 @@ const actions = {
             strokeWidth: 1,
             extrudedHeight: 20
         });
-        commit("setHideObjects", true);
+        commit("setHideObjects", false);
         commit("setPovActive", false);
         commit("setScale", 1);
         commit("setCurrentModelId", null);

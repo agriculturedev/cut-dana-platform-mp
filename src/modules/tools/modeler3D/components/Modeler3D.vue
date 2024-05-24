@@ -360,8 +360,8 @@ export default {
 
                 this.setIsDragging(true);
                 scene.screenSpaceCameraController.enableInputs = false;
-                this.originalHideOption = this.hideObjects;
                 this.setHideObjects(false);
+                eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
                 eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
                 document.getElementById("map").style.cursor = "grabbing";
@@ -383,7 +383,7 @@ export default {
                 }
                 else if (entity?.wasDrawn) {
                     this.originalPosition = {entityId: entity.id, position: this.getCenterFromGeometry(entity)};
-
+                    eventHandler.setInputAction(this.selectObject, Cesium.ScreenSpaceEventType.LEFT_CLICK);
                     if (this.currentModelId && this.currentModelId === entity.id) {
                         eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
                     }
@@ -391,8 +391,15 @@ export default {
                 else {
                     this.originalPosition = entity ? {entityId: entity.id, position: entity.position.getValue()} : null;
                     eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-                }
+                    if (this.importedEntities.length) {
+                        const importedEntity = this.importedEntities.find(importEntity => importEntity.entityId === entity?.id);
 
+                        if (importedEntity) {
+                            importedEntity.position = entity.position.getValue();
+                            eventHandler.setInputAction(this.selectObject, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+                        }
+                    }
+                }
                 eventHandler.setInputAction(this.onMouseUp, Cesium.ScreenSpaceEventType.LEFT_UP);
             }
         },
@@ -412,13 +419,13 @@ export default {
             if (!Cesium.defined(picked[0])) {
                 return;
             }
-
             entity = Cesium.defaultValue(picked[0]?.id, picked[0]?.primitive?.id);
 
             if (entity instanceof Cesium.Entity && !entity.cylinder) {
                 this.setCurrentModelId(entity.id);
                 this.setCylinderId(null);
             }
+
             else if (this.hideObjects && picked[0] instanceof Cesium.Cesium3DTileFeature) {
                 const features = getGfiFeatures.getGfiFeaturesByTileFeature(picked[0]),
                     gmlId = features[0]?.getProperties()[this.gmlIdPath],
@@ -544,9 +551,11 @@ export default {
                 this.setCylinderId(null);
             }
 
-            this.setHideObjects(this.originalHideOption);
+            if (this.originalHideOption) {
+                this.setHideObjects(this.originalHideOption);
+                eventHandler.setInputAction(this.selectObject, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            }
             this.setUseAnchorMove(true);
-
             document.getElementById("map").style.cursor = "grab";
             setTimeout(() => {
                 scene.screenSpaceCameraController.enableInputs = true;
@@ -851,8 +860,11 @@ export default {
                 }
             }
             else if (id === "hideObjectsSwitch" || this.hideObjects) {
+                this.originalHideOption = !this.hideObjects;
                 this.setHideObjects(!this.hideObjects);
-                this.escapePedView(undefined);
+                if (this.povActive) {
+                    this.escapePedView(undefined);
+                }
                 // document.body.style.cursor = this.originalCursorStyle;
             }
 

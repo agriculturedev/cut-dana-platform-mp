@@ -239,7 +239,7 @@ export default {
             this.setExtrudedHeight(adjustedValue);
             this.updateExtrudedHeight();
         },
-        activeShapePoints () {
+        isDragging () {
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
                 entity = entities.getById(this.currentModelId);
 
