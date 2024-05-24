@@ -33,6 +33,7 @@
   - Selected drawn entities can be exported again as geojson.
 - Issue #1165: Fixed a bug in scrollToLayer().
 - Issue #1181: Fixed printing multipolygon features when labelField is configured.
+- Removed empty span-Tag in Layertree for singleBaseLayer
 
 ---
 
