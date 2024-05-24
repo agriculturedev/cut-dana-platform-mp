@@ -341,7 +341,7 @@ export default {
          * @returns {void}
          */
         moveEntity (event) {
-            if (this.isDrawing) {
+            if (this.isDrawing || this.povActive) {
                 return;
             }
 
@@ -402,7 +402,7 @@ export default {
          * @returns {void}
          */
         selectObject (event) {
-            if (this.isDrawing) {
+            if (this.isDrawing || this.povActive) {
                 return;
             }
             let entity = null;
@@ -487,7 +487,7 @@ export default {
          * @returns {void}
          */
         onMouseMove (event) {
-            if (!this.isDragging) {
+            if (!this.isDragging || this.povActive) {
                 return;
             }
 
@@ -847,11 +847,12 @@ export default {
                     this.setPovActive(true);
                     this.setHideObjects(false);
                     eventHandler.setInputAction(this.cursorCheck, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                    this.setCurrentModelId(null);
                 }
             }
             else if (id === "hideObjectsSwitch" || this.hideObjects) {
                 this.setHideObjects(!this.hideObjects);
-                this.resetPov();
+                this.escapePedView(undefined);
                 // document.body.style.cursor = this.originalCursorStyle;
             }
 
@@ -956,7 +957,7 @@ export default {
                             href="#"
                             class="nav-link"
                             :class="[importTabClasses, {'disabled': isDrawing}]"
-                            @click.prevent="setCurrentView('import')"
+                            @click.prevent="setCurrentView('import'), povActive ? escapePedView(undefined) : ''"
                         >{{ $t("modules.tools.modeler3D.nav.importTitle") }}</a>
                     </li>
                     <li
@@ -968,7 +969,7 @@ export default {
                             href="#"
                             class="nav-link"
                             :class="[drawTabClasses, {'disabled': isDrawing}]"
-                            @click.prevent="setCurrentView('draw')"
+                            @click.prevent="setCurrentView('draw'), povActive ? escapePedView(undefined) : ''"
                         >{{ $t("modules.tools.modeler3D.nav.drawTitle") }}</a>
                     </li>
                     <li
