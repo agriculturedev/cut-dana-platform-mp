@@ -1137,24 +1137,12 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
      */
     scrollToLayer: function (overlayerName) {
         const $Overlayer = Radio.request("Parser", "getTreeType") === "light" ? $("#tree") : $("#Overlayer"),
-            element = $Overlayer.find("span").toArray().find(layer => layer.innerHTML === overlayerName);
-
-        let overlayOffsetToTop,
-            overlayerHeight,
-            elementOffsetFromTop,
-            targetPosition,
-            offset;
+            element = $Overlayer.find("span").toArray().find(layer => {
+                return layer.innerHTML === overlayerName || layer.title.trim() === overlayerName;
+            });
 
         if (element !== undefined) {
-            overlayOffsetToTop = $Overlayer.offset().top;
-            overlayerHeight = $Overlayer.height();
-            elementOffsetFromTop = element ? $(element).offset().top : null;
-            targetPosition = overlayOffsetToTop + overlayerHeight / 2;
-            offset = elementOffsetFromTop - targetPosition;
-
-            $Overlayer.animate({
-                scrollTop: offset
-            }, "fast");
+            element.scrollIntoView({behavior: "smooth", block: "center"});
         }
     },
 
