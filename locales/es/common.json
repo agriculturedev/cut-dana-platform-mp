@@ -797,7 +797,8 @@
                 "terminated": "encontrado",
                 "hazardous": "Operación interrumpida",
                 "childcare": "Guardería",
-                "bplan": "Plan catastral"
+                "bplan": "Plan catastral",
+                "wrongGeomType": "Error en la búsqueda: No se admite el tipo de geometría. Compruebe la salida de la consola."
             },
             "bkg": {
                 "errorMsg": "Servicio de direcciones BKG no disponible."

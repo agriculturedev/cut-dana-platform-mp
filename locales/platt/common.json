@@ -935,7 +935,8 @@
                 "terminated": "festgestellt",
                 "hazardous": "Störfallbetrieb",
                 "childcare": "Kita",
-                "bplan": "B-Plan"
+                "bplan": "B-Plan",
+                "wrongGeomType": "Fehler in der Suche: Nicht unterstützter Geometrietyp. Bitte Konsolenausgabe prüfen."
             },
             "bkg": {
                 "errorMsg": "BKG-Adressdienst nicht erreichbar."

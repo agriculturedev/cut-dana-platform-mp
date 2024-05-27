@@ -25,6 +25,8 @@
   - Dimensions of rectangles can now be set using forms when selected.
   - Added copy function for drawn models.
   - Added options section to draw overview.
+- Issue #1186: Add warning to WFS search for unsupported geometry types.
+
 ### Changed
 - Modeler3D:
   - Polygon and line highlighting has been changed

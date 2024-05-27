@@ -1314,7 +1314,8 @@
                 "terminated": "terminated",
                 "hazardous": "event of malfunction",
                 "childcare": "childcare",
-                "bplan": "b-plan"
+                "bplan": "b-plan",
+                "wrongGeomType": "Error in the search: Geometry type not supported. Please check console output."
             },
             "bkg": {
                 "errorMsg": "BKG address service is currently not available."

@@ -100,6 +100,10 @@ function getWKTGeom (content, geometryType = "POLYGON") {
         regExp = new RegExp(", \\)\\?\\(", "g");
         wkt = wkt.replace(regExp, "),(");
     }
+    else {
+        console.warn(`The geometry type ${type} is not supported.`);
+        return false;
+    }
     return format.readFeature(wkt);
 }
 

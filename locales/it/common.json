@@ -1215,7 +1215,8 @@
                 "terminated": "fisso",
                 "hazardous": "Azienda pericolosa",
                 "childcare": "Asilo",
-                "bplan": "Piano regolatore"
+                "bplan": "Piano regolatore",
+                "wrongGeomType": "Errore nella ricerca: Tipo di geometria non supportato. Controllare l'output della console."
             },
             "bkg": {
                 "errorMsg": "Servizio BKG non disponibile."

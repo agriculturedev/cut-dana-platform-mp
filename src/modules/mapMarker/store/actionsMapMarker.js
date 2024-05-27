@@ -169,6 +169,9 @@ export default {
      * @returns {void}
      */
     placingPolygonMarker ({state, commit, dispatch}, feature) {
+        if (!feature) {
+            return;
+        }
         const styleObject = styleList.returnStyleObject(state.polygonStyleId);
 
         dispatch("removePolygonMarker");

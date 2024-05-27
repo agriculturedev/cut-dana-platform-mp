@@ -768,7 +768,8 @@
                 "terminated": "verificado",
                 "hazardous": "Operação de emergência",
                 "childcare": "Infantário",
-                "bplan": "Plano de desenvolvimento"
+                "bplan": "Plano de desenvolvimento",
+                "wrongGeomType": "Erro na pesquisa: Tipo de geometria não suportado. Verifique a saída da consola."
             },
             "bkg": {
                 "errorMsg": "Serviço de endereços do BKG não disponível."

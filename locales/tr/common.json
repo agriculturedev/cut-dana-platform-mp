@@ -936,7 +936,8 @@
                 "terminated": "belirlendi",
                 "hazardous": "Arıza operasyonu",
                 "childcare": "Anaokulu",
-                "bplan": "B planı"
+                "bplan": "B planı",
+                "wrongGeomType": "Arama sırasında hata oluştu: Geometri türü desteklenmiyor. Lütfen konsol çıktısını kontrol edin."
             },
             "bkg": {
                 "errorMsg": "BKG adres servisine ulaşılamıyor."

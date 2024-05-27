@@ -653,17 +653,21 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
 
             if (store.getters.styleListLoaded) {
                 store.dispatch("MapMarker/placingPolygonMarker", getWKTGeom(hit));
-                extent = store.getters["MapMarker/markerPolygon"].getSource().getExtent();
-                Radio.trigger("Map", "zoomToExtent", {extent: extent, options: {maxZoom: zoomLevel}});
             }
             else {
                 store.watch((state, getters) => getters.styleListLoaded, value => {
                     if (value) {
                         store.dispatch("MapMarker/placingPolygonMarker", getWKTGeom(hit));
-                        extent = store.getters["MapMarker/markerPolygon"].getSource().getExtent();
-                        Radio.trigger("Map", "zoomToExtent", {extent: extent, options: {maxZoom: zoomLevel}});
                     }
                 });
+            }
+            if (!getWKTGeom(hit)) {
+                store.dispatch("Alerting/addSingleAlert", i18next.t("common:modules.searchbar.specialWFS.wrongGeomType"), {root: true});
+            }
+
+            extent = store.getters["MapMarker/markerPolygon"].getSource().getExtent();
+            if (this.extentIsValid(extent)) {
+                Radio.trigger("Map", "zoomToExtent", {extent: extent, options: {maxZoom: zoomLevel}});
             }
         }
     },
@@ -1186,6 +1190,23 @@ const SearchbarView = Backbone.View.extend(/** @lends SearchbarView.prototype */
             firstPoint = geomCollection.getGeometries().find(geom => geom.getType() === "Point");
 
         return firstPoint ? firstPoint.getCoordinates() : hit.coordinate;
+    },
+    /**
+     * Checks if a given Array contains valid coordinates and has the right length.
+     * Is used to check if a given extent is valid or includes not finite numbers.
+     * @param {Array} extent - Array with coordinates of an extent
+     * @returns {Boolean} isValid - true if the extent is valid, false if not
+     */
+    extentIsValid: function (extent) {
+        if (extent.length !== 4) {
+            return false;
+        }
+        for (let i = 0; i < extent.length; i++) {
+            if (typeof extent[i] !== "number" || !isFinite(extent[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 });
 
