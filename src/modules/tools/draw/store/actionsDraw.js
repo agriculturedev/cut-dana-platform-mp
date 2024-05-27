@@ -192,7 +192,7 @@ const initialState = JSON.parse(JSON.stringify(stateDraw)),
          * @param {Number} [payload.maxFeatures] Max amount of features to be added to the map.
          * @returns {void}
          */
-        createDrawInteractionListener ({rootState, rootGetters, state, dispatch, getters, commit}, {isOuterCircle, drawInteraction, maxFeatures}) {
+        createDrawInteractionListener ({rootState, state, dispatch, getters, commit}, {isOuterCircle, drawInteraction, maxFeatures}) {
             const interaction = state["drawInteraction" + drawInteraction];
             let tooltip;
 
@@ -207,7 +207,7 @@ const initialState = JSON.parse(JSON.stringify(stateDraw)),
                     commit("setSquareSide", 0);
                 }
                 if (drawTypeId === "drawCircle" || drawTypeId === "drawDoubleCircle" || drawTypeId === "drawSquare" || drawTypeId === "drawArea" || drawTypeId === "drawLine") {
-                    tooltip = createTooltipOverlay({state, getters, commit, dispatch}, rootGetters["Maps/projection"].getCode());
+                    tooltip = createTooltipOverlay({state, getters, commit, dispatch}, rootState.Maps.projection.getCode());
                     const map = mapCollection.getMap(rootState.Maps.mode);
 
                     map.addOverlay(tooltip);
@@ -299,14 +299,14 @@ const initialState = JSON.parse(JSON.stringify(stateDraw)),
                             await dispatch("setAsCurrentFeatureAndApplyStyleSettings", feature);
                             if (!tooltip && ["drawCircle", "drawDoubleCircle"].includes(state.drawType.id)) {
                                 if (center === JSON.stringify(feature.getGeometry().getCenter())) {
-                                    tooltip = createTooltipOverlay({state, getters, commit, dispatch});
+                                    tooltip = createTooltipOverlay({state, getters, commit, dispatch}, rootState.Maps.projection.getCode());
                                     map.addOverlay(tooltip);
                                     map.on("pointermove", tooltip.get("mapPointerMoveEvent"));
                                     state.selectedFeature.getGeometry().on("change", tooltip.get("featureChangeEvent"));
                                 }
                             }
                             else if (!tooltip && state.drawType.id === "drawSquare" || state.drawType.id === "drawArea" || state.drawType.id === "drawLine") {
-                                tooltip = createTooltipOverlay({state, getters, commit, dispatch});
+                                tooltip = createTooltipOverlay({state, getters, commit, dispatch}, rootState.Maps.projection.getCode());
                                 map.addOverlay(tooltip);
                                 map.on("pointermove", tooltip.get("mapPointerMoveEvent"));
                                 state.selectedFeature.getGeometry().on("change", tooltip.get("featureChangeEvent"));
@@ -388,14 +388,14 @@ const initialState = JSON.parse(JSON.stringify(stateDraw)),
                             await dispatch("setAsCurrentFeatureAndApplyStyleSettings", feature);
                             if (!tooltip && ["drawCircle", "drawDoubleCircle"].includes(state.drawType.id)) {
                                 if (center === JSON.stringify(feature.getGeometry().getCenter())) {
-                                    tooltip = createTooltipOverlay({state, getters, commit, dispatch});
+                                    tooltip = createTooltipOverlay({state, getters, commit, dispatch}, rootState.Maps.projection.getCode());
                                     map.addOverlay(tooltip);
                                     map.on("pointermove", tooltip.get("mapPointerMoveEvent"));
                                     state.selectedFeature.getGeometry().on("change", tooltip.get("featureChangeEvent"));
                                 }
                             }
                             else if (!tooltip && state.drawType.id === "drawSquare" || state.drawType.id === "drawArea" || state.drawType.id === "drawLine") {
-                                tooltip = createTooltipOverlay({state, getters, commit, dispatch});
+                                tooltip = createTooltipOverlay({state, getters, commit, dispatch}, rootState.Maps.projection.getCode());
                                 map.addOverlay(tooltip);
                                 map.on("pointermove", tooltip.get("mapPointerMoveEvent"));
                                 state.selectedFeature.getGeometry().on("change", tooltip.get("featureChangeEvent"));
