@@ -89,7 +89,7 @@ export default {
         },
 
         /**
-         * Update tzhe current layout.
+         * Update the current layout.
          * @param {String} layoutKey The key of layout element.
          * @param {String} value The value to be set.
          * @returns {void}

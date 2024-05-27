@@ -556,12 +556,21 @@ export default {
          * @returns {void}
          */
         resetDrawing (layout) {
-            if (layout) {
-                this.setCurrentLayout(layout);
-            }
+            this.setLayout(layout);
+
             if (this.isDrawing) {
                 this.stopDrawing();
                 this.startDrawing();
+            }
+        },
+        /**
+         * Sets the Layout
+         * @param {Object} layout - The new layout with current values
+         * @returns {void}
+         */
+        setLayout (layout) {
+            if (layout) {
+                this.setCurrentLayout(layout);
             }
         },
         /**
@@ -948,7 +957,7 @@ export default {
                 <DrawLayout
                     :current-layout="currentLayout"
                     :selected-draw-type="selectedDrawType"
-                    @update-layout="resetDrawing"
+                    @update-layout="setLayout"
                 />
             </div>
         </AccordionItem>
