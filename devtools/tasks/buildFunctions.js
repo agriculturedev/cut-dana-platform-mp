@@ -10,7 +10,7 @@ const fs = require("fs-extra"),
 
     distPath = path.resolve(rootPath, "dist/"),
     buildTempPath = path.resolve(distPath, "build/"),
-    mastercodeVersionPath = path.resolve(distPath, "mastercode/", mastercodeVersionFolderName);
+    mastercodeVersionPath = path.resolve(distPath, "mastercode/", mastercodeVersionFolderName).split(path.sep).join("/");
 
 /**
  * remove files if if they already exist.
@@ -30,7 +30,7 @@ function buildSinglePortal (allPortalPaths) {
     /* eslint-disable-next-line no-process-env */
     const appendix = process.env.BITBUCKET_BRANCH && process.env.MASTERPORTAL_DISTRIBUTION_RUN !== "true" ? "_" + process.env.BITBUCKET_BRANCH.replace(/\//g, "_") : "",
         portalName = sourcePortalPath.split(path.sep).pop(),
-        distPortalPath = path.resolve(distPath, portalName + appendix);
+        distPortalPath = path.resolve(distPath, portalName + appendix).split(path.sep).join("/");
 
     fs.remove(distPortalPath).then(() => {
         // console.warn("NOTE: Deleted directory \"" + distPortalPath + "\".");
