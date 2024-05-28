@@ -1,14 +1,17 @@
 // eslint.config.js
-import js from "@eslint/js";
-import pluginChaiFriendly from "eslint-plugin-chai-friendly";
-import pluginVuejsAccessibility from "eslint-plugin-vuejs-accessibility";
-import pluginVue from "eslint-plugin-vue";
-import {fixupPluginRules} from "@eslint/compat";
-import pluginJsdoc from "eslint-plugin-jsdoc";
+const js = require("@eslint/js"),
+//const pluginChaiFriendly = require("eslint-plugin-chai-friendly");
+pluginVuejsAccessibility = require("eslint-plugin-vuejs-accessibility"),
+pluginVue = require("eslint-plugin-vue"),
+pluginJsdoc = require("eslint-plugin-jsdoc");
+pluginMocha = require("eslint-plugin-mocha");
 
-export default [
+module.exports = [
     js.configs.recommended,
     ...pluginVue.configs["flat/recommended"],
+    pluginMocha.configs.flat.recommended,
+    // pluginChaiFriendly.configs.recommended,
+    // pluginJsdoc.configs.recommended,
     {
         languageOptions: {
             ecmaVersion: 2023,
@@ -23,19 +26,16 @@ export default [
                 Cesium: true,
                 i18next: true,
                 mapCollection: true,
-                // browser global variables//old env
+                // browser global variables//old env - probably needs to be changed
                 browser: true,
-                // adds all of the Mocha testing global variables.
-                mocha: true,
                 node: true,
                 es6: true,
                 amd: true
             }
         },
         plugins: {
-            "chai-friendly": fixupPluginRules(pluginChaiFriendly),
-            "vuejs-accessibility": fixupPluginRules(pluginVuejsAccessibility),
-            "eslint-plugin-jsdoc": fixupPluginRules(pluginJsdoc)
+            "vuejs-accessibility": pluginVuejsAccessibility,
+            "eslint-plugin-jsdoc": pluginJsdoc
         },
         rules: {
             // Possible Problems - These rules relate to possible logic errors in code:
@@ -279,26 +279,27 @@ export default [
              * in the map interactions
              */
             "vuejs-accessibility/no-onchange": "off",
-            // eslint-plugin-chai-friendly
-            "chai-friendly/no-unused-expressions": "error",
             // eslint-plugin-backbone
             "backbone/no-native-jquery": [0, "selector"],
             "backbone/no-silent": 0
-        },
+        }
+    },
+    {
         ignores: [
-            "node_modules/",
-            "build/",
-            "dist/",
-            "portalconfigs/",
-            "scripte/",
-            "jsdoc/",
-            "lib/",
-            "examples/",
+            "**/node_modules/",
+            "**/build/*",
+            "**/unit/*",
+            "**/dist/*",
+            "portalconfigs/*",
+            "**/scripte/*",
+            "**/jsdoc/*",
+            "**/lib/*",
+            "**/examples/*",
             "/portal/*",
-            "!/portal/basic",
-            "!/portal/master",
-            "!/portal/masterCustom",
-            "!/portal/masterDefault"
+            "!/portal/basic/*",
+            "!/portal/master/*",
+            "!/portal/masterCustom/*",
+            "!/portal/masterDefault/"
         ]
     }
 ];

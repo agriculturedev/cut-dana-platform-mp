@@ -14,7 +14,6 @@
     "url": "https://bitbucket.org/geowerkstatt-hamburg/masterportal.git"
   },
   "main": "js/main.js",
-  "type": "module",
   "scripts": {
     "start": "webpack-dev-server --config devtools/webpack.dev.js",
     "start:ssl": "webpack-dev-server --config devtools/webpack.dev.js --https --cert devtools/certificate/localhost.pem --key devtools/certificate/localhost.key",
@@ -124,6 +123,7 @@
     "eslint-plugin-backbone": "^2.1.1",
     "eslint-plugin-chai-friendly": "^0.7.4",
     "eslint-plugin-jsdoc": "^48.2.6",
+    "eslint-plugin-mocha": "^10.4.3",
     "eslint-plugin-vue": "^9.25.0",
     "eslint-plugin-vuejs-accessibility": "^2.3.0",
     "eslint-plugin-you-dont-need-lodash-underscore": "^6.12.0",
