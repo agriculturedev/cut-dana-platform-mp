@@ -1,5 +1,5 @@
 <script>
-import ChartJs from "chart.js";
+import ChartJs from "chart.js/auto";
 import deepAssign from "../../../utils/deepAssign.js";
 import thousandsSeparator from "../../../utils/thousandsSeparator";
 
@@ -28,11 +28,21 @@ export default {
         return {
             defaultOptions: {
                 responsive: true,
-                legend: {
-                    align: "start"
+                plugins: {
+                    legend: {
+                        align: "start"
+                    },
+                    tooltips: {
+                        callbacks: {
+                        // use label callback to return the desired label
+                            label: (tooltipItem, data) => {
+                                return data.datasets[tooltipItem.datasetIndex].label + ": " + thousandsSeparator(tooltipItem.value);
+                            }
+                        }
+                    }
                 },
                 scales: {
-                    yAxes: [{
+                    y: [{
                         ticks: {
                             precision: 0,
                             beginAtZero: true,
@@ -41,16 +51,9 @@ export default {
                             }
                         }
                     }]
-                },
-                tooltips: {
-                    callbacks: {
-                        // use label callback to return the desired label
-                        label: (tooltipItem, data) => {
-                            return data.datasets[tooltipItem.datasetIndex].label + ": " + thousandsSeparator(tooltipItem.value);
-                        }
-                    }
                 }
             },
+
             chart: null
         };
     },
@@ -65,9 +68,9 @@ export default {
              * @see afterFit https://www.chartjs.org/docs/latest/axes/?h=afterfit
              * @returns {void}  -
              */
-            ChartJs.Legend.prototype.afterFit = function () {
-                this.height += 10;
-            };
+            // ChartJs.Legend.prototype.afterFit = function () {
+            //     this.height += 10;
+            // };
 
             this.resetChart(this.data);
         });

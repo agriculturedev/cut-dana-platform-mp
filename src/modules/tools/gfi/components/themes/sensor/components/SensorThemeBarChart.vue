@@ -131,12 +131,15 @@ export default {
                 type: "bar",
                 data: this.createChartData(calculatedData),
                 options: {
-                    title: this.createChartTitle(),
                     responsive: true,
-                    legend: this.createChartLegend(),
-                    tooltips: this.createChartTooltip(maxValue),
                     scales: this.createChartScales(maxValue),
-                    layout: this.createChartLayout()
+                    layout: this.createChartLayout(),
+                    plugins: {
+                        title: this.createChartTitle(),
+                        legend: this.createChartLegend(),
+                        tooltips: this.createChartTooltip(maxValue)
+
+                    }
                 }
             });
         },
