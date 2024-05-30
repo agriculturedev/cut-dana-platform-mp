@@ -39,9 +39,9 @@
 - Issue #1160: Fixed bug in area calculation during editing.
 - Issue #1165: Fixed a bug in scrollToLayer(), where focus-behaviour did not work as intended in tree.
 - Issue #1166: function isHTML now recognizes more HTML tags in one String as valid.
+- Issue #1179: Add Parameter "WithCredentials" to highlightFeaturesByAttribute axios request, so that it works with secured layers.
 - Issue #1181: Fixed printing multipolygon features when labelField is configured.
 - Removed empty span-Tag in Layertree for singleBaseLayer
-
 
 ---
 

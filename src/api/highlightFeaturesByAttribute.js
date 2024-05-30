@@ -341,11 +341,13 @@ export default {
             dispatch("Alerting/addSingleAlert", i18next.t("common:modules.highlightFeaturesByAttribute.messages.configurationError"), {root: true});
             return;
         }
+
         axios.post(layer.url, requestBody, {
             headers: {
                 "Content-Type": "raw"
             },
-            timeout: layer?.timeout
+            timeout: layer?.timeout,
+            withCredentials: layer.isSecured
         })
             .then(response => {
                 this.handleGetFeatureResponse(dispatch, rootGetters, response, layer);
