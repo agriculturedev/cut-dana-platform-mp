@@ -56,9 +56,7 @@ describe("src/modules/tools/saveSelection/store/actionsSaveSelection.js", () => 
             actions.createUrlParams({commit}, layerList);
             expect(commit.calledThrice).to.be.true;
             expect(commit.firstCall.args[0]).to.equal("setLayerIds");
-            // NOTICE: strange behaviour: if only baslayers are in urlParams, it must be reversed
-            // NOTICE in src_3_0_0 test must change!
-            expect(commit.firstCall.args[1]).to.deep.equal(["2", "1"]);
+            expect(commit.firstCall.args[1]).to.deep.equal(["1", "2"]);
             expect(commit.secondCall.args[0]).to.equal("setLayerTransparencies");
             expect(commit.secondCall.args[1]).to.deep.equal([true, true]);
             expect(commit.thirdCall.args[0]).to.equal("setLayerVisibilities");

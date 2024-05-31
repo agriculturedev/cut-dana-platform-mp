@@ -41,6 +41,7 @@
 - Issue #1166: function isHTML now recognizes more HTML tags in one String as valid.
 - Issue #1179: Add Parameter "WithCredentials" to highlightFeaturesByAttribute axios request, so that it works with secured layers.
 - Issue #1181: Fixed printing multipolygon features when labelField is configured.
+- Issue #1191: Create URL with right order of baselayers if only baselayers are selected.
 - Removed empty span-Tag in Layertree for singleBaseLayer
 
 ---

@@ -18,24 +18,16 @@ const actions = {
      */
     createUrlParams ({commit}, layerList) {
         const layerTransparencies = [],
-            layerVisibilities = [],
-            subjectDataLayer = layerList.filter(layer => !layer.isBaseLayer);
-        let layers = [],
-            baseLayer = layerList.filter(layer => layer.isBaseLayer);
+            layerVisibilities = [];
 
-        sortObjects(baseLayer, "selectionIDX");
-        // NOTICE strange behaviour: if only baslayers are in urlParams, it must be reversed
-        // NOTICE in src_3_0_0 the handling of visible layers uses only zIndex and is handeled in another way, so it doesn't matter why it is strange
-        if (subjectDataLayer.length === 0) {
-            baseLayer = baseLayer.reverse();
-        }
-        layers = baseLayer.concat(subjectDataLayer);
-        layers.forEach(layerModel => {
+        sortObjects(layerList, "selectionIDX");
+
+        layerList.forEach(layerModel => {
             layerTransparencies.push(layerModel.transparency);
             layerVisibilities.push(layerModel.isVisibleInMap);
         });
 
-        commit("setLayerIds", layers.map(el => el.id));
+        commit("setLayerIds", layerList.map(el => el.id));
         commit("setLayerTransparencies", layerTransparencies);
         commit("setLayerVisibilities", layerVisibilities);
     }
