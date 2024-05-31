@@ -1,16 +1,16 @@
 // eslint.config.js
-const js = require("@eslint/js"),
-//const pluginChaiFriendly = require("eslint-plugin-chai-friendly");
-pluginVuejsAccessibility = require("eslint-plugin-vuejs-accessibility"),
-pluginVue = require("eslint-plugin-vue"),
+js = require("@eslint/js");
+pluginVuejsAccessibility = require("eslint-plugin-vuejs-accessibility");
+pluginVue = require("eslint-plugin-vue");
 pluginJsdoc = require("eslint-plugin-jsdoc");
 pluginMocha = require("eslint-plugin-mocha");
 
+pluginChaiFriendly = require("eslint-plugin-chai-friendly");
 module.exports = [
     js.configs.recommended,
     ...pluginVue.configs["flat/recommended"],
     pluginMocha.configs.flat.recommended,
-    // pluginChaiFriendly.configs.recommended,
+    pluginChaiFriendly.configs.recommended,
     // pluginJsdoc.configs.recommended,
     {
         languageOptions: {
@@ -40,12 +40,12 @@ module.exports = [
         rules: {
             // Possible Problems - These rules relate to possible logic errors in code:
             "array-callback-return": "error",
-            "no-await-in-loop": "off", // Is used in End2End tests
+            // "no-await-in-loop": "off", // Is used in End2End tests
             "no-constructor-return": "off", // Is deliberately ignored in some places
             "no-control-regex": "off",
             "no-duplicate-imports": "error",
             "no-cond-assign": ["error", "always"],
-            "no-promise-executor-return": "off", // Is used in End2End tests
+            // "no-promise-executor-return": "off", // Is used in End2End tests
             "no-self-compare": "error",
             "no-template-curly-in-string": "off", // Is uses in some strings
             "no-unmodified-loop-condition": "error",
@@ -123,6 +123,10 @@ module.exports = [
             "prefer-const": "error",
             "prefer-numeric-literals": "error",
             "prefer-rest-params": "error",
+            "no-undef": "off",
+            "no-unused-vars": "off",
+            "global-require": "off",
+            "no-constant-binary-expression": "off",
             radix: "error",
             "spaced-comment": "error",
             "vars-on-top": "error",
@@ -299,7 +303,8 @@ module.exports = [
             "mocha/no-exports": "off",
             "mocha/no-skipped-tests": "off",
             "mocha/no-async-describe": "off",
-            "mocha/max-top-level-suites": "off"
+            "mocha/max-top-level-suites": "off",
+            "mocha/no-sibling-hooks": "off"
         }
     },
     {
