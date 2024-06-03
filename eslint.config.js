@@ -6,12 +6,14 @@ pluginJsdoc = require("eslint-plugin-jsdoc");
 pluginMocha = require("eslint-plugin-mocha");
 
 pluginChaiFriendly = require("eslint-plugin-chai-friendly");
+pluginBackbone = require("eslint-plugin-backbone");
+
 module.exports = [
     js.configs.recommended,
     ...pluginVue.configs["flat/recommended"],
+    ...pluginVuejsAccessibility.configs["flat/recommended"],
     pluginMocha.configs.flat.recommended,
-    pluginChaiFriendly.configs.recommended,
-    // pluginJsdoc.configs.recommended,
+    pluginJsdoc.configs["flat/recommended"],
     {
         languageOptions: {
             ecmaVersion: 2023,
@@ -34,8 +36,10 @@ module.exports = [
             }
         },
         plugins: {
+            // pluginJsdoc,
             "vuejs-accessibility": pluginVuejsAccessibility,
-            "eslint-plugin-jsdoc": pluginJsdoc
+            // "eslint-plugin-jsdoc": pluginJsdoc,
+            "chai-friendly": pluginChaiFriendly
         },
         rules: {
             // Possible Problems - These rules relate to possible logic errors in code:
@@ -192,19 +196,40 @@ module.exports = [
             "no-path-concat": "error",
             "no-process-env": "error",
             "no-process-exit": "error",
-            // "require-jsdoc": [
-            //     "error",
-            //     {
-            //         require: {
-            //             FunctionDeclaration: true,
-            //             MethodDefinition: true,
-            //             ClassDeclaration: true,
-            //             ArrowFunctionExpression: true,
-            //             FunctionExpression: false
-            //         }
-            //     }
-            // ],
-            // "valid-jsdoc": "error",
+            // eslint-plugin-jsdoc
+            "jsdoc/check-types": "off",
+            "jsdoc/require-returns": "off",
+            "jsdoc/check-tag-names": "off",
+            "jsdoc/no-undefined-types": "off",
+            "jsdoc/no-defaults": "off",
+            "jsdoc/check-alignment": "off",
+            "jsdoc/tag-lines": "off",
+            "jsdoc/valid-types": "off",
+            "jsdoc/require-returns-check": "off",
+            "jsdoc/check-param-names": "off",
+            "jsdoc/no-multi-asterisks": "off",
+            "jsdoc/require-param": "off",
+            "jsdoc/require-property-description": "off",
+            "jsdoc/require-property": "off",
+            "jsdoc/require-property-name": "off",
+            "jsdoc/check-property-names": "off",
+            "jsdoc/multiline-blocks": "off",
+            "jsdoc/empty-tags": "off",
+            "jsdoc/implements-on-classes": "off",
+            "jsdoc/require-param-name": "off",
+            "jsdoc/require-param-description": "off",
+            "jsdoc/require-jsdoc": [
+                "error",
+                {
+                    require: {
+                        FunctionDeclaration: true,
+                        MethodDefinition: true,
+                        ClassDeclaration: true,
+                        ArrowFunctionExpression: false,
+                        FunctionExpression: false
+                    }
+                }
+            ],
             // vue plugin Base Rules
             "vue/comment-directive": [
                 "error",
@@ -295,6 +320,9 @@ module.exports = [
             // eslint-plugin-backbone
             "backbone/no-native-jquery": [0, "selector"],
             "backbone/no-silent": 0,
+            // this should be 'error', but doesnt work
+            "backbone/no-collection-models": "off",
+            // eslint-plugin-mocha
             "mocha/consistent-spacing-between-blocks": "off",
             "mocha/no-mocha-arrows": "off",
             "mocha/no-setup-in-describe": "off",
