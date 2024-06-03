@@ -3,12 +3,13 @@ import {shallowMount, createLocalVue} from "@vue/test-utils";
 import {expect} from "chai";
 import ChartJs from "chart.js";
 import BarchartItem from "../../../components/BarchartItem.vue";
+import {debug} from "webpack";
 
 const localVue = createLocalVue();
 
 localVue.use(Vuex);
 
-describe("src/share-components/charts/components/BarchartItem.vue", () => {
+describe.only("src/share-components/charts/components/BarchartItem.vue", () => {
     let wrapper;
 
     beforeEach(() => {
@@ -25,6 +26,7 @@ describe("src/share-components/charts/components/BarchartItem.vue", () => {
     });
 
     describe("mounted", () => {
+        debug.log("Log: " + wrapper.vm.chart);
         it("should create an instance of ChartJS when mounted", () => {
             expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
         });
