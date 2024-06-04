@@ -7,6 +7,8 @@
 ### __Breaking Changes__
 
 ### Added
+- StatisticDashboard:
+    - Can now load data from an OAF Rest API if an OAF layer is configured.
 
 ### Changed
 

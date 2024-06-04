@@ -2,6 +2,7 @@ import {expect} from "chai";
 import fetchData from "../../../utils/fetchData";
 import sinon from "sinon";
 import {rawLayerList} from "@masterportal/masterportalapi";
+import axios from "axios";
 
 describe("src/modules/tools/statisticDashboard/utils/fetchData.js", () => {
     describe("getUniqueValuesFromFeatures", () => {
@@ -143,6 +144,51 @@ describe("src/modules/tools/statisticDashboard/utils/fetchData.js", () => {
 
             await fetchData.getUniqueValues("1234", ["foo"]);
             expect(fetchData.getUniqueValuesFromFeatures.calledWith([], attributesWithType)).to.be.true;
+            sinon.restore();
+        });
+    });
+    describe("getOAFFeatures", () => {
+        it("should return an empty array if params are not as expected", async () => {
+            expect(await fetchData.getOAFFeatures()).to.be.an("array").that.is.empty;
+            expect(await fetchData.getOAFFeatures("foo")).to.be.an("array").that.is.empty;
+            expect(await fetchData.getOAFFeatures("foo", "bar")).to.be.an("array").that.is.empty;
+            expect(await fetchData.getOAFFeatures("foo", "bar", [])).to.be.an("array").that.is.empty;
+            expect(await fetchData.getOAFFeatures("foo", "bar", ["foo"])).to.be.an("array").that.is.empty;
+        });
+        it("should use nextLink as url", async () => {
+            const axiosStub = sinon.stub(axios, "get").resolves({}),
+                url = "foo.bar.com";
+
+            await fetchData.getOAFFeatures("foo", "bar", ["foo"], "projection", undefined, undefined, url);
+            expect(axiosStub.calledWith(url, {
+                headers: {
+                    accept: "application/geo+json"
+                }
+            })).to.be.true;
+            sinon.restore();
+        });
+        it("should use build up url if no nextLink is given", async () => {
+            const axiosStub = sinon.stub(axios, "get").resolves({}),
+                url = "https://foo/collections/bar/items?crs=http://www.opengis.net/def/crs/EPSG/0/25832&limit=400&properties=foo";
+
+            await fetchData.getOAFFeatures("https://foo", "bar", ["foo"], "projection");
+            expect(axiosStub.calledWith(url, {
+                headers: {
+                    accept: "application/geo+json"
+                }
+            })).to.be.true;
+            sinon.restore();
+        });
+        it("should use build up url if no nextLink is given with filter", async () => {
+            const axiosStub = sinon.stub(axios, "get").resolves({}),
+                url = "https://foo/collections/bar/items?crs=http://www.opengis.net/def/crs/EPSG/0/25832&limit=400&properties=foo&filter-lang=cql2-text&filter=fooobaar";
+
+            await fetchData.getOAFFeatures("https://foo", "bar", ["foo"], "projection", "fooobaar");
+            expect(axiosStub.calledWith(url, {
+                headers: {
+                    accept: "application/geo+json"
+                }
+            })).to.be.true;
             sinon.restore();
         });
     });

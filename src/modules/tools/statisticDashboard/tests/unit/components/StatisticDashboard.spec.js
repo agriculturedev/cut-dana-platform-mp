@@ -965,5 +965,144 @@ describe("src/modules/tools/StatisticDashboard.vue", () => {
                 wrapper.destroy();
             });
         });
+
+        describe("formatFilterExpression", () => {
+            it("should return the input if first param is undefined", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                    localVue,
+                    store
+                });
+
+                expect(wrapper.vm.formatFilterExpression(undefined)).to.undefined;
+            });
+            it("should return the input if second param is not a boolean", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                    localVue,
+                    store
+                });
+
+                expect(wrapper.vm.formatFilterExpression("foo", undefined)).to.be.equal("foo");
+                expect(wrapper.vm.formatFilterExpression("foo", null)).to.be.equal("foo");
+                expect(wrapper.vm.formatFilterExpression("foo", {})).to.be.equal("foo");
+                expect(wrapper.vm.formatFilterExpression("foo", [])).to.be.equal("foo");
+                expect(wrapper.vm.formatFilterExpression("foo", 1234)).to.be.equal("foo");
+                expect(wrapper.vm.formatFilterExpression("foo", "1234")).to.be.equal("foo");
+            });
+            it("should return the input as date parsed", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                        localVue,
+                        store
+                    }),
+                    expected = "DATE('01-01-2000')";
+
+                expect(wrapper.vm.formatFilterExpression("01-01-2000", true)).to.be.equal(expected);
+            });
+            it("should return the input as string parsed", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                        localVue,
+                        store
+                    }),
+                    expected = "'01-01-2000'";
+
+                expect(wrapper.vm.formatFilterExpression("01-01-2000", false)).to.be.equal(expected);
+            });
+            it("should return the input as string parsed without single quotes", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                        localVue,
+                        store
+                    }),
+                    expected = "10";
+
+                expect(wrapper.vm.formatFilterExpression(10, false)).to.be.equal(expected);
+            });
+        });
+
+        describe("parseOLFilterToOAF", () => {
+            it("should return an empty string if the params are not as expected", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                    localVue,
+                    store
+                });
+
+                expect(wrapper.vm.parseOLFilterToOAF(undefined)).to.be.equal("");
+                expect(wrapper.vm.parseOLFilterToOAF({}, undefined)).to.be.equal("");
+            });
+            it("should return an empty string if the filter has no conditions or is not an filter at all", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                    localVue,
+                    store
+                });
+
+                expect(wrapper.vm.parseOLFilterToOAF({}, {})).to.be.equal("");
+            });
+            it("should return a string if filter has no conditions but is an filter by itself", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                        localVue,
+                        store
+                    }),
+                    filter = {
+                        propertyName: "foo",
+                        tagName_: "PropertyIsEqualTo",
+                        expression: "bar"
+                    },
+                    expected = `${filter.propertyName} = ${wrapper.vm.formatFilterExpression(filter.expression, false)}`;
+
+                expect(wrapper.vm.parseOLFilterToOAF(filter, {"PropertyIsEqualTo": "="})).to.be.equal(expected);
+            });
+            it("should return a string of a nested filter condition", () => {
+                const wrapper = shallowMount(StatisticDashboard, {
+                        localVue,
+                        store
+                    }),
+                    filter = {
+                        tagName_: "And",
+                        conditions: [
+                            {
+                                tagName_: "Or",
+                                conditions: [
+                                    {
+                                        propertyName: "foo",
+                                        tagName_: "PropertyIsEqualTo",
+                                        expression: "bar"
+                                    },
+                                    {
+                                        propertyName: "foo",
+                                        tagName_: "PropertyIsEqualTo",
+                                        expression: "baz"
+                                    }
+                                ]
+                            },
+                            {
+                                tagName_: "Or",
+                                conditions: [
+                                    {
+                                        propertyName: "boo",
+                                        tagName_: "PropertyIsEqualTo",
+                                        expression: "bar"
+                                    },
+                                    {
+                                        propertyName: "boo",
+                                        tagName_: "PropertyIsEqualTo",
+                                        expression: "baz"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    expected = "(foo = 'bar' OR foo = 'baz') AND (boo = 'bar' OR boo = 'baz')";
+
+                expect(wrapper.vm.parseOLFilterToOAF(filter, {
+                    "Or": "OR",
+                    "And": "AND",
+                    "PropertyIsEqualTo": "=",
+                    "PropertyIsNotEqualTo": "<>",
+                    "PropertyIsLessThan": "<",
+                    "PropertyIsLessThanOrEqualTo": "<=",
+                    "PropertyIsGreaterThan": ">",
+                    "PropertyIsGreaterThanOrEqualTo": ">="
+                })).to.be.equal(expected);
+            });
+        });
+
     });
 });

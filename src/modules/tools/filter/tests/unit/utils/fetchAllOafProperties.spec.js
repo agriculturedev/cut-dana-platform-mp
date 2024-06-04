@@ -128,6 +128,34 @@ describe("src/modules/tools/filter/utils/fetchAllOafProperties.js", () => {
 
             expect(getUniqueValuesFromFetchedFeatures(properties, ["attrName1", "attrName2"])).to.deep.equal(expected);
         });
+        it("should return a unique list of the properties when attrName is an array and the list should be nested", () => {
+            const properties = [
+                    {attrName1: "valueB"},
+                    {attrName1: "valueA"},
+                    {attrName1: "valueA"},
+                    {attrName1: "valueA"},
+                    {attrName1: "valueC"},
+                    {attrName2: "valueA"},
+                    {attrName2: "valueB"},
+                    {attrName2: "valueB"},
+                    {attrName2: "valueC"},
+                    {attrName2: "valueA"}
+                ],
+                expected = {
+                    attrName1: {
+                        valueA: true,
+                        valueB: true,
+                        valueC: true
+                    },
+                    attrName2: {
+                        valueA: true,
+                        valueB: true,
+                        valueC: true
+                    }
+                };
+
+            expect(getUniqueValuesFromFetchedFeatures(properties, ["attrName1", "attrName2"], true)).to.deep.equal(expected);
+        });
         it("should return an empty object when attrName is an empty array", () => {
             const properties = [
                     {attrName1: "valueB"},

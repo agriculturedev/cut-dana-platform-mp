@@ -3,6 +3,9 @@ import {getFeatureGET} from "../../../../api/wfs/getFeature";
 import {WFS} from "ol/format.js";
 import isObject from "../../../../utils/isObject";
 import {describeFeatureType, getFeatureDescription} from "../../../../api/wfs/describeFeatureType";
+import {fetchAllOafProperties, getNextLinkFromFeatureCollection, getUniqueValuesFromFetchedFeatures as getUniqueValuesFromOAF} from "../../filter/utils/fetchAllOafProperties";
+import GeoJSON from "ol/format/GeoJSON";
+import axios from "axios";
 
 /**
  * Gets the unique values for the given attributes.
@@ -23,7 +26,13 @@ async function getUniqueValues (layerId, attributesToFilter) {
         response = await this.fetchAllDataForWFS(rawLayer?.url, rawLayer?.featureType, attributesToFilter.join(","));
         features = new WFS().readFeatures(response);
         attributesWithType = await this.getAttributesWithType(rawLayer?.url, attributesToFilter, rawLayer?.featureType);
-        // TODO: handle OAF.
+    }
+    else if (rawLayer?.typ === "OAF") {
+        return new Promise((resolve, reject) => {
+            fetchAllOafProperties(rawLayer?.url, rawLayer?.collection, rawLayer?.limit ?? 400, properties => {
+                resolve(getUniqueValuesFromOAF(properties, attributesToFilter, true));
+            }, error => reject(error), true, attributesToFilter);
+        });
     }
     return this.getUniqueValuesFromFeatures(features, attributesWithType);
 }
@@ -93,9 +102,65 @@ function getUniqueValuesFromFeatures (features, attributes) {
     return result;
 }
 
+/**
+ * Gets the OAF features.
+ * @param {String} baseUrl The base url.
+ * @param {String} collection The collection.
+ * @param {String[]} propertyNames The property names to narrow the request.
+ * @param {String} featureProjection The projection to use for displaying the features on the map.
+ * @param {ol/format/Filter} filter The filter to use.
+ * @param {Number} [limit=400] The limit per request.
+ * @param {String} [nextLink=undefined] The nextLink from the oaf response. Is used for recursive calls.
+ * @returns {ol/Feature[]} An array of openlayer features.
+ */
+async function getOAFFeatures (baseUrl, collection, propertyNames, featureProjection, filter, limit = 400, nextLink = undefined) {
+    if (!baseUrl || !collection || !Array.isArray(propertyNames) || !propertyNames.length || !featureProjection) {
+        return [];
+    }
+    const geoJSONFormat = new GeoJSON({featureProjection, dataProjection: "EPSG:25832"}),
+        features = [];
+    let url = "",
+        response = null,
+        newNextLink = null;
+
+    if (!nextLink) {
+        url = `${baseUrl}/collections/${collection}/items?crs=${"http://www.opengis.net/def/crs/EPSG/0/25832"}&limit=${limit}&properties=${propertyNames.join(",")}`;
+        if (filter) {
+            url += `&filter-lang=cql2-text&filter=${filter}`;
+        }
+    }
+    else {
+        url = nextLink;
+    }
+
+    try {
+        response = await axios.get(url, {
+            headers: {
+                accept: "application/geo+json"
+            }
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return [];
+    }
+    if (response.status !== 200 || !Array.isArray(response.data?.features)) {
+        return [];
+    }
+    newNextLink = getNextLinkFromFeatureCollection(response.data);
+    if (newNextLink) {
+        features.push(...await getOAFFeatures(baseUrl, collection, propertyNames, featureProjection, filter, limit, newNextLink));
+    }
+    response.data.features.forEach(feature => {
+        features.push(geoJSONFormat.readFeature(feature));
+    });
+    return features;
+}
+
 export default {
     getUniqueValues,
     getAttributesWithType,
     fetchAllDataForWFS,
-    getUniqueValuesFromFeatures
+    getUniqueValuesFromFeatures,
+    getOAFFeatures
 };
