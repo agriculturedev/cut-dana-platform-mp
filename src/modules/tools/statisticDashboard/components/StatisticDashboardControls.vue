@@ -86,7 +86,7 @@ export default {
                 if (this.referenceTag.split(":").length - 1 === 1) {
                     this.referenceTag = this.referenceTag.split(":")[0];
                 }
-                if (typeof val === "number") {
+                if (typeof val === "number" && !isNaN(val)) {
                     this.referenceTag = this.referenceTag + ": " + val;
                 }
             }
