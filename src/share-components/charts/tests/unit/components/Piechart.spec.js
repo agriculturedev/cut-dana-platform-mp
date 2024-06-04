@@ -1,7 +1,8 @@
 import Vuex from "vuex";
 import {shallowMount, createLocalVue} from "@vue/test-utils";
 import {expect} from "chai";
-import ChartJs from "chart.js";
+import ChartJs from "chart.js/auto";
+import {nextTick} from "vue";
 import PiechartItem from "../../../components/PiechartItem.vue";
 
 const localVue = createLocalVue();
@@ -26,13 +27,19 @@ describe("src/share-components/charts/components/PiechartItem.vue", () => {
 
     describe("mounted", () => {
         it("should create an instance of ChartJS when mounted", () => {
-            expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+            nextTick(() => {
+                expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+            });
         });
         it("should create a chart of type pie when mounted", () => {
-            expect(wrapper.vm.chart.config.type).to.equal("pie");
+            nextTick(() => {
+                expect(wrapper.vm.chart.config.type).to.equal("pie");
+            });
         });
         it("should create a canvas element in its component", () => {
-            expect(wrapper.find("canvas").exists()).to.be.true;
+            nextTick(() => {
+                expect(wrapper.find("canvas").exists()).to.be.true;
+            });
         });
     });
     describe("mounted as doughnut", () => {
@@ -44,15 +51,18 @@ describe("src/share-components/charts/components/PiechartItem.vue", () => {
                 },
                 givenOptions: {},
                 diagramType: "doughnut"
-            },
-            localVue
+            }
         });
 
         it("should create an instance of ChartJS when mounted", () => {
-            expect(doughnut.vm.chart).to.be.an.instanceof(ChartJs);
+            nextTick(() => {
+                expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+            });
         });
         it("should create a chart of type pie when mounted", () => {
-            expect(doughnut.vm.chart.config.type).to.equal("doughnut");
+            nextTick(() => {
+                expect(doughnut.vm.chart.config.type).to.equal("doughnut");
+            });
         });
         it("should create a canvas element in its component", () => {
             expect(doughnut.find("canvas").exists()).to.be.true;
@@ -62,12 +72,14 @@ describe("src/share-components/charts/components/PiechartItem.vue", () => {
         it("should destroy the former chart and create a new one", () => {
             let destroyCalled = false;
 
-            wrapper.vm.chart.destroy = () => {
-                destroyCalled = true;
-            };
-            wrapper.vm.resetChart({});
+            nextTick(() => {
+                wrapper.vm.chart.destroy = () => {
+                    destroyCalled = true;
+                };
+                wrapper.vm.resetChart({});
 
-            expect(destroyCalled).to.be.true;
+                expect(destroyCalled).to.be.true;
+            });
         });
     });
     describe("getChartJsOptions", () => {

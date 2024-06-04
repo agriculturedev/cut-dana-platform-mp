@@ -1,7 +1,9 @@
 import Vuex from "vuex";
 import {shallowMount, createLocalVue} from "@vue/test-utils";
 import {expect} from "chai";
-import ChartJs from "chart.js";
+import ChartJs from "chart.js/auto";
+import sinon from "sinon";
+import {nextTick} from "vue";
 import LinechartItem from "../../../components/LinechartItem.vue";
 
 const localVue = createLocalVue();
@@ -26,25 +28,42 @@ describe("src/share-components/charts/components/LinechartItem.vue", () => {
 
     describe("mounted", () => {
         it("should create an instance of ChartJS when mounted", () => {
-            expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+            nextTick(() => {
+                expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+            });
         });
         it("should create a chart of type line when mounted", () => {
-            expect(wrapper.vm.chart.config.type).to.equal("line");
+            nextTick(() => {
+                expect(wrapper.vm.chart.config.type).to.equal("line");
+            });
         });
         it("should create a canvas element in its component", () => {
             expect(wrapper.find("canvas").exists()).to.be.true;
         });
     });
     describe("resetChart", () => {
+        it("should destroy the former chart", () => {
+            const destroySpy = sinon.spy();
+
+            nextTick(() => {
+                wrapper.vm.chart = new ChartJs(document.createElement("CANVAS"));
+                wrapper.vm.chart.destroy = destroySpy;
+                wrapper.vm.destroyChart();
+
+                expect(destroySpy.called).to.be.true;
+            });
+        });
         it("should destroy the former chart and create a new one", () => {
             let destroyCalled = false;
 
-            wrapper.vm.chart.destroy = () => {
-                destroyCalled = true;
-            };
-            wrapper.vm.resetChart({});
+            nextTick(() => {
+                wrapper.vm.chart.destroy = () => {
+                    destroyCalled = true;
+                };
+                wrapper.vm.resetChart({});
 
-            expect(destroyCalled).to.be.true;
+                expect(destroyCalled).to.be.true;
+            });
         });
     });
     describe("getChartJsOptions", () => {

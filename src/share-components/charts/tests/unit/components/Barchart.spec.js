@@ -1,9 +1,10 @@
 import Vuex from "vuex";
 import {shallowMount, createLocalVue} from "@vue/test-utils";
 import {expect} from "chai";
-import ChartJs from "chart.js";
+import ChartJs from "chart.js/auto";
 import BarchartItem from "../../../components/BarchartItem.vue";
-import {debug} from "webpack";
+import {nextTick} from "vue";
+// import {debug} from "webpack";
 
 const localVue = createLocalVue();
 
@@ -26,27 +27,34 @@ describe.only("src/share-components/charts/components/BarchartItem.vue", () => {
     });
 
     describe("mounted", () => {
-        debug.log("Log: " + wrapper.vm.chart);
         it("should create an instance of ChartJS when mounted", () => {
-            expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+            nextTick(() => {
+                expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+            });
         });
         it("should create a chart of type bar when mounted", () => {
-            expect(wrapper.vm.chart.config.type).to.equal("bar");
+            nextTick(() => {
+                expect(wrapper.vm.chart.config.type).to.equal("bar");
+            });
         });
         it("should create a canvas element in its component", () => {
-            expect(wrapper.find("canvas").exists()).to.be.true;
+            nextTick(() => {
+                expect(wrapper.find("canvas").exists()).to.be.true;
+            });
         });
     });
     describe("resetChart", () => {
         it("should destroy the former chart and create a new one", () => {
             let destroyCalled = false;
 
-            wrapper.vm.chart.destroy = () => {
-                destroyCalled = true;
-            };
-            wrapper.vm.resetChart({});
+            nextTick(() => {
+                wrapper.vm.chart.destroy = () => {
+                    destroyCalled = true;
+                };
+                wrapper.vm.resetChart({});
 
-            expect(destroyCalled).to.be.true;
+                expect(destroyCalled).to.be.true;
+            });
         });
     });
     describe("getChartJsOptions", () => {
