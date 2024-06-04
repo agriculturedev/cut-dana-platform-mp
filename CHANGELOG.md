@@ -78,7 +78,7 @@
   - 3d functions have been completely reworked.
 - The following packages have been updated:
     - dependencies:
-        - @masterportal/masterportalapi: 2.35.0 to 2.37.0 (This also raised ol to version 9.1.0)
+        - @masterportal/masterportalapi: 2.35.0 to 2.38.0 (This also raised ol to version 9.2.4)
         - @popperjs/core: 2.11.6 to 2.11.8
         - axios: 1.3.4 to 1.6.8
         - crypto-js: 4.1.1 to 4.2.0
