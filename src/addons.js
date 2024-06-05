@@ -2,7 +2,6 @@ import upperFirst from "./utils/upperFirst";
 import store from "./app-store";
 import Vue from "vue";
 
-/* eslint-disable no-undef */
 const allAddons = VUE_ADDONS || {};
 
 /**

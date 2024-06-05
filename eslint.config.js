@@ -1,12 +1,11 @@
 // eslint.config.js
-js = require("@eslint/js");
-pluginVuejsAccessibility = require("eslint-plugin-vuejs-accessibility");
-pluginVue = require("eslint-plugin-vue");
-pluginJsdoc = require("eslint-plugin-jsdoc");
-pluginMocha = require("eslint-plugin-mocha");
-
-pluginChaiFriendly = require("eslint-plugin-chai-friendly");
-pluginBackbone = require("eslint-plugin-backbone");
+const js = require("@eslint/js"),
+    pluginVuejsAccessibility = require("eslint-plugin-vuejs-accessibility"),
+    pluginVue = require("eslint-plugin-vue"),
+    pluginJsdoc = require("eslint-plugin-jsdoc"),
+    pluginMocha = require("eslint-plugin-mocha"),
+    pluginChaiFriendly = require("eslint-plugin-chai-friendly");
+// pluginLodashUnderscore = require("eslint-plugin-you-dont-need-lodash-underscore");
 
 module.exports = [
     js.configs.recommended,
@@ -14,11 +13,11 @@ module.exports = [
     ...pluginVuejsAccessibility.configs["flat/recommended"],
     pluginMocha.configs.flat.recommended,
     pluginJsdoc.configs["flat/recommended"],
+    // pluginLodashUnderscore.configs.flat.recommended,
     {
         languageOptions: {
             ecmaVersion: 2023,
             sourceType: "module",
-            // allowImportExportEverywhere: true,  //this is wrong here
             globals: {
                 $: true,
                 _: true,
@@ -33,28 +32,26 @@ module.exports = [
                 node: true,
                 es6: true,
                 amd: true
+            },
+            parserOptions: {
+                allowImportExportEverywhere: true
             }
         },
         plugins: {
-            // pluginJsdoc,
             "vuejs-accessibility": pluginVuejsAccessibility,
-            // "eslint-plugin-jsdoc": pluginJsdoc,
             "chai-friendly": pluginChaiFriendly
         },
         rules: {
             // Possible Problems - These rules relate to possible logic errors in code:
             "array-callback-return": "error",
-            // "no-await-in-loop": "off", // Is used in End2End tests
             "no-constructor-return": "off", // Is deliberately ignored in some places
             "no-control-regex": "off",
             "no-duplicate-imports": "error",
             "no-cond-assign": ["error", "always"],
-            // "no-promise-executor-return": "off", // Is used in End2End tests
             "no-self-compare": "error",
             "no-template-curly-in-string": "off", // Is uses in some strings
             "no-unmodified-loop-condition": "error",
             "no-unreachable-loop": "error",
-            "no-unused-private-class-members": "error",
             "no-use-before-define": "off", // Here it is done the other way around
             "require-atomic-updates": "error",
             // Suggestions - These rules suggest alternate ways of doing things:
@@ -127,10 +124,21 @@ module.exports = [
             "prefer-const": "error",
             "prefer-numeric-literals": "error",
             "prefer-rest-params": "error",
+            // NEW
             "no-undef": "off",
-            "no-unused-vars": "off",
+            "no-unused-vars": ["error",
+                {caughtErrors: "none"}
+            ],
             "global-require": "off",
+            // new rules in recommended
+            "no-empty-static-block": "off",
+            "no-new-native-nonconstructor": "off",
             "no-constant-binary-expression": "off",
+            // rules which were removed from recommended
+            "no-extra-semi": "error",
+            "no-inner-declarations": "error",
+            "no-mixed-spaces-and-tabs": "error",
+            "no-new-symbol": "error",
             radix: "error",
             "spaced-comment": "error",
             "vars-on-top": "error",
@@ -248,13 +256,16 @@ module.exports = [
             "vue/no-v-for-template-key-on-child": ["off"],
             "vue/no-deprecated-v-bind-sync": ["off"],
             // vue plugin Strongly Recommended Rules
+            //
             // "vue/attribute-hyphenation": ["error"],
             // "vue/component-definition-name-casing": ["error"],
             // "vue/first-attribute-linebreak": ["error"],
             // "vue/html-closing-bracket-newline": ["error"],
             // "vue/html-closing-bracket-spacing": ["error"],
             // "vue/html-end-tags": ["error"],
+            //
             "vue/html-indent": ["error", 4],
+            //
             // "vue/html-quotes": ["error"],
             // "vue/html-self-closing": ["error"],
             // "vue/max-attributes-per-line": ["error"],
@@ -271,7 +282,7 @@ module.exports = [
             // "vue/v-bind-style": ["error"],
             // "vue/v-on-style": ["error"],
             // "vue/v-slot-style": ["error"],
-            // vue plugin Recommended Rules
+            // // vue plugin Recommended Rules
             // "vue/attributes-order": ["error"],
             // "vue/component-tags-order": [
             //     "error",
@@ -279,7 +290,9 @@ module.exports = [
             // ],
             // "vue/no-lone-template": ["error"],
             // "vue/no-multiple-slot-args": ["error"],
+            //
             "vue/no-v-html": ["off"],
+            //
             // "vue/order-in-components": ["error"],
             // "vue/this-in-template": ["error"],
             // vue plugin Uncategorizied Rules
@@ -288,6 +301,7 @@ module.exports = [
             // "vue/component-options-name-casing": ["error"],
             // "vue/eqeqeq": ["error"],
             // "vue/key-spacing": ["error"],
+            //
             "vue/match-component-file-name": [
                 "error",
                 {
@@ -295,12 +309,14 @@ module.exports = [
                     shouldMatchCase: true
                 }
             ],
+            //
             // "vue/no-required-prop-with-default": ["error"],
             // "vue/no-static-inline-styles": ["error"],
             // "vue/padding-line-between-blocks": ["error"],
             // "vue/require-direct-export": ["error"],
             // "vue/require-name-property": ["error"],
             // eslint-plugin-vuejs-accessibility
+            //
             "vuejs-accessibility/label-has-for": [
                 "error",
                 {
@@ -317,11 +333,6 @@ module.exports = [
              * in the map interactions
              */
             "vuejs-accessibility/no-onchange": "off",
-            // eslint-plugin-backbone
-            "backbone/no-native-jquery": [0, "selector"],
-            "backbone/no-silent": 0,
-            // this should be 'error', but doesnt work
-            "backbone/no-collection-models": "off",
             // eslint-plugin-mocha
             "mocha/consistent-spacing-between-blocks": "off",
             "mocha/no-mocha-arrows": "off",
@@ -338,20 +349,20 @@ module.exports = [
     {
         ignores: [
             "**/node_modules/",
-            "**/build/*",
-            "**/unit/*",
-            "**/end2end/*",
-            "**/dist/*",
-            "portalconfigs/*",
-            "**/scripte/*",
-            "**/jsdoc/*",
-            "**/lib/*",
-            "**/examples/*",
-            "/portal/*",
-            "!/portal/basic/*",
-            "!/portal/master/*",
-            "!/portal/masterCustom/*",
-            "!/portal/masterDefault/"
+            "**/build/",
+            "**/unit/",
+            "**/end2end/",
+            "**/dist/",
+            "**/portalconfigs/",
+            "**/scripte/",
+            "**/jsdoc/",
+            "**/lib/",
+            "**/examples/",
+            "portal/*",
+            "!portal/basic",
+            "!portal/master",
+            "!portal/masterCustom",
+            "!portal/masterDefault"
         ]
     }
 ];

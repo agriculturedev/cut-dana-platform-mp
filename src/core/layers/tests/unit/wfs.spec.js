@@ -716,7 +716,7 @@ describe("src/core/layers/wfs.js", () => {
         it("getStyleAsFunction shall return a function", function () {
             const wfsLayer = new WfsLayer(attributes);
 
-            /* eslint-disable-next-line require-jsdoc */
+            /* eslint-disable-next-line jsdoc/require-jsdoc */
             function styleFn () {
                 return "test";
             }
@@ -733,7 +733,7 @@ describe("src/core/layers/wfs.js", () => {
         it("styling shall set style", function () {
             const wfsLayer = new WfsLayer(attributes);
 
-            /* eslint-disable-next-line require-jsdoc */
+            /* eslint-disable-next-line jsdoc/require-jsdoc */
             function styleFn () {
                 return "test";
             }

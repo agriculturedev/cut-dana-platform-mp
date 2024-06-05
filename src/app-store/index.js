@@ -100,10 +100,8 @@ if (module.hot) {
         "./mutations"
     ], () => {
         // see https://vuex.vuejs.org/guide/hot-reload.html - need to do disable rule here
-        /* eslint-disable global-require */
         const newGetters = require("./getters").default,
             newMutations = require("./mutations").default;
-        /* eslint-enable global-require */
 
         store.hotUpdate({
             getters: newGetters,

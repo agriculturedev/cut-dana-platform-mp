@@ -143,7 +143,7 @@ describe("src/core/layers/vectorBase.js", () => {
         it("getStyleAsFunction shall return a function", function () {
             const layer = new VectorBaseLayer(attributes);
 
-            /* eslint-disable-next-line require-jsdoc */
+            /* eslint-disable-next-line jsdoc/require-jsdoc */
             function styleFn () {
                 return "test";
             }
@@ -160,7 +160,7 @@ describe("src/core/layers/vectorBase.js", () => {
         it("styling shall set style", function () {
             const layer = new VectorBaseLayer(attributes);
 
-            /* eslint-disable-next-line require-jsdoc */
+            /* eslint-disable-next-line jsdoc/require-jsdoc */
             function styleFn () {
                 return "test";
             }

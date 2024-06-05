@@ -1298,7 +1298,6 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
             });
 
             if (modelIndex !== null) {
-                // eslint-disable-next-line backbone/no-collection-models
                 this.models.splice(modelIndex, 1);
             }
         }

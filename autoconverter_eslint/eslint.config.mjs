@@ -1,19 +1,18 @@
 import chaiFriendly from "eslint-plugin-chai-friendly";
 import vuejsAccessibility from "eslint-plugin-vuejs-accessibility";
+import pluginJsdoc from "eslint-plugin-jsdoc";
 import globals from "globals";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import {fileURLToPath} from "node:url";
 import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-});
+import {FlatCompat} from "@eslint/eslintrc";
+const __filename = fileURLToPath(import.meta.url),
+    __dirname = path.dirname(__filename),
+    compat = new FlatCompat({
+        baseDirectory: __dirname,
+        recommendedConfig: js.configs.recommended,
+        allConfig: js.configs.all
+    });
 
 export default [{
     ignores: [
@@ -29,18 +28,19 @@ export default [{
         "!portal/basic",
         "!portal/master",
         "!portal/masterCustom",
-        "!portal/masterDefault",
-    ],
+        "!portal/masterDefault"
+    ]
 }, ...compat.extends(
     "eslint:recommended",
     "plugin:backbone/recommended",
     "plugin:vue/recommended",
     "plugin:vuejs-accessibility/recommended",
-    "plugin:you-dont-need-lodash-underscore/all",
+    "plugin:you-dont-need-lodash-underscore/all"
 ), {
     plugins: {
         "chai-friendly": chaiFriendly,
         "vuejs-accessibility": vuejsAccessibility,
+        "jsdoc": pluginJsdoc
     },
 
     languageOptions: {
@@ -225,7 +225,7 @@ export default [{
         "no-process-env": "error",
         "no-process-exit": "error",
 
-        "require-jsdoc": ["error", {
+        "jsdoc/require-jsdoc": ["error", {
             require: {
                 FunctionDeclaration: true,
                 MethodDefinition: true,
@@ -235,7 +235,7 @@ export default [{
             },
         }],
 
-        "valid-jsdoc": "error",
+        "jsdoc/valid-jsdoc": "error",
 
         "vue/comment-directive": ["error", {
             reportUnusedDisableDirectives: false,

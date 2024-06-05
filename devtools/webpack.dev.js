@@ -1,5 +1,3 @@
-/* eslint-disable no-sync */
-/* eslint-disable global-require */
 const merge = require("webpack-merge"),
     // einkommentieren um eine grafische Darstellung vom bundle als html zu erzeugen
     // BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin,
@@ -8,7 +6,6 @@ const merge = require("webpack-merge"),
     HttpsProxyAgent = require("https-proxy-agent"),
     /* eslint-disable no-process-env */
     proxyServer = process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
-    /* eslint-disable no-process-env */
     proxyAgent = proxyServer !== undefined ? new HttpsProxyAgent(proxyServer) : "";
 
 

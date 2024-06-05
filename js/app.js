@@ -66,7 +66,6 @@ Vue.config.productionTip = false;
  * @return {void}.
  */
 async function loadApp () {
-    /* eslint-disable no-undef */
     const legacyAddons = Object.is(ADDONS, {}) ? {} : ADDONS,
         utilConfig = {},
         style = uiStyle.getUiStyle(),
@@ -75,7 +74,6 @@ async function loadApp () {
         // returns undefined if not
         vuetify = await instantiateVuetify();
 
-    /* eslint-disable no-undef */
     let app = {},
         searchbarAttributes = {},
         styleGetters = {};

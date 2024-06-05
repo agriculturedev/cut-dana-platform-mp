@@ -246,7 +246,7 @@ describe("core/modelList/layer/vectorTile", function () {
     });
 
     describe("setStyleById", function () {
-        /* eslint-disable-next-line require-jsdoc */
+        /* eslint-disable-next-line jsdoc/require-jsdoc */
         function makeContext () {
             return {
                 get: key => ({vtStyles})[key],

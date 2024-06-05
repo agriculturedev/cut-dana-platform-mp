@@ -340,7 +340,7 @@ describe("src/core/layers/oaf.js", () => {
         it("getStyleAsFunction shall return a function", function () {
             const oafLayer = new OAFLayer(attributes);
 
-            /* eslint-disable-next-line require-jsdoc */
+            /* eslint-disable-next-line jsdoc/require-jsdoc */
             function styleFn () {
                 return "test";
             }
@@ -357,7 +357,7 @@ describe("src/core/layers/oaf.js", () => {
         it("styling shall set style", function () {
             const oafLayer = new OAFLayer(attributes);
 
-            /* eslint-disable-next-line require-jsdoc */
+            /* eslint-disable-next-line jsdoc/require-jsdoc */
             function styleFn () {
                 return "test";
             }

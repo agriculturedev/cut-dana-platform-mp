@@ -297,7 +297,7 @@ describe("src/core/layers/geojson.js", () => {
         it("getStyleAsFunction shall return a function", function () {
             const geojsonLayer = new GeoJSONLayer(attributes);
 
-            /* eslint-disable-next-line require-jsdoc */
+            /* eslint-disable-next-line jsdoc/require-jsdoc */
             function styleFn () {
                 return "test";
             }
@@ -314,7 +314,7 @@ describe("src/core/layers/geojson.js", () => {
         it("styling shall set style", function () {
             const geojsonLayer = new GeoJSONLayer(attributes);
 
-            /* eslint-disable-next-line require-jsdoc */
+            /* eslint-disable-next-line jsdoc/require-jsdoc */
             function styleFn () {
                 return "test";
             }
