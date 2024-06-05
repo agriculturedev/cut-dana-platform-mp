@@ -3,8 +3,7 @@
 
 [Semantic versioning](https://semver.org/spec/v2.0.0.html) is used.
 
-## Unreleased - in development
-### __Breaking Changes__
+## v2.46.0 - 2024-06-05
 
 ### Added
 - Modeler3D:
@@ -24,10 +23,6 @@
   - A loading indicator is shown, if layers are still loading.
   - Layer options in the dropdown are enabled once the layer is fully loaded.
   - Improved error handling.
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 - Measure module:
