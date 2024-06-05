@@ -129,6 +129,7 @@
     "file-loader": "2.0.0",
     "fs-extra": "^10.1.0",
     "git-rev-sync": "^3.0.2",
+    "globals": "^15.3.0",
     "https-proxy-agent": "^5.0.1",
     "husky": "^9.0.11",
     "imports-loader": "1.2.0",
