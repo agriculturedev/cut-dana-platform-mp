@@ -25,7 +25,7 @@ module.exports = [
                 Cesium: true,
                 i18next: true,
                 mapCollection: true,
-                // browser global variables//old env - probably needs to be changed
+                // browser global variables
                 browser: true,
                 node: true,
                 es6: true,
@@ -122,7 +122,7 @@ module.exports = [
             "prefer-const": "error",
             "prefer-numeric-literals": "error",
             "prefer-rest-params": "error",
-            // NEW
+            // changes for eslint v9
             "no-undef": "off",
             "no-unused-vars": ["error",
                 {caughtErrors: "none"}
@@ -137,6 +137,7 @@ module.exports = [
             "no-inner-declarations": "error",
             "no-mixed-spaces-and-tabs": "error",
             "no-new-symbol": "error",
+            // end of changes for eslint v9
             radix: "error",
             "spaced-comment": "error",
             "vars-on-top": "error",
@@ -253,53 +254,8 @@ module.exports = [
             "vue/no-deprecated-v-on-native-modifier": ["off"],
             "vue/no-v-for-template-key-on-child": ["off"],
             "vue/no-deprecated-v-bind-sync": ["off"],
-            // vue plugin Strongly Recommended Rules
-            //
-            // "vue/attribute-hyphenation": ["error"],
-            // "vue/component-definition-name-casing": ["error"],
-            // "vue/first-attribute-linebreak": ["error"],
-            // "vue/html-closing-bracket-newline": ["error"],
-            // "vue/html-closing-bracket-spacing": ["error"],
-            // "vue/html-end-tags": ["error"],
-            //
             "vue/html-indent": ["error", 4],
-            //
-            // "vue/html-quotes": ["error"],
-            // "vue/html-self-closing": ["error"],
-            // "vue/max-attributes-per-line": ["error"],
-            // "vue/multiline-html-element-content-newline": ["error"],
-            // "vue/mustache-interpolation-spacing": ["error"],
-            // "vue/no-multi-spaces": ["error"],
-            // "vue/no-spaces-around-equal-signs-in-attribute": ["error"],
-            // "vue/no-template-shadow": ["error"],
-            // "vue/one-component-per-file": ["error"],
-            // "vue/prop-name-casing": ["error"],
-            // "vue/require-default-prop": ["error"],
-            // "vue/require-prop-types": ["error"],
-            // "vue/singleline-html-element-content-newline": ["error"],
-            // "vue/v-bind-style": ["error"],
-            // "vue/v-on-style": ["error"],
-            // "vue/v-slot-style": ["error"],
-            // // vue plugin Recommended Rules
-            // "vue/attributes-order": ["error"],
-            // "vue/component-tags-order": [
-            //     "error",
-            //     {order: ["script", "template", "style"]}
-            // ],
-            // "vue/no-lone-template": ["error"],
-            // "vue/no-multiple-slot-args": ["error"],
-            //
             "vue/no-v-html": ["off"],
-            //
-            // "vue/order-in-components": ["error"],
-            // "vue/this-in-template": ["error"],
-            // vue plugin Uncategorizied Rules
-            // "vue/array-bracket-spacing": ["error"],
-            // "vue/component-name-in-template-casing": ["error"],
-            // "vue/component-options-name-casing": ["error"],
-            // "vue/eqeqeq": ["error"],
-            // "vue/key-spacing": ["error"],
-            //
             "vue/match-component-file-name": [
                 "error",
                 {
@@ -307,14 +263,7 @@ module.exports = [
                     shouldMatchCase: true
                 }
             ],
-            //
-            // "vue/no-required-prop-with-default": ["error"],
-            // "vue/no-static-inline-styles": ["error"],
-            // "vue/padding-line-between-blocks": ["error"],
-            // "vue/require-direct-export": ["error"],
-            // "vue/require-name-property": ["error"],
             // eslint-plugin-vuejs-accessibility
-            //
             "vuejs-accessibility/label-has-for": [
                 "error",
                 {
