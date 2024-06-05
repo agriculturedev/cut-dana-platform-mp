@@ -5,7 +5,6 @@ const js = require("@eslint/js"),
     pluginJsdoc = require("eslint-plugin-jsdoc"),
     pluginMocha = require("eslint-plugin-mocha"),
     pluginChaiFriendly = require("eslint-plugin-chai-friendly");
-// pluginLodashUnderscore = require("eslint-plugin-you-dont-need-lodash-underscore");
 
 module.exports = [
     js.configs.recommended,
@@ -13,7 +12,6 @@ module.exports = [
     ...pluginVuejsAccessibility.configs["flat/recommended"],
     pluginMocha.configs.flat.recommended,
     pluginJsdoc.configs["flat/recommended"],
-    // pluginLodashUnderscore.configs.flat.recommended,
     {
         languageOptions: {
             ecmaVersion: 2023,
