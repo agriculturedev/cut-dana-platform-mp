@@ -21,7 +21,6 @@ module.exports = [
                 _: true,
                 Config: true,
                 Radio: true,
-                Backbone: true,
                 Cesium: true,
                 i18next: true,
                 mapCollection: true,
@@ -30,9 +29,6 @@ module.exports = [
                 node: true,
                 es6: true,
                 amd: true
-            },
-            parserOptions: {
-                allowImportExportEverywhere: true
             }
         },
         plugins: {
@@ -57,12 +53,12 @@ module.exports = [
             "block-scoped-var": "error",
             "consistent-return": "error",
             "consistent-this": "error",
-            curly: "error",
+            "curly": "error",
             "default-case": "error",
             "default-case-last": "error",
             "default-param-last": "error",
             "dot-notation": "error",
-            eqeqeq: "error",
+            "eqeqeq": "error",
             "func-style": ["error", "declaration"],
             "max-depth": "error",
             "max-nested-callbacks": ["error", 10],
@@ -71,7 +67,7 @@ module.exports = [
             "no-alert": "error",
             "no-array-constructor": "error",
             "no-caller": "error",
-            "no-console": ["error", {allow: ["warn", "error"]}],
+            "no-console": ["error", {"allow": ["warn", "error"]}],
             "no-empty-function": "error",
             "no-div-regex": "error",
             "no-else-return": "error",
@@ -125,7 +121,7 @@ module.exports = [
             // changes for eslint v9
             "no-undef": "off",
             "no-unused-vars": ["error",
-                {caughtErrors: "none"}
+                {"caughtErrors": "none"}
             ],
             "global-require": "off",
             // new rules in recommended
@@ -138,10 +134,10 @@ module.exports = [
             "no-mixed-spaces-and-tabs": "error",
             "no-new-symbol": "error",
             // end of changes for eslint v9
-            radix: "error",
+            "radix": "error",
             "spaced-comment": "error",
             "vars-on-top": "error",
-            yoda: "error",
+            "yoda": "error",
             // Layout & Formatting - These rules care about how the code looks rather than how it executes:
             "array-bracket-spacing": "error",
             "block-spacing": "error",
@@ -153,7 +149,7 @@ module.exports = [
             "eol-last": ["error", "always"],
             "func-call-spacing": ["error", "never"],
             "implicit-arrow-linebreak": "error",
-            indent: ["error", 4, {SwitchCase: 1}],
+            "indent": ["error", 4, {"SwitchCase": 1}],
             "jsx-quotes": "error",
             "key-spacing": "error",
             "keyword-spacing": "error",
@@ -163,9 +159,9 @@ module.exports = [
             "no-extra-parens": [
                 "error",
                 "all",
-                {nestedBinaryExpressions: false}
+                {"nestedBinaryExpressions": false}
             ],
-            "no-multiple-empty-lines": ["error", {max: 2, maxBOF: 1}],
+            "no-multiple-empty-lines": ["error", {"max": 2, "maxBOF": 1}],
             "no-tabs": "error",
             "no-trailing-spaces": "error",
             "no-whitespace-before-property": "error",
@@ -174,18 +170,18 @@ module.exports = [
             "padding-line-between-statements": [
                 "error",
                 {
-                    blankLine: "always",
-                    prev: ["const", "let", "var"],
-                    next: "*"
+                    "blankLine": "always",
+                    "prev": ["const", "let", "var"],
+                    "next": "*"
                 },
                 {
-                    blankLine: "any",
-                    prev: ["const", "let", "var"],
-                    next: ["const", "let", "var"]
+                    "blankLine": "any",
+                    "prev": ["const", "let", "var"],
+                    "next": ["const", "let", "var"]
                 }
             ],
-            quotes: "error",
-            semi: "error",
+            "quotes": "error",
+            "semi": "error",
             "semi-spacing": "error",
             "semi-style": "error",
             "space-before-blocks": "error",
@@ -199,7 +195,6 @@ module.exports = [
             "callback-return": "error",
             "handle-callback-err": "error",
             "no-buffer-constructor": "error",
-            // "no-new-require": "error",
             "no-path-concat": "error",
             "no-process-env": "error",
             "no-process-exit": "error",
@@ -228,12 +223,12 @@ module.exports = [
             "jsdoc/require-jsdoc": [
                 "error",
                 {
-                    require: {
-                        FunctionDeclaration: true,
-                        MethodDefinition: true,
-                        ClassDeclaration: true,
-                        ArrowFunctionExpression: false,
-                        FunctionExpression: false
+                    "require": {
+                        "FunctionDeclaration": true,
+                        "MethodDefinition": true,
+                        "ClassDeclaration": true,
+                        "ArrowFunctionExpression": false,
+                        "FunctionExpression": false
                     }
                 }
             ],
@@ -241,7 +236,7 @@ module.exports = [
             "vue/comment-directive": [
                 "error",
                 {
-                    reportUnusedDisableDirectives: false
+                    "reportUnusedDisableDirectives": false
                 }
             ],
             "vue/jsx-uses-vars": ["off"],
@@ -259,16 +254,16 @@ module.exports = [
             "vue/match-component-file-name": [
                 "error",
                 {
-                    extensions: ["vue"],
-                    shouldMatchCase: true
+                    "extensions": ["vue"],
+                    "shouldMatchCase": true
                 }
             ],
             // eslint-plugin-vuejs-accessibility
             "vuejs-accessibility/label-has-for": [
                 "error",
                 {
-                    required: {
-                        some: ["nesting", "id"]
+                    "required": {
+                        "some": ["nesting", "id"]
                     }
                 }
             ],
@@ -305,6 +300,7 @@ module.exports = [
             "**/jsdoc/",
             "**/lib/",
             "**/examples/",
+            "**/.git/",
             "portal/*",
             "!portal/basic",
             "!portal/master",
