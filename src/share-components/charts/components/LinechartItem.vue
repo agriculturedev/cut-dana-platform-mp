@@ -70,10 +70,6 @@ export default {
              * @see afterFit https://www.chartjs.org/docs/latest/axes/?h=afterfit
              * @returns {Void}  -
              */
-            // ChartJs.Legend.prototype.afterFit = function () {
-            //     this.height += 10;
-            // };
-
             this.resetChart(this.data);
         });
     },

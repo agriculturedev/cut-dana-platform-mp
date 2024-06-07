@@ -2,15 +2,15 @@ import Vuex from "vuex";
 import {shallowMount, createLocalVue} from "@vue/test-utils";
 import {expect} from "chai";
 import ChartJs from "chart.js/auto";
+import sinon from "sinon";
 import BarchartItem from "../../../components/BarchartItem.vue";
 import {nextTick} from "vue";
-// import {debug} from "webpack";
 
 const localVue = createLocalVue();
 
 localVue.use(Vuex);
 
-describe.only("src/share-components/charts/components/BarchartItem.vue", () => {
+describe("src/share-components/charts/components/BarchartItem.vue", () => {
     let wrapper;
 
     beforeEach(() => {
@@ -29,6 +29,7 @@ describe.only("src/share-components/charts/components/BarchartItem.vue", () => {
     describe("mounted", () => {
         it("should create an instance of ChartJS when mounted", () => {
             nextTick(() => {
+                // console.log(ChartJs);
                 expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
             });
         });
@@ -44,6 +45,17 @@ describe.only("src/share-components/charts/components/BarchartItem.vue", () => {
         });
     });
     describe("resetChart", () => {
+        it("should destroy the former chart", () => {
+            const destroySpy = sinon.spy();
+
+            nextTick(() => {
+                wrapper.vm.chart = new ChartJs(document.createElement("CANVAS"));
+                wrapper.vm.chart.destroy = destroySpy;
+                wrapper.vm.destroyChart();
+
+                expect(destroySpy.called).to.be.true;
+            });
+        });
         it("should destroy the former chart and create a new one", () => {
             let destroyCalled = false;
 
