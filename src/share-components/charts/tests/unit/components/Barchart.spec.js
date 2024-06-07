@@ -4,16 +4,16 @@ import {expect} from "chai";
 import ChartJs from "chart.js/auto";
 import sinon from "sinon";
 import BarchartItem from "../../../components/BarchartItem.vue";
-import {nextTick} from "vue";
 
 const localVue = createLocalVue();
 
 localVue.use(Vuex);
 
-describe("src/share-components/charts/components/BarchartItem.vue", () => {
-    let wrapper;
+describe.only("src/share-components/charts/components/BarchartItem.vue", () => {
+    let wrapper, destroyChartSpy;
 
     beforeEach(() => {
+        destroyChartSpy = sinon.spy(BarchartItem.methods, "destroyChart");
         wrapper = shallowMount(BarchartItem, {
             propsData: {
                 data: {
@@ -26,47 +26,40 @@ describe("src/share-components/charts/components/BarchartItem.vue", () => {
         });
     });
 
+    afterEach(() => {
+        sinon.restore();
+    });
+
     describe("mounted", () => {
-        it("should create an instance of ChartJS when mounted", () => {
-            nextTick(() => {
-                // console.log(ChartJs);
-                expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
-            });
+        it("should create an instance of ChartJS when mounted", async () => {
+            await wrapper.vm.$nextTick();
+            expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
         });
-        it("should create a chart of type bar when mounted", () => {
-            nextTick(() => {
-                expect(wrapper.vm.chart.config.type).to.equal("bar");
-            });
+        it("should create a chart of type bar when mounted", async () => {
+            await wrapper.vm.$nextTick();
+            expect(wrapper.vm.chart.config.type).to.equal("bar");
         });
-        it("should create a canvas element in its component", () => {
-            nextTick(() => {
-                expect(wrapper.find("canvas").exists()).to.be.true;
-            });
+        it("should create a canvas element in its component", async () => {
+            await wrapper.vm.$nextTick();
+            expect(wrapper.find("canvas").exists()).to.be.true;
         });
     });
     describe("resetChart", () => {
-        it("should destroy the former chart", () => {
-            const destroySpy = sinon.spy();
+        it("should destroy the former chart and create a new one", async () => {
+            // let destroyCalled = false;
 
-            nextTick(() => {
-                wrapper.vm.chart = new ChartJs(document.createElement("CANVAS"));
-                wrapper.vm.chart.destroy = destroySpy;
-                wrapper.vm.destroyChart();
+            await wrapper.vm.$nextTick();
+            // Robin: das funktioniert nicht, da die destroy-Methode überschrieben wird und dann das chart nicht destroyed wird, so dass kein neues erzeugt werden kann
+            // --> Error: Canvas is already in use. Chart with ID '1' must be destroyed before the canvas with ID '' can be reused.
+            // Lösung: chart.destroy als sinon.spy --> geht nicht, da chartjs kein export default macht
+            // Lösung: method added destroyChart, die chart.destroy  aufruft und darauf eine spy setzen vor Erzeugung des wrapper
 
-                expect(destroySpy.called).to.be.true;
-            });
-        });
-        it("should destroy the former chart and create a new one", () => {
-            let destroyCalled = false;
+            // wrapper.vm.chart.destroy = () => {
+            //     destroyCalled = true;
+            // };
 
-            nextTick(() => {
-                wrapper.vm.chart.destroy = () => {
-                    destroyCalled = true;
-                };
-                wrapper.vm.resetChart({});
-
-                expect(destroyCalled).to.be.true;
-            });
+            wrapper.vm.resetChart({});
+            expect(destroyChartSpy.calledOnce).to.be.true;
         });
     });
     describe("getChartJsOptions", () => {

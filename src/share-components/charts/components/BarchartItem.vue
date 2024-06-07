@@ -87,10 +87,14 @@ export default {
                 };
 
             if (this.chart instanceof ChartJs) {
-                this.chart.destroy();
+                this.destroyChart();
             }
 
             this.chart = new ChartJs(ctx, config);
+        },
+
+        destroyChart () {
+            this.chart.destroy();
         },
 
         /**
