@@ -29,7 +29,6 @@ export default {
             defaultOptions: {
                 responsive: true,
                 plugins: {
-
                     legend: {
                         align: "start"
                     },
@@ -42,7 +41,6 @@ export default {
                         }
                     }
                 },
-
                 scales: {
                     y: {
                         ticks: {
@@ -54,7 +52,6 @@ export default {
                         }
                     }
                 }
-
             },
             chart: null
         };
@@ -75,7 +72,7 @@ export default {
     },
     methods: {
         /**
-         * destroys the old charts and creates a new chart+
+         * destroys the old charts and creates a new chart
          * @param {Object} data the data for diagram
          * @pre the old chart is shown or no chart is initialized
          * @post the chart based on current data and props is shown
@@ -90,10 +87,14 @@ export default {
                 };
 
             if (this.chart instanceof ChartJs) {
-                this.chart.destroy();
+                this.destroyChart();
             }
 
             this.chart = new ChartJs(ctx, config);
+        },
+
+        destroyChart () {
+            this.chart.destroy();
         },
         /**
          * replace default options with given options on hand deepAssign method and returns the options for chart js

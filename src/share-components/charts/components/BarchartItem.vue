@@ -16,8 +16,8 @@ export default {
             default: null
         },
         /**
-         * the data for the piechart to hand over to chartJS data attribute
-         * @see https://www.chartjs.org/docs/latest/charts/doughnut.html
+         * the data for the barchart to hand over to chartJS data attribute
+         * @see https://www.chartjs.org/docs/latest/charts/bar.html
          */
         data: {
             type: Object,
@@ -31,6 +31,14 @@ export default {
                 plugins: {
                     legend: {
                         align: "start"
+                    },
+                    tooltips: {
+                        callbacks: {
+                        // use label callback to return the desired label
+                            label: (tooltipItem, data) => {
+                                return data.datasets[tooltipItem.datasetIndex].label + ": " + thousandsSeparator(tooltipItem.value);
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -41,14 +49,6 @@ export default {
                             callback: (value) => {
                                 return thousandsSeparator(value);
                             }
-                        }
-                    }
-                },
-                tooltips: {
-                    callbacks: {
-                    // use label callback to return the desired label
-                        label: (tooltipItem, data) => {
-                            return data.datasets[tooltipItem.datasetIndex].label + ": " + thousandsSeparator(tooltipItem.value);
                         }
                     }
                 }
@@ -65,7 +65,7 @@ export default {
         this.$nextTick(() => {
             /**
              * @see afterFit https://www.chartjs.org/docs/latest/axes/?h=afterfit
-             * @returns {void}  -
+             * @returns {Void}  -
              */
             this.resetChart(this.data);
         });
@@ -96,7 +96,6 @@ export default {
         destroyChart () {
             this.chart.destroy();
         },
-
         /**
          * replace default options with given options on hand deepAssign method and returns the options for chart js
          * @param {Object} defaultOptions an object with the default options following chartJS options (see https://www.chartjs.org/docs/latest/general/options.html)

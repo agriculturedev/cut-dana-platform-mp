@@ -26,23 +26,20 @@ describe("src/share-components/charts/components/PiechartItem.vue", () => {
     });
 
     describe("mounted", () => {
-        it("should create an instance of ChartJS when mounted", () => {
-            nextTick(() => {
-                expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
-            });
+        it("should create an instance of ChartJS when mounted", async () => {
+            await wrapper.vm.$nextTick();
+            expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
         });
-        it("should create a chart of type pie when mounted", () => {
-            nextTick(() => {
-                expect(wrapper.vm.chart.config.type).to.equal("pie");
-            });
+        it("should create a chart of type line when mounted", async () => {
+            await wrapper.vm.$nextTick();
+            expect(wrapper.vm.chart.config.type).to.equal("pie");
         });
-        it("should create a canvas element in its component", () => {
-            nextTick(() => {
-                expect(wrapper.find("canvas").exists()).to.be.true;
-            });
+        it("should create a canvas element in its component", async () => {
+            await wrapper.vm.$nextTick();
+            expect(wrapper.find("canvas").exists()).to.be.true;
         });
     });
-    describe("mounted as doughnut", () => {
+    describe("mounted as doughnut", async () => {
         const doughnut = shallowMount(PiechartItem, {
             propsData: {
                 data: {

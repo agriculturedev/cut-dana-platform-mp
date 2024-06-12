@@ -9,7 +9,7 @@ const localVue = createLocalVue();
 
 localVue.use(Vuex);
 
-describe.only("src/share-components/charts/components/BarchartItem.vue", () => {
+describe("src/share-components/charts/components/BarchartItem.vue", () => {
     let wrapper, destroyChartSpy;
 
     beforeEach(() => {
