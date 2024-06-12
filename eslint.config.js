@@ -4,7 +4,8 @@ const js = require("@eslint/js"),
     pluginVue = require("eslint-plugin-vue"),
     pluginJsdoc = require("eslint-plugin-jsdoc"),
     pluginMocha = require("eslint-plugin-mocha"),
-    pluginChaiFriendly = require("eslint-plugin-chai-friendly");
+    pluginChaiFriendly = require("eslint-plugin-chai-friendly"),
+    globals = require("globals");
 
 module.exports = [
     js.configs.recommended,
@@ -14,21 +15,20 @@ module.exports = [
     pluginJsdoc.configs["flat/recommended"],
     {
         languageOptions: {
-            ecmaVersion: 2023,
+            ecmaVersion: 2022,
             sourceType: "module",
             globals: {
+                ...globals.browser,
+                ...globals.mocha,
+                ...globals.node,
+                ...globals.amd,
                 $: true,
                 _: true,
                 Config: true,
                 Radio: true,
                 Cesium: true,
                 i18next: true,
-                mapCollection: true,
-                // browser global variables
-                browser: true,
-                node: true,
-                es6: true,
-                amd: true
+                mapCollection: true
             }
         },
         plugins: {
@@ -285,7 +285,10 @@ module.exports = [
             "mocha/no-skipped-tests": "off",
             "mocha/no-async-describe": "off",
             "mocha/max-top-level-suites": "off",
-            "mocha/no-sibling-hooks": "off"
+            "mocha/no-sibling-hooks": "off",
+            // eslint-plugin-chai-friendly - it doesnt work
+            // "no-unused-expressions": "off", // disable original rule
+            // "chai-friendly/no-unused-expressions": "error"
         }
     },
     {
