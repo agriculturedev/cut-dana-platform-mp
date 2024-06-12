@@ -285,7 +285,7 @@ module.exports = [
             "mocha/no-skipped-tests": "off",
             "mocha/no-async-describe": "off",
             "mocha/max-top-level-suites": "off",
-            "mocha/no-sibling-hooks": "off",
+            "mocha/no-sibling-hooks": "off"
             // eslint-plugin-chai-friendly - it doesnt work
             // "no-unused-expressions": "off", // disable original rule
             // "chai-friendly/no-unused-expressions": "error"
