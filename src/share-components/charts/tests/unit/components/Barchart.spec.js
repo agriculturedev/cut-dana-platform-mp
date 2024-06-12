@@ -46,18 +46,7 @@ describe("src/share-components/charts/components/BarchartItem.vue", () => {
     });
     describe("resetChart", () => {
         it("should destroy the former chart and create a new one", async () => {
-            // let destroyCalled = false;
-
             await wrapper.vm.$nextTick();
-            // Robin: das funktioniert nicht, da die destroy-Methode überschrieben wird und dann das chart nicht destroyed wird, so dass kein neues erzeugt werden kann
-            // --> Error: Canvas is already in use. Chart with ID '1' must be destroyed before the canvas with ID '' can be reused.
-            // Lösung: chart.destroy als sinon.spy --> geht nicht, da chartjs kein export default macht
-            // Lösung: method added destroyChart, die chart.destroy  aufruft und darauf eine spy setzen vor Erzeugung des wrapper
-
-            // wrapper.vm.chart.destroy = () => {
-            //     destroyCalled = true;
-            // };
-
             wrapper.vm.resetChart({});
             expect(destroyChartSpy.calledOnce).to.be.true;
         });

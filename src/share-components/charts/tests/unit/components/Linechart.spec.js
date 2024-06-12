@@ -3,6 +3,7 @@ import {shallowMount, createLocalVue} from "@vue/test-utils";
 import {expect} from "chai";
 import ChartJs from "chart.js/auto";
 import sinon from "sinon";
+import {nextTick} from "vue";
 import LinechartItem from "../../../components/LinechartItem.vue";
 
 const localVue = createLocalVue();
@@ -10,7 +11,7 @@ const localVue = createLocalVue();
 localVue.use(Vuex);
 
 describe("src/share-components/charts/components/LinechartItem.vue", () => {
-    let wrapper, destroyChartSpy;
+    let wrapper;
 
     beforeEach(() => {
         wrapper = shallowMount(LinechartItem, {
@@ -23,10 +24,6 @@ describe("src/share-components/charts/components/LinechartItem.vue", () => {
             },
             localVue
         });
-    });
-
-    afterEach(() => {
-        sinon.restore();
     });
 
     describe("mounted", () => {
@@ -43,22 +40,17 @@ describe("src/share-components/charts/components/LinechartItem.vue", () => {
             expect(wrapper.find("canvas").exists()).to.be.true;
         });
     });
-    describe.skip("resetChart", () => {
+    describe("resetChart", () => {
         it("should destroy the former chart and create a new one", async () => {
-            // let destroyCalled = false;
-            destroyChartSpy = sinon.spy(LinechartItem.methods, "destroyChart");
-            await wrapper.vm.$nextTick();
-            // Robin: das funktioniert nicht, da die destroy-Methode überschrieben wird und dann das chart nicht destroyed wird, so dass kein neues erzeugt werden kann
-            // --> Error: Canvas is already in use. Chart with ID '1' must be destroyed before the canvas with ID '' can be reused.
-            // Lösung: chart.destroy als sinon.spy --> geht nicht, da chartjs kein export default macht
-            // Lösung: method added destroyChart, die chart.destroy  aufruft und darauf eine spy setzen vor Erzeugung des wrapper
+            const destroySpy = sinon.spy();
 
-            // wrapper.vm.chart.destroy = () => {
-            //     destroyCalled = true;
-            // };
+            nextTick(() => {
+                wrapper.vm.chart = new ChartJs(document.createElement("CANVAS"));
+                wrapper.vm.chart.destroy = destroySpy;
+                wrapper.vm.destroyChart();
 
-            wrapper.vm.resetChart({});
-            expect(destroyChartSpy.calledOnce).to.be.true;
+                expect(destroySpy.called).to.be.true;
+            });
         });
     });
     describe("getChartJsOptions", () => {
