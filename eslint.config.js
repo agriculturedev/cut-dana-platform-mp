@@ -9,7 +9,7 @@ const js = require("@eslint/js"),
 
 module.exports = [
     js.configs.recommended,
-    ...pluginVue.configs["flat/recommended"],
+    ...pluginVue.configs["flat/vue2-recommended"],
     ...pluginVuejsAccessibility.configs["flat/recommended"],
     pluginMocha.configs.flat.recommended,
     pluginJsdoc.configs["flat/recommended"],
@@ -286,8 +286,7 @@ module.exports = [
             "mocha/no-async-describe": "off",
             "mocha/max-top-level-suites": "off",
             "mocha/no-sibling-hooks": "off"
-            // eslint-plugin-chai-friendly - it doesnt work
-            // "no-unused-expressions": "off", // disable original rule
+            // eslint-plugin-chai-friendly
             // "chai-friendly/no-unused-expressions": "error"
         }
     },
