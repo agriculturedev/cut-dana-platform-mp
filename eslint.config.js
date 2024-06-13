@@ -1,10 +1,8 @@
-// eslint.config.js
 const js = require("@eslint/js"),
     pluginVuejsAccessibility = require("eslint-plugin-vuejs-accessibility"),
     pluginVue = require("eslint-plugin-vue"),
     pluginJsdoc = require("eslint-plugin-jsdoc"),
     pluginMocha = require("eslint-plugin-mocha"),
-    pluginChaiFriendly = require("eslint-plugin-chai-friendly"),
     globals = require("globals");
 
 module.exports = [
@@ -32,8 +30,7 @@ module.exports = [
             }
         },
         plugins: {
-            "vuejs-accessibility": pluginVuejsAccessibility,
-            "chai-friendly": pluginChaiFriendly
+            "vuejs-accessibility": pluginVuejsAccessibility
         },
         rules: {
             // Possible Problems - These rules relate to possible logic errors in code:
@@ -286,8 +283,6 @@ module.exports = [
             "mocha/no-async-describe": "off",
             "mocha/max-top-level-suites": "off",
             "mocha/no-sibling-hooks": "off"
-            // eslint-plugin-chai-friendly
-            // "chai-friendly/no-unused-expressions": "error"
         }
     },
     {
