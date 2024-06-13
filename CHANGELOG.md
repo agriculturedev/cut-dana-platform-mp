@@ -23,6 +23,7 @@
 - The following packages have been removed:
     - devDependencies:
         - eslint: 8.57.0
+        - eslint-plugin-chai-friendly: ^0.7.4
 ### Fixed
 
 
