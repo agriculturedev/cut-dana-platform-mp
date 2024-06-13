@@ -23,7 +23,8 @@
 - The following packages have been removed:
     - devDependencies:
         - eslint: 8.57.0
-        - eslint-plugin-chai-friendly: ^0.7.4
+        - eslint-plugin-chai-friendly: 0.7.4
+        - eslint-plugin-you-dont-need-lodash-underscore: 6.12.0
 ### Fixed
 
 
