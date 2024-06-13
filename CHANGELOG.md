@@ -9,13 +9,20 @@
 ### Added
 - StatisticDashboard:
     - Can now load data from an OAF Rest API if an OAF layer is configured.
-
+- The following packages have been added:
+    - devDependencies:
+        - @eslint/js: 9.3.3
+        - eslint-plugin-jsdoc: 48.2.7,
+        - eslint-plugin-mocha: 10.4.3,
+        - globals: 15.3.0
 ### Changed
 
 ### Deprecated
 
 ### Removed
-
+- The following packages have been removed:
+    - devDependencies:
+        - eslint: 8.57.0
 ### Fixed
 
 
