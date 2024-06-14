@@ -7,12 +7,14 @@ import {Style} from "ol/style.js";
  * @typedef {Object} MapMarkerState
  * @property {String} pointStyleId The id references the style.json for a point map marker.
  * @property {String} polygonStyleId The id references the style.json for a polygon map marker.
+ * @property {String} additionalPolygonStyleId The id references the style.json for an additional polygon map marker to the default map marker.
  * @property {Object} markerPoint The vector layer for the point map marker.
  * @property {Object} markerPolygon The vector layer for the polygon map marker.
  */
 export default {
     pointStyleId: "defaultMapMarkerPoint",
     polygonStyleId: "defaultMapMarkerPolygon",
+    additionalPolygonStyleId: "defaultAdditionalMapMarkerPolygon",
     markerPoint: new VectorLayer({
         id: "marker_point_layer",
         name: "markerPoint",
