@@ -17,6 +17,9 @@ function highlightFeature ({commit, dispatch, getters}, highlightObject) {
     else if (highlightObject.type === "viaLayerIdAndFeatureId") {
         highlightViaParametricUrl(dispatch, getters, highlightObject.layerIdAndFeatureId);
     }
+    else if (highlightObject.type === "highlightPoint") {
+        highlightPoint(commit, dispatch, highlightObject);
+    }
     else if (highlightObject.type === "highlightPolygon") {
         highlightPolygon(commit, dispatch, highlightObject);
     }
@@ -27,6 +30,47 @@ function highlightFeature ({commit, dispatch, getters}, highlightObject) {
         highlightLine(commit, dispatch, highlightObject);
     }
 }
+
+/**
+ * highlights a Point feature
+ * @param {Function} commit commit function
+ * @param {Function} dispatch dispatch function
+ * @param {Object} highlightObject contains several parameters for feature highlighting
+ * @fires VectorStyle#RadioRequestStyleListReturnModelById
+ * @returns {void}
+ */
+function highlightPoint (commit, dispatch, highlightObject) {
+    if (highlightObject.highlightStyle) {
+        const newStyle = highlightObject.highlightStyle,
+            feature = highlightObject.feature,
+            originalStyle = styleObject(highlightObject, feature) ? styleObject(highlightObject, feature) : undefined;
+
+        if (originalStyle) {
+            const clonedStyle = Array.isArray(originalStyle) ? originalStyle[0].clone() : originalStyle.clone();
+
+            commit("Maps/addHighlightedFeature", feature, {root: true});
+            commit("Maps/addHighlightedFeatureStyle", feature.getStyle(), {root: true});
+
+            if (newStyle.fill?.color) {
+                clonedStyle.getFill().setColor(newStyle.fill.color);
+            }
+            if (newStyle.stroke?.width) {
+                clonedStyle.getStroke().setWidth(newStyle.stroke.width);
+            }
+            if (newStyle.stroke?.color) {
+                clonedStyle.getStroke().setColor(newStyle.stroke.color);
+            }
+            if (newStyle.image?.scale) {
+                clonedStyle.getImage()?.setScale(newStyle.image.scale);
+            }
+            feature.setStyle(clonedStyle);
+        }
+    }
+    else {
+        dispatch("MapMarker/placingPolygonMarker", highlightObject.feature, {root: true});
+    }
+}
+
 /**
  * highlights a polygon feature
  * @param {Function} commit commit function

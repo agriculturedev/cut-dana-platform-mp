@@ -30,7 +30,7 @@ export default {
     },
     computed: {
         ...mapGetters("Maps", ["clickCoordinate", "getLayerById"]),
-        ...mapGetters("Tools/Gfi", ["centerMapToClickPoint", "showMarker", "highlightVectorRules", "currentFeature", "hideMapMarkerOnVectorHighlight"]),
+        ...mapGetters("Tools/Gfi", ["centerMapToClickPoint", "showMarker", "highlightVectorRules", "showPolygonMarkerForWMS", "currentFeature", "hideMapMarkerOnVectorHighlight"]),
 
         /**
          * Returns the title of the gfi.
@@ -52,6 +52,7 @@ export default {
     watch: {
         currentFeature: function () {
             this.highlightVectorFeature();
+            this.highlightWMSFeature();
         }
     },
     created: function () {
@@ -64,22 +65,25 @@ export default {
     },
     mounted: function () {
         this.highlightVectorFeature();
+        this.highlightWMSFeature();
         this.setMarker();
     },
     updated: function () {
         if (this.isUpdated) {
             this.highlightVectorFeature();
+            this.highlightWMSFeature();
             this.setMarker();
             this.$emit("updateFeatureDone");
         }
     },
     beforeDestroy: function () {
         this.removeHighlighting();
+        this.removePolygonMarker();
         this.removePointMarker();
     },
     methods: {
         ...mapMutations("Tools/Gfi", ["setShowMarker"]),
-        ...mapActions("MapMarker", ["removePointMarker", "placingPointMarker"]),
+        ...mapActions("MapMarker", ["removePointMarker", "placingPointMarker", "removePolygonMarker"]),
         ...mapActions("Maps", ["highlightFeature", "removeHighlightFeature", "setCenter"]),
         close () {
             this.$emit("close");
@@ -162,6 +166,52 @@ export default {
                         layer: {id: this.feature.getLayerId()},
                         styleId
                     });
+                }
+            }
+        },
+        /**
+         * Highlights a WMS feature
+         * @returns {void}
+         */
+        highlightWMSFeature () {
+            if (this.showPolygonMarkerForWMS) {
+                const layer = this.getLayerById({layerId: this.feature.getLayerId()});
+
+                if (typeof layer?.getProperties === "function" && layer?.getProperties()?.typ?.toLowerCase() === "wms") {
+                    this.removePolygonMarker();
+
+                    if (this.hideMapMarkerOnVectorHighlight) {
+                        this.hideMarker();
+                    }
+
+                    if (this.feature.getOlFeature()?.getGeometry()?.getType() === "Point") {
+                        this.highlightFeature({
+                            feature: this.feature.getOlFeature(),
+                            type: "highlightPoint",
+                            layer: {id: this.feature.getLayerId()}
+                        });
+                    }
+                    else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "Polygon") {
+                        this.highlightFeature({
+                            feature: this.feature.getOlFeature(),
+                            type: "highlightPolygon",
+                            layer: {id: this.feature.getLayerId()}
+                        });
+                    }
+                    else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "MultiPolygon") {
+                        this.highlightFeature({
+                            feature: this.feature.getOlFeature(),
+                            type: "highlightMultiPolygon",
+                            layer: {id: this.feature.getLayerId()}
+                        });
+                    }
+                    else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "LineString") {
+                        this.highlightFeature({
+                            feature: this.feature.getOlFeature(),
+                            type: "highlightLine",
+                            layer: {id: this.feature.getLayerId()}
+                        });
+                    }
                 }
             }
         },

@@ -24,6 +24,7 @@ const state = {
     centerMapToClickPoint: false,
     showMarker: true,
     highlightVectorRules: null,
+    showPolygonMarkerForWMS: false,
     hideMapMarkerOnVectorHighlight: false,
     isVisibleInMenu: true,
     renderToWindow: true,

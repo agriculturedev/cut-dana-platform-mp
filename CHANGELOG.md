@@ -15,11 +15,14 @@
         - eslint-plugin-jsdoc: 48.2.7,
         - eslint-plugin-mocha: 10.4.3,
         - globals: 15.3.0
+- WMS features with geometry can be highlighted with polygon marker
+
 ### Changed
 - Login: Access and refresh tokens are now revoked on logout. For this to work it is required to add the revoke endpoint to the config.js.
 - The following packages have been updated:
     - dependencies:
         - @masterportal/masterportalapi: 2.38.0 to 2.39.0 (This also raised @cesium/engine to version 9.2.0)
+- WMS gfi responses with mimeType json/application are parsed as GeoJSON
 
 ### Deprecated
 
