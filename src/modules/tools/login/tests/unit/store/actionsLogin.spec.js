@@ -60,6 +60,45 @@ describe("src/modules/tools/login/store/actionsLogin.js", () => {
 
             expect(oidcSpy.calledOnce).to.be.true;
             expect(cookieSpy.calledOnce).to.be.true;
+
+            local_sandbox.restore();
+        });
+
+        it("revokes tokens if oidcRevocationEndpoint is set", () => {
+            const local_sandbox = sinon.createSandbox(),
+                state = {
+                    ...stateLogin,
+                    loggedIn: true,
+                    username: "max",
+                    screenName: "Max Mustermann",
+                    email: "max@mustermann.de",
+                    accessToken: "accessToken",
+                    refreshToken: "refreshToken"
+                },
+                oidcStub = local_sandbox.stub(OIDC, "revokeToken");
+
+            local_sandbox.stub(Cookie, "get").callsFake((key) => {
+                if (key === "token") {
+                    return state.accessToken;
+                }
+                if (key === "refresh_token") {
+                    return state.refreshToken;
+                }
+                return null;
+            });
+
+            Config.login = {
+                oidcRevocationEndpoint: "https://idm.localhost/revoke"
+            };
+
+            actionsLogin.logout({state, commit});
+
+            expect(oidcStub.firstCall.args[0]).to.equal("https://idm.localhost/revoke");
+            expect(oidcStub.firstCall.args[1]).to.equal("accessToken");
+            expect(oidcStub.secondCall.args[0]).to.equal("https://idm.localhost/revoke");
+            expect(oidcStub.secondCall.args[1]).to.equal("refreshToken");
+
+            local_sandbox.restore();
         });
     });
 

@@ -35,12 +35,16 @@ export default {
     },
 
     /**
-     * Removes all login information from the store and erases all corresponding cookies
+     * Removes all login information from the store, erases all corresponding cookies and revokes tokens.
      *
      * @param {Object} context the context Vue instance
      * @return {void}
      */
     logout ({commit}) {
+        const token = Cookie.get("token"),
+            refreshToken = Cookie.get("refresh_token"),
+            oidcRevocationEndpoint = Config?.login?.oidcRevocationEndpoint;
+
         OIDC.eraseCookies();
 
         commit("setLoggedIn", false);
@@ -49,6 +53,13 @@ export default {
         commit("setScreenName", undefined);
         commit("setUsername", undefined);
         commit("setEmail", undefined);
+
+        if (oidcRevocationEndpoint && token) {
+            OIDC.revokeToken(oidcRevocationEndpoint, token);
+        }
+        if (oidcRevocationEndpoint && refreshToken) {
+            OIDC.revokeToken(oidcRevocationEndpoint, refreshToken);
+        }
     },
 
     /**

@@ -16,6 +16,7 @@
         - eslint-plugin-mocha: 10.4.3,
         - globals: 15.3.0
 ### Changed
+- Login: Access and refresh tokens are now revoked on logout. For this to work it is required to add the revoke endpoint to the config.js.
 
 ### Deprecated
 

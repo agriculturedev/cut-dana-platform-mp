@@ -195,6 +195,27 @@ function refreshToken (oidcTokenEndpoint, oidcClientId, refresh_token) {
 }
 
 /**
+ * Revokes a token
+ *
+ * @param {String} oidcRevocationEndpoint the oidc revocation endpoint
+ * @param {String} token the token to revoke
+ * @returns {XMLHttpRequest} the sent request
+ */
+function revokeToken (oidcRevocationEndpoint, token) {
+    const xhr = new XMLHttpRequest();
+
+    xhr.open("POST", oidcRevocationEndpoint, false);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+    xhr.send(`token=${encodeURIComponent(token)}`);
+
+    if (xhr.status !== 200) {
+        throw new Error(`Failed to revoke token: ${xhr.statusText}`);
+    }
+
+    return xhr;
+}
+
+/**
  * sets all cookies
  *
  * @param {String} token the access token
@@ -302,6 +323,7 @@ export default {
     setCookies,
     eraseCookies,
     refreshToken,
+    revokeToken,
     getTokenExpiry,
     renewTokenIfNecessary,
     parseJwt
