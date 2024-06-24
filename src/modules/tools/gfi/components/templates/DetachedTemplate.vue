@@ -116,14 +116,15 @@ export default {
         highlightVectorFeature () {
             if (this.highlightVectorRules) {
                 const layer = this.getLayerById({layerId: this.feature.getLayerId()}),
-                    styleId = layer?.get("styleId");
+                    styleId = layer?.get("styleId"),
+                    geometryType = this.feature.getOlFeature()?.getGeometry()?.getType();
 
                 this.removeHighlighting();
                 if (this.hideMapMarkerOnVectorHighlight) {
                     this.hideMarker();
                 }
 
-                if (this.feature.getOlFeature()?.getGeometry()?.getType() === "Point") {
+                if (geometryType === "Point") {
                     this.highlightFeature({
                         feature: this.feature.getOlFeature(),
                         type: "increase",
@@ -132,7 +133,7 @@ export default {
                         styleId
                     });
                 }
-                else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "Polygon") {
+                else if (geometryType === "Polygon") {
                     this.highlightFeature({
                         feature: this.feature.getOlFeature(),
                         type: "highlightPolygon",
@@ -144,7 +145,7 @@ export default {
                         styleId
                     });
                 }
-                else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "MultiPolygon") {
+                else if (geometryType === "MultiPolygon") {
                     this.highlightFeature({
                         feature: this.feature.getOlFeature(),
                         type: "highlightMultiPolygon",
@@ -156,7 +157,7 @@ export default {
                         styleId
                     });
                 }
-                else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "LineString") {
+                else if (geometryType === "LineString") {
                     this.highlightFeature({
                         feature: this.feature.getOlFeature(),
                         type: "highlightLine",
@@ -175,7 +176,8 @@ export default {
          */
         highlightWMSFeature () {
             if (this.showPolygonMarkerForWMS) {
-                const layer = this.getLayerById({layerId: this.feature.getLayerId()});
+                const layer = this.getLayerById({layerId: this.feature.getLayerId()}),
+                    geometryType = this.feature.getOlFeature()?.getGeometry()?.getType();
 
                 if (typeof layer?.getProperties === "function" && layer?.getProperties()?.typ?.toLowerCase() === "wms") {
                     this.removePolygonMarker();
@@ -184,28 +186,28 @@ export default {
                         this.hideMarker();
                     }
 
-                    if (this.feature.getOlFeature()?.getGeometry()?.getType() === "Point") {
+                    if (geometryType === "Point") {
                         this.highlightFeature({
                             feature: this.feature.getOlFeature(),
                             type: "highlightPoint",
                             layer: {id: this.feature.getLayerId()}
                         });
                     }
-                    else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "Polygon") {
+                    else if (geometryType === "Polygon") {
                         this.highlightFeature({
                             feature: this.feature.getOlFeature(),
                             type: "highlightPolygon",
                             layer: {id: this.feature.getLayerId()}
                         });
                     }
-                    else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "MultiPolygon") {
+                    else if (geometryType === "MultiPolygon") {
                         this.highlightFeature({
                             feature: this.feature.getOlFeature(),
                             type: "highlightMultiPolygon",
                             layer: {id: this.feature.getLayerId()}
                         });
                     }
-                    else if (this.feature.getOlFeature()?.getGeometry()?.getType() === "LineString") {
+                    else if (geometryType === "LineString") {
                         this.highlightFeature({
                             feature: this.feature.getOlFeature(),
                             type: "highlightLine",
