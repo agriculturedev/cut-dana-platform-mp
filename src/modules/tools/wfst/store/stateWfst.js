@@ -62,6 +62,7 @@
  * @property {("LineString"|"Point"|"Polygon"|"delete"|"updated"|"selectedUpdate"|null)} selectedInteraction Which selection is currently active, if any.
  * WfsTransaction extension tool
  * @property {Boolean} isFormDisabled if true then feature form inputs are invalid and form data cannot be saved to backend
+ * @property {Set} processedMultiPolygons Set of already processed Multipolygon Features
  */
 const state = {
     id: "wfst",
@@ -90,7 +91,8 @@ const state = {
     layerInformation: [],
     selectedInteraction: null,
     // WfsTransaction extension tool
-    isFormDisabled: false
+    isFormDisabled: false,
+    processedMultiPolygons: new Set()
 };
 
 export default state;

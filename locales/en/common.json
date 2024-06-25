@@ -1087,6 +1087,11 @@
                     "number": "Number, partial number or negative number is required",
                     "date": "Full date is required",
                     "datetime-local": "Full date and hour is required"
+                },
+                "confirmVoidFeatureCreation": {
+                    "confirmCaption": "Yes",
+                    "denyCaption": "No",
+                    "textContent": "Would you like to create a multipolygon with a void (donut polygon)?"
                 }
             },
             "routing": {

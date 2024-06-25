@@ -8,6 +8,10 @@ const mutations = {
         featureProperties.find(property => property.key === key).value = value;
         featureProperties.find(property => property.key === key).valid = valid;
         featureProperties.find(property => property.key === key).required = required;
+    },
+
+    setProcessedMultiPolygons ({processedMultiPolygons}, value) {
+        processedMultiPolygons.add(value);
     }
 };
 

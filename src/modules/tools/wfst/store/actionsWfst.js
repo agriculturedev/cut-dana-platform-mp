@@ -7,8 +7,8 @@ import {getComponent} from "../../../../utils/getComponent";
 import loader from "../../../../utils/loaderOverlay";
 import getProxyUrl from "../../../../utils/getProxyUrl";
 import wfs from "@masterportal/masterportalapi/src/layer/wfs";
-import MultiPolygon from "ol/geom/MultiPolygon.js";
-import prepareMultiPolygonCoords from "../utils/prepareMultiPolygonCoords";
+import {handleMultipolygon, buildMultipolygon} from "../utils/handleMultipolygon";
+import {nextTick} from "vue";
 
 let drawInteraction,
     drawLayer,
@@ -81,7 +81,14 @@ const actions = {
                 sourceLayer.setVisible(false);
             }
 
-            drawInteraction.on("drawend", () => {
+            drawInteraction.on("drawend", async () => {
+                if (interaction === "MultiPolygon") {
+                    await nextTick();
+                    const currentFeatures = await drawLayer?.getSource()?.getFeatures();
+
+                    handleMultipolygon(currentFeatures, drawLayer);
+                }
+
                 if (getComponent(currentLayerId).get("isOutOfRange")) {
                     drawLayer.getSource().once("change", () => drawLayer.getSource().clear());
                     dispatch("Alerting/addSingleAlert", {
@@ -193,14 +200,14 @@ const actions = {
      * @returns {void}
      */
     async save ({dispatch, getters}) {
-        let featureWithProperties = null;
+        let featureWithProperties = null,
+            multiPolygonGeometry;
         const polygonFeature = modifyFeature ? modifyFeature : drawLayer.getSource().getFeatures()?.[0],
             {currentLayerIndex, featureProperties, layerInformation, selectedInteraction, layerIds} = getters,
             error = getters.savingErrorMessage(polygonFeature),
             multiPolygonFeatures = modifyFeature
                 ? modifyFeature
                 : drawLayer?.getSource()?.getFeatures().filter(feature => feature.getGeometry().getType() === "MultiPolygon"),
-            multiPolygonGeometry = new MultiPolygon([]),
             currentLayerId = layerIds[currentLayerIndex],
             geometryFeature = modifyFeature
                 ? Radio
@@ -221,8 +228,8 @@ const actions = {
             return;
         }
 
-        if (multiPolygonFeatures.length > 1) {
-            multiPolygonGeometry.setCoordinates(prepareMultiPolygonCoords(multiPolygonFeatures));
+        if (multiPolygonFeatures.length > 1 && drawLayer) {
+            multiPolygonGeometry = buildMultipolygon(multiPolygonFeatures, drawLayer);
         }
 
         featureWithProperties = await addFeaturePropertiesToFeature(

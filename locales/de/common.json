@@ -1088,6 +1088,11 @@
                     "number": "Zahl, Teilzahl oder negative Zahl ist erforderlich.",
                     "date": "Das vollständige Datum ist erforderlich.",
                     "datetime-local": "Vollständiges Datum und Uhrzeit sind erforderlich."
+                },
+                "confirmVoidFeatureCreation": {
+                    "confirmCaption": "Ja",
+                    "denyCaption": "Nein",
+                    "textContent": "Möchten Sie ein Multipolygon mit einem void (Donut-Polygon) erstellen?"
                 }
             },
             "routing": {

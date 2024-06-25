@@ -4367,6 +4367,7 @@ When editing properties of a feature / adding properties to a new features, the 
 |lineButton|no|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)[]/Boolean|[]|Defines which layers of `layerIds` allow insert transactions of line geometries.|false|
 |pointButton|no|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)[]/Boolean|[]|Defines which layers of `layerIds` allow insert transactions of point geometries.|false|
 |polygonButton|no|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)[]/Boolean|[]|Defines which layers of `layerIds` allow insert transactions of polygon geometries.|false|
+multipolygonButton|no|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)[]/Boolean|[]|Defines which layers of `layerIds` allow insert transactions of multipolygon geometries.|false|
 |update|no|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)/Boolean|false|Defines which layers of `layerIds` allow update transactions.|false|
 
 **Example**
@@ -4395,6 +4396,12 @@ When editing properties of a feature / adding properties to a new features, the 
             {
                 "layerId": "4389",
                 "show": false
+            }
+        ],
+        "multipolygonButton": [
+            {
+                "layerId": "4389",
+                "show": true
             }
         ],
         "update": [

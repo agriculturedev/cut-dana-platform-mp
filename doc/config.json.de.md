@@ -4308,6 +4308,7 @@ Beim Bearbeiten eines Features / Hinzufügen von Attributen zu einem neuen Featu
 |lineButton|nein|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)[]/Boolean|[]|Legt fest, welche der zu `layerIds` zugehörigen Layer das Hinzufügen von Linien erlauben.|false|
 |pointButton|nein|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)[]/Boolean|[]|Legt fest, welche der zu `layerIds` zugehörigen Layer das Hinzufügen von Punkten erlauben.|false|
 |polygonButton|nein|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)[]/Boolean|[]|Legt fest, welche der zu `layerIds` zugehörigen Layer das Hinzufügen von Polygonen erlauben.|false|
+|multipolygonButton|nein|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)[]/Boolean|[]|Legt fest, welche der zu `layerIds` zugehörigen Layer das Hinzufügen von Multipolygonen erlauben.|false|
 |update|nein|[TransactionConfig](#markdown-header-portalconfigmenutoolwfstransactiontransactionconfig)/Boolean|false|Legt fest, welche der zu `layerIds` zugehörigen Layer das Bearbeiten von Geometrien erlauben.|false|
 
 **Example**
@@ -4336,6 +4337,12 @@ Beim Bearbeiten eines Features / Hinzufügen von Attributen zu einem neuen Featu
             {
                 "layerId": "4389",
                 "show": false
+            }
+        ],
+        "multipolygonButton": [
+            {
+                "layerId": "4389",
+                "show": true
             }
         ],
         "update": [
