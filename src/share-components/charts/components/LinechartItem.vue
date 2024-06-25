@@ -65,7 +65,7 @@ export default {
         this.$nextTick(() => {
             /**
              * @see afterFit https://www.chartjs.org/docs/latest/axes/?h=afterfit
-             * @returns {Void}  -
+             * @returns {void}  -
              */
             this.resetChart(this.data);
         });
@@ -92,7 +92,10 @@ export default {
 
             this.chart = new ChartJs(ctx, config);
         },
-
+        /**
+         * destroys the old charts
+         * @returns {void}  -
+         */
         destroyChart () {
             this.chart.destroy();
         },

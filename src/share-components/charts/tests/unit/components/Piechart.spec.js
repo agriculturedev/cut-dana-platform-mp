@@ -30,7 +30,7 @@ describe("src/share-components/charts/components/PiechartItem.vue", () => {
             await wrapper.vm.$nextTick();
             expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
         });
-        it("should create a chart of type line when mounted", async () => {
+        it("should create a chart of type pie when mounted", async () => {
             await wrapper.vm.$nextTick();
             expect(wrapper.vm.chart.config.type).to.equal("pie");
         });

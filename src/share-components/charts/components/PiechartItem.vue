@@ -37,11 +37,9 @@ export default {
                 responsive: true,
                 plugins: {
                     legend: {
-
                         align: "start"
                     }
                 }
-
             },
             chart: null
         };
@@ -82,7 +80,10 @@ export default {
 
             this.chart = new ChartJs(ctx, config);
         },
-
+        /**
+         * destroys the old charts
+         * @returns {void}  -
+         */
         destroyChart () {
             this.chart.destroy();
         },

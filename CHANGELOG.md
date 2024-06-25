@@ -59,9 +59,9 @@
 - Issue #1186: Add warning to WFS search for unsupported geometry types.
 
 ### Changed
-- The following packages have been updated:
+- The following package has been updated:
     - dependencies:
-    - ChartJS from 2.2 to 4.4.2
+        - ChartJS from 2.2 to 4.4.2
 - Modeler3D:
   - Polygon and line highlighting has been changed
   - Measurement labels of drawn entities can now be toggled on/off individually.
