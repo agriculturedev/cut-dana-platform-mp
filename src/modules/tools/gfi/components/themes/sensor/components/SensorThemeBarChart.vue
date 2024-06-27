@@ -109,47 +109,50 @@ export default {
 
             return calculateArithmeticMean(processedData);
         },
-
+        /**
+         * Destroys the current chart if exists.
+         * @returns {void}
+         */
+        destroyChart () {
+            if (this.chart instanceof Chart) {
+                this.chart.destroy();
+                this.chart = null;
+            }
+        },
         /**
          * Creates the bar chart with chartsJs.
          * If a chart is already drawn, it will be destroyed.
          * @param {Object} calculatedData The calculated data.
          * @returns {void}
          */
-        drawChart: function (calculatedData) {
-            const ctx = this.$el.getElementsByTagName("canvas")[0],
-                maxValue = 1;
+        /**
+         * Creates the bar chart with chartsJs.
+         * If a chart is already drawn, it will be destroyed.
+         * @param {Object} calculatedData The calculated data.
+         * @param {Number} maxValue The max value.
+         * @returns {void}
+         */
+        drawChart (calculatedData, maxValue) {
+            this.chart.data = this.createChartData(calculatedData);
+            this.chart.options = {
+                layout: this.createChartLayout(),
+                plugins: {
+                    title: this.createChartTitle(),
+                    legend: this.createChartLegend(),
+                    tooltip: this.createChartTooltip(maxValue)
+                },
+                responsive: true,
+                scales: this.createChartScales(maxValue)
+            };
 
-            if (this.chart instanceof Chart) {
-                this.chart.destroy();
-            }
-
-            Chart.defaults.global.defaultFontFamily = "'MasterPortalFont', 'Arial Narrow', 'Arial', 'sans-serif'";
-            Chart.defaults.global.defaultFontColor = "#333333";
-
-            this.chart = new Chart(ctx, {
-                type: "bar",
-                data: this.createChartData(calculatedData),
-                options: {
-                    responsive: true,
-                    scales: this.createChartScales(maxValue),
-                    layout: this.createChartLayout(),
-                    plugins: {
-                        title: this.createChartTitle(),
-                        legend: this.createChartLegend(),
-                        tooltips: this.createChartTooltip(maxValue)
-
-                    }
-                }
-            });
+            this.chart.update();
         },
-
         /**
          * Creates the data for the chart.
          * @param {Object} calculatedData The calculated data.
          * @returns {Object} The chart data.
          */
-        createChartData: function (calculatedData) {
+        createChartData (calculatedData) {
             return {
                 labels: calculatedData.map(data => data.hour),
                 datasets: [{
@@ -204,7 +207,7 @@ export default {
          */
         createChartScales: function (maxValue) {
             return {
-                xAxes: [{
+                x: {
                     ticks: {
                         min: 0,
                         max: 23,
@@ -212,15 +215,15 @@ export default {
                             "common:modules.tools.gfi.themes.sensor.sensorBarChart.clock", {value}
                         )
                     }
-                }],
-                yAxes: [{
+                },
+                y: {
                     ticks: {
                         min: 0,
                         max: maxValue,
                         callback: value => (value / maxValue * 100).toFixed(0) + "%"
                     }
 
-                }]
+                }
             };
         },
 
