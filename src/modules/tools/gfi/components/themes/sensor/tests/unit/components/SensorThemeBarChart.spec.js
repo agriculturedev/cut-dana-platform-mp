@@ -140,15 +140,15 @@ describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBa
         const maxValue = 1,
             result = wrapper.vm.createChartScales(maxValue);
 
-        expect(result.xAxes[0].ticks.min).equals(0);
-        expect(result.xAxes[0].ticks.max).equals(23);
-        expect(result.xAxes[0].ticks.callback).to.be.a("function");
-        expect(result.xAxes[0].ticks.callback()).equals("common:modules.tools.gfi.themes.sensor.sensorBarChart.clock");
+        expect(result.x.ticks.min).equals(0);
+        expect(result.x.ticks.max).equals(23);
+        expect(result.x.ticks.callback).to.be.a("function");
+        expect(result.x.ticks.callback()).equals("common:modules.tools.gfi.themes.sensor.sensorBarChart.clock");
 
-        expect(result.yAxes[0].ticks.min).equals(0);
-        expect(result.yAxes[0].ticks.max).equals(maxValue);
-        expect(result.yAxes[0].ticks.callback).to.be.a("function");
-        expect(result.yAxes[0].ticks.callback(2)).equals("200%");
+        expect(result.y.ticks.min).equals(0);
+        expect(result.y.ticks.max).equals(maxValue);
+        expect(result.y.ticks.callback).to.be.a("function");
+        expect(result.y.ticks.callback(2)).equals("200%");
     });
 
     it("should returns an object with layout for the charts ", () => {
