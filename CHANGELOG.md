@@ -33,6 +33,7 @@
         - eslint-plugin-chai-friendly: 0.7.4
         - eslint-plugin-you-dont-need-lodash-underscore: 6.12.0
 ### Fixed
+- Issue #1194: Fix sensor layer features not styled after property changed.
 
 
 ## v2.46.0 - 2024-06-05

@@ -652,6 +652,9 @@ STALayer.prototype.initializeConnection = function (onsuccess, updateOnly = fals
         }
 
         features.forEach(feature => {
+            feature.on("propertychange", () => {
+                feature.setStyle(this.get("style"));
+            });
             bridge.changeFeatureGFI(feature);
         });
 
