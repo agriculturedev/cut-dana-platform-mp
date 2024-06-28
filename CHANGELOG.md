@@ -23,6 +23,7 @@
     - dependencies:
         - @masterportal/masterportalapi: 2.38.0 to 2.39.0 (This also raised @cesium/engine to version 9.2.0)
 - WMS gfi responses with mimeType json/application are parsed as GeoJSON
+- CoordToolkit: description of projection ETRS89_3GK3 has been appended by EPSG 10285.
 
 ### Deprecated
 
