@@ -59,6 +59,18 @@ WMTSLayer.prototype.createLegend = function () {
             this.setLegend([legend]);
         }
     }
+    else if (this.get("legend")) {
+        if (this.get("legend") === "") {
+            legend = true;
+        }
+        else if (this.get("legend") === "ignore") {
+            legend = false;
+        }
+        else {
+            legend = this.get("legend");
+            this.setLegend([legend]);
+        }
+    }
     if ((this.get("optionsFromCapabilities") === undefined) && (legend === true)) {
         console.error("WMTS: No legendURL is specified for the layer!");
     }

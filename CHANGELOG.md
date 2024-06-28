@@ -35,7 +35,7 @@
         - eslint-plugin-you-dont-need-lodash-underscore: 6.12.0
 ### Fixed
 - Issue #1194: Fix sensor layer features not styled after property changed.
-
+- Issue #1206: WMTS-Layer: legend is displayed, if configured in attribute legend.
 
 ## v2.46.0 - 2024-06-05
 
