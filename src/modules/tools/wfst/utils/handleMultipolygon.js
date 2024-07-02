@@ -1,14 +1,16 @@
 import store from "../../../../app-store";
+import MultiPolygon from "ol/geom/MultiPolygon";
+import Feature from "ol/Feature";
 
 /**
- * @typedef {Object} FeatureMapItem
+ * @typedef {Object} FeatureMap
  * @property {string} outerId - The ID of the outer (parent) feature.
  * @property {ol.Feature} feature - The OpenLayers feature object.
  */
 
 /**
  * @typedef {Object} SeparateMultiPolygonResult
- * @property {Map<string, FeatureMapItem} featureMap - A map where keys are feature IDs and values are feature map items.
+ * @property {Map<string, FeatureMap>} featureMap - A map where keys are feature IDs and values are feature map items.
  * @property {boolean} isVoidFeature - Indicates if there is a void feature.
  */
 
@@ -19,7 +21,7 @@ import store from "../../../../app-store";
  * @returns {void}
  */
 async function handleMultipolygon (multiPolygonFeatures, drawLayer) {
-    const {featureMap, isVoidFeature} = await separateMultipolygon(multiPolygonFeatures, drawLayer),
+    const {featureMap, isVoidFeature} = await separateMultipolygon(multiPolygonFeatures),
         sortedFeatures = sortFeatureMap(featureMap);
 
     if (isVoidFeature && sortedFeatures) {
@@ -65,7 +67,7 @@ async function separateMultipolygon (multiPolygonFeatures) {
                 if (isFeatureInner && !processedMultiPolygons.has(iFeature)) {
                     outerFeature = jFeature;
                     isVoidFeature = true;
-                    shouldCreateVoidFeature = await validateVoidFeature(multiPolygonFeatures);
+                    shouldCreateVoidFeature = await validateVoidFeature();
                 }
             }
         }
@@ -84,7 +86,7 @@ async function separateMultipolygon (multiPolygonFeatures) {
 
 /**
  * Sorts the feature map so that every inner Feature is placed behind its outer Feature.
- * @param {Map<string, FeatureMapItem>} featureMap - The feature map to be sorted.
+ * @param {Map<string, FeatureMap>} featureMap - The feature map to be sorted.
  * @returns {Array} - An array of sorted features.
  */
 function sortFeatureMap (featureMap) {
@@ -155,7 +157,7 @@ async function validateVoidFeature () {
  * Builds a MultiPolygon by combining the coordinates of multiple features.
  * @param {Array<ol.Feature>} features - Array of features to be combined into a MultiPolygon.
  * @param {ol.layer.Vector} drawLayer  - The layer where the features are drawn.
- * @returns {ol.geom.MultiPolygon} - The resulting MultiPolygon geometry.
+ * @returns {Feature} - The resulting MultiPolygon geometry.
  */
 function buildMultipolygon (features, drawLayer) {
     const coords = [];
@@ -171,7 +173,42 @@ function buildMultipolygon (features, drawLayer) {
         }
         drawLayer.getSource().removeFeature(feature);
     });
-    return features[0].getGeometry();
+    return features[0];
 }
 
-export {handleMultipolygon, separateMultipolygon, sortFeatureMap, fuseMultiPolygons, validateVoidFeature, buildMultipolygon};
+/**
+ * Splits the outer features of a given array of features into separate features.
+ * Each outer feature is split into multiple features, one for each coordinate array.
+ * @param {Array<Feature>} features - The array of features to split.
+ * @param {ol.layer.Vector} drawLayer - The layer where the features are drawn.
+ * @returns {Array<Feature>} - The array of newly created features.
+ */
+async function splitOuterFeatures (features, drawLayer) {
+    const newFeatures = new Set(),
+        coordsArray = features[0].getGeometry().getCoordinates();
+
+    coordsArray.forEach(coords => {
+        const newFeature = new Feature({
+            geometry: new MultiPolygon([coords])
+        });
+
+        newFeatures.add(newFeature);
+    });
+
+    features.forEach((feature, index) => {
+        if (index !== 0) {
+            const newFeature = feature.clone();
+
+            newFeature.setId(feature.getId());
+            newFeatures.add(newFeature);
+        }
+    });
+    drawLayer.getSource().clear();
+    newFeatures.forEach(feature => {
+        drawLayer.getSource().addFeature(feature);
+    });
+
+    return Array.from(newFeatures);
+}
+
+export {handleMultipolygon, separateMultipolygon, sortFeatureMap, fuseMultiPolygons, validateVoidFeature, buildMultipolygon, splitOuterFeatures};

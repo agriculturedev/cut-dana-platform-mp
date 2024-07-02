@@ -4,12 +4,13 @@ import getLayerInformationModule from "../utils/getLayerInformation";
 import ToolTemplate from "../../ToolTemplate.vue";
 import {getComponent} from "../../../../utils/getComponent";
 import SimpleButton from "../../../../share-components/SimpleButton.vue";
+import getters from "../store/gettersWfst";
 
 export default {
     name: "WfsTransaction",
     components: {SimpleButton, ToolTemplate},
     computed: {
-        ...mapGetters("Tools/Wfst", ["currentInteractionConfig", "currentLayerIndex", "featureProperties", "layerIds", "layersLoading", "layerInformation", "layerSelectDisabled", "layerSelectLabel", "selectedInteraction", "showInteractionsButtons", "isLayerVisible", "active", "deactivateGFI", "icon", "name", "id", "isFormDisabled"]),
+        ...mapGetters("Tools/Wfst", Object.keys(getters)),
 
         loadedLayerIds () {
             return this.$store.getters["Maps/loadedLayers"];
@@ -32,8 +33,8 @@ export default {
         Backbone.Events.listenTo(Radio.channel("ModelList"), "updatedSelectedLayerList", this.updateLayerSelection);
     },
     methods: {
-        ...mapMutations("Tools/Wfst", ["setCurrentLayerIndex", "setLayerInformation", "setLayersLoading"]),
-        ...mapActions("Tools/Wfst", ["prepareInteraction", "reset", "save", "setActive", "updateFeatureProperty", "setFeatureProperties"]),
+        ...mapMutations("Tools/Wfst", ["setCurrentLayerIndex", "setLayerInformation", "setLayersLoading", "setIsDrawMode"]),
+        ...mapActions("Tools/Wfst", ["prepareInteraction", "reset", "save", "setActive", "updateFeatureProperty", "setFeatureProperties", "switchToDrawMode"]),
         close () {
             this.setActive(false);
             const model = getComponent(this.id);

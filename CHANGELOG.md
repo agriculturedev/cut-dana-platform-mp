@@ -7,6 +7,10 @@
 ### __Breaking Changes__
 
 ### Added
+- WFS-T:
+    - Enables layers to support the insertion, update, and deletion of multipolygon geometries
+    - Includes UI updates with a new "Add areas" button
+    - Added confirmation dialog for creating multipolygons with voids
 
 ### Changed
 
@@ -30,10 +34,6 @@
         - globals: 15.3.0
 - WMS features with geometry can be highlighted with polygon marker
 - Added the ability to additionally highlight polygons
-- WFS-T: 
-  - Enables layers to support the insertion, update, and deletion of multipolygon geometries
-  - Includes UI updates with a new "Add areas" button
-  - Added confirmation dialog for creating multipolygons with voids
 
 ### Changed
 - Login: Access and refresh tokens are now revoked on logout. For this to work it is required to add the revoke endpoint to the config.js.

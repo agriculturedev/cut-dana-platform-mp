@@ -4,6 +4,8 @@ import * as handleMultipolygonUtils from "../../../utils/handleMultipolygon";
 import store from "../../../../../../app-store";
 import Feature from "ol/Feature";
 import MultiPolygon from "ol/geom/MultiPolygon";
+import {Vector as VectorSource} from "ol/source";
+import {Vector as VectorLayer} from "ol/layer";
 
 describe("src/modules/tools/wfst/utils/handleMultipolygon.js", async () => {
     beforeEach(() => {
@@ -113,10 +115,10 @@ describe("src/modules/tools/wfst/utils/handleMultipolygon.js", async () => {
     });
 
     describe("buildMultipolygon", () => {
-        it("should build one Multipolygon out of two Multipolygon", () => {
+        it("should build one Multipolygon out of two Multipolygon", async () => {
             const features = [feature1, feature2],
                 drawLayer = {getSource: () => ({removeFeature: sinon.spy()})},
-                result = handleMultipolygonUtils.buildMultipolygon(features, drawLayer),
+                result = await handleMultipolygonUtils.buildMultipolygon(features, drawLayer),
                 expectedCoords = [
                     [
                         [
@@ -167,8 +169,73 @@ describe("src/modules/tools/wfst/utils/handleMultipolygon.js", async () => {
                         ]
                     ]
                 ];
-
-            expect(result.getCoordinates()).to.deep.equal(expectedCoords);
+            expect(result.getGeometry().getCoordinates()).to.deep.equal(expectedCoords);
         });
     });
+
+    describe("splitOuterFeatures", () => {
+        it("should split outer features of a given array of features into separate features", async () => {
+            const multipolygon = new Feature({
+                geometry: new MultiPolygon(
+                    [
+                        [
+                            [
+                                [
+                                    554330.8370480813,
+                                    5933860.408823308
+                                ],
+                                [
+                                    554463.1286433105,
+                                    5928941.095173254
+                                ],
+                                [
+                                    561871.457976146,
+                                    5928729.511790456
+                                ],
+                                [
+                                    560786.6668952666,
+                                    5934574.502740252
+                                ],
+                                [
+                                    554330.8370480813,
+                                    5933860.408823308
+                                ]
+                            ]
+                        ],
+                        [
+                            [
+                                [
+                                    564041.040137905,
+                                    5931136.272769784
+                                ],
+                                [
+                                    564570.2065188219,
+                                    5928941.095173254
+                                ],
+                                [
+                                    566607.4970853516,
+                                    5928861.7514047045
+                                ],
+                                [
+                                    566369.3722139391,
+                                    5931215.616538333
+                                ],
+                                [
+                                    564041.040137905,
+                                    5931136.272769784
+                                ]
+                            ]
+                        ]
+                    ]
+                )
+            }),
+                drawLayer = new VectorLayer({source: new VectorSource()});
+
+            drawLayer.getSource().addFeatures(multipolygon);
+
+            const result = await handleMultipolygonUtils.splitOuterFeatures([multipolygon], drawLayer);
+            expect(result.length).to.equal(2);
+            expect(drawLayer.getSource().getFeatures().length).to.equal(2);
+        });
+    })
 });

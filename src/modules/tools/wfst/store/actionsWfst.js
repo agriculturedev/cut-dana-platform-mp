@@ -7,7 +7,7 @@ import {getComponent} from "../../../../utils/getComponent";
 import loader from "../../../../utils/loaderOverlay";
 import getProxyUrl from "../../../../utils/getProxyUrl";
 import wfs from "@masterportal/masterportalapi/src/layer/wfs";
-import {handleMultipolygon, buildMultipolygon} from "../utils/handleMultipolygon";
+import {handleMultipolygon, buildMultipolygon, splitOuterFeatures} from "../utils/handleMultipolygon";
 import {nextTick} from "vue";
 
 let drawInteraction,
@@ -115,11 +115,19 @@ const actions = {
             selectInteraction = new Select({
                 layers: [sourceLayer]
             });
-            selectInteraction.getFeatures().on("add", (event) => {
+            selectInteraction.getFeatures().on("add", async (event) => {
                 commit("setSelectedInteraction", "selectedUpdate");
-                modifyFeature = event.target.getArray()[0].clone();
+                event.element.setStyle(selectInteraction.getStyle());
+
+                if (event.element.getGeometry().getType() !== "MultiPolygon") {
+                    modifyFeature = event.target.getArray()[0].clone();
+                }
                 // ol sensibly cleans id off clones; keep id for saving
-                modifyFeatureSaveId = event.target.getArray()[0].getId();
+                const id = event.target.getArray()[0].getId();
+
+                if (id) {
+                    modifyFeatureSaveId = id;
+                }
                 modifyInteraction = new Modify({
                     features: event.target,
                     condition: e => primaryAction(e) && !platformModifierKeyOnly(e)
@@ -128,16 +136,60 @@ const actions = {
                     features: event.target,
                     condition: e => primaryAction(e) && platformModifierKeyOnly(e)
                 });
-
+                /**
+                 * Handle Multipolygon Creation and Editing inside the Edit Menu
+                 */
                 if (event.target.getArray()?.[0]?.get("geom")?.getType() !== "MultiPolygon") {
                     dispatch("Maps/removeInteraction", selectInteraction, {root: true});
+                }
+                else {
+                    drawLayer = await dispatch("Maps/addNewLayerIfNotExists", {layerName: "tool/wfsTransaction/vectorLayer"}, {root: true});
+                    splitOuterFeatures([event.element], drawLayer);
+                    selectInteraction.getFeatures().clear();
+                    sourceLayer.setVisible(false);
+                    if (drawLayer.getSource().getFeatures().length > 0) {
+                        drawLayer.getSource().getFeatures().forEach(feature => {
+                            selectInteraction.getFeatures().push(feature);
+                        });
+                    }
+                    const drawOptions = {
+                            source: drawLayer.getSource(),
+                            type: "MultiPolygon",
+                            geometryName: featureProperties.find(({type}) => type === "geometry")?.key
+                        },
+                        editOptions = {
+                            layers: [drawLayer],
+                            condition: e => primaryAction(e) && platformModifierKeyOnly(e)
+                        },
+                        modifyOptions = {
+                            source: drawLayer.getSource(),
+                            condition: e => primaryAction(e) && !platformModifierKeyOnly(e)
+                        },
+                        style = selectInteraction.getStyle();
+
+                    drawLayer.setStyle(style);
+                    modifyInteraction = new Modify(modifyOptions);
+                    translateInteraction = new Translate(editOptions);
+                    drawInteraction = new Draw(drawOptions);
+                    drawInteraction.on("drawstart", () => {
+                        drawLayer.setStyle(layerInformation[currentLayerIndex].style);
+                    });
+                    drawInteraction.on("drawend", async () => {
+                        await nextTick();
+                        const features = await drawLayer.getSource().getFeatures();
+
+                        await nextTick();
+                        await handleMultipolygon(features, drawLayer);
+                        drawLayer.setStyle(style);
+                    });
+                    dispatch("Maps/addInteraction", drawInteraction, {root: true});
                 }
                 dispatch("Maps/addInteraction", modifyInteraction, {root: true});
                 dispatch("Maps/addInteraction", translateInteraction, {root: true});
                 commit(
                     "setFeatureProperties",
                     featureProperties
-                        .map(property => ({...property, value: modifyFeature.get(property.key), valid: true}))
+                        .map(property => ({...property, value: modifyFeature ? modifyFeature.get(property.key) : event.element.get(property.key), valid: true}))
                 );
                 if (shouldValidateForm) {
                     dispatch("validateForm", featureProperties);
@@ -228,15 +280,22 @@ const actions = {
             return;
         }
 
-        if (multiPolygonFeatures.length > 1 && drawLayer) {
-            multiPolygonGeometry = buildMultipolygon(multiPolygonFeatures, drawLayer);
+        if (multiPolygonFeatures.length !== 0 && drawLayer) {
+            if (multiPolygonFeatures.length > 1) {
+                multiPolygonGeometry = buildMultipolygon(multiPolygonFeatures, drawLayer);
+                multiPolygonGeometry.setId(modifyFeatureSaveId);
+            }
+            else {
+                multiPolygonGeometry = multiPolygonFeatures[0];
+                multiPolygonGeometry.setId(modifyFeatureSaveId);
+            }
         }
 
         featureWithProperties = await addFeaturePropertiesToFeature(
             {
                 id: polygonFeature.getId() || modifyFeatureSaveId,
-                geometryName: polygonFeature.getGeometryName(),
-                geometry: multiPolygonFeatures.length > 1 ? multiPolygonGeometry : geometryFeature.getGeometry()
+                geometryName: featureProperties.find(({type}) => type === "geometry")?.key,
+                geometry: multiPolygonFeatures && multiPolygonGeometry ? multiPolygonGeometry.getGeometry() : geometryFeature.getGeometry()
             },
             featureProperties,
             selectedInteraction === "selectedUpdate",

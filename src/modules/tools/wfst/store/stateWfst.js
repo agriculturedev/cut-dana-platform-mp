@@ -92,7 +92,9 @@ const state = {
     selectedInteraction: null,
     // WfsTransaction extension tool
     isFormDisabled: false,
-    processedMultiPolygons: new Set()
+    processedMultiPolygons: new Set(),
+    isDrawMode: false,
+    lastModifiedMultipolygon: null
 };
 
 export default state;
