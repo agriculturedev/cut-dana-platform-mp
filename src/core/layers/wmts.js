@@ -68,7 +68,7 @@ WMTSLayer.prototype.createLegend = function () {
         }
         else {
             legend = this.get("legend");
-            this.setLegend([legend]);
+            this.setLegend(Array.isArray(legend) ? legend : [legend]);
         }
     }
     if ((this.get("optionsFromCapabilities") === undefined) && (legend === true)) {
