@@ -18,7 +18,6 @@
 
 ---
 ## v2.47.0 - 2024-07-03
-### __Breaking Changes__
 
 ### Added
 - StatisticDashboard:
