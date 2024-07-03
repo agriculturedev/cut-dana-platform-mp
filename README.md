@@ -5,16 +5,16 @@ The Masterportal is a tool-kit to create geo web applications based on [OpenLaye
 The Masterportal is a project by [Geowerkstatt Hamburg](https://www.hamburg.de/geowerkstatt/).
 
 ## Roadmap
-Our further Roadmap is to work hard on [3.0.0](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/) and to release wip-Versions and hopefully to be able to have a first stable Version in the mid of 2024. We will support and fix bugs for V2.x until end of 2024.
+Our further Roadmap is to work hard on [Version 3](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/) and to publish further version 3 releases. We will support and fix bugs for V2.x until end of 2024.
 ### Masterportal 3.x
 * 04.10.2023: Release MP 3.0 beta 1
 * 18.12.2023: Release MP 3.0 beta 2
-* During the second quarter of 2024: Release MP 3.0 stable
+* 28.06.2024: Release MP 3.0 stable
 * During the third quarter of 2024: Release MP 3.0 LTS
 
 ### Support for MP 2.x and MP 3.x
 * Pull requests for function enhancements in core modules in version 2 are going to be reviewed from product maintenance until 30.06.2024. (The deadline is indicative for now and should be understood as a guideline)
-* Our recommendation is to start new developments on Masterportal 3.x basis as soon as possible.
+* Our recommendation is to start new developments on Masterportal 3.x basis.
 * Bugs are going to be fixed for V2.x until 31.12.2024.
 
 ## User section
