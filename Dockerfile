@@ -19,7 +19,6 @@ RUN apk add --update --no-cache \
 COPY . ./masterportal
 
 RUN npm i --prefix masterportal/addons/dipasAddons/dataNarrator
-RUN npm i --prefix masterportal/story-backend
 RUN npm i --prefix masterportal
 
 RUN npm run buildPortal --prefix masterportal

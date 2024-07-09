@@ -12,3 +12,6 @@ services:
         ports:
             - "4000:80"
             - "4443:443"
+        dns:
+            - 8.8.8.8  # Google's DNS server
+            - 8.8.4.4  # Google's DNS server
