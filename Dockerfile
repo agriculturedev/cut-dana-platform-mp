@@ -4,6 +4,17 @@ FROM node:16.13.2-alpine as build
 RUN mkdir -p /usr/app
 WORKDIR /usr/app
 
+RUN apk add --update --no-cache \
+    make \
+    g++ \
+    jpeg-dev \
+    cairo-dev \
+    giflib-dev \
+    pango-dev \
+    libtool \
+    autoconf \
+    automake
+
 COPY . ./masterportal
 
 RUN npm i --prefix masterportal/addons/dipasAddons/dataNarrator
