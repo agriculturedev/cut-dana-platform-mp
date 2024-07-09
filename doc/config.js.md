@@ -349,6 +349,7 @@ In the section `OpenID Connect Compatibility Modes` activate `Use Refresh Tokens
 |----|--------|----|-------|-----------|
 |pointStyleId|no|String|`"defaultMapMarkerPoint"`|StyleId to refer to a `style.json` point style. If not set, the `img/mapMarker.svg` is used.|
 |polygonStyleId|no|String|`"defaultMapMarkerPolygon"`|StyleId to refer to a `style.json` polygon style.|
+|additionalPolygonStyleId|no|String|`"defaultAdditionalMapMarkerPolygon"`| StyleId to refer to an additional `style.json` polygon style.|
 
 **Example:**
 
@@ -356,7 +357,8 @@ In the section `OpenID Connect Compatibility Modes` activate `Use Refresh Tokens
 {
     "mapMarker": {
         "pointStyleId": "customMapMarkerPoint",
-        "polygonStyleId": "customMapMarkerPolygon"
+        "polygonStyleId": "customMapMarkerPolygon",
+        "additionalPolygonStyleId": "customAdditionalMapMarkerPolygon"
     }
 }
 ```
