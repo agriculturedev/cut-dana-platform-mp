@@ -1,18 +1,6 @@
 version: '3.9'
 services:
-    mobility-frontend-re2:
+    data-narrator-frontend:
         build:
             context: .
             dockerfile: Dockerfile
-        networks:
-            - proxy
-        labels:
-            - "traefik.enable=true"
-            - "traefik.http.routers.re2-results-frontend.entrypoints=https"
-            - "traefik.http.routers.re2-results-frontend.rule=Host(`re2-results.cut.hcu-hamburg.de`)"
-            - "traefik.http.routers.re2-results-frontend.tls=true"
-            - "traefik.http.routers.re2-results-frontend.tls.certresolver=lets-encr"
-
-networks:
-    proxy:
-        external: true
