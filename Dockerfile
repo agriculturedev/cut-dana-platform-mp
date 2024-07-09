@@ -4,6 +4,7 @@ FROM node:16.13.2-alpine as build
 RUN mkdir -p /usr/app
 WORKDIR /usr/app
 
+RUN apk add --no-cache git
 RUN apk add --update --no-cache \
     make \
     g++ \
