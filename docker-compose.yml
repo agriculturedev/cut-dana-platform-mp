@@ -4,11 +4,14 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+        network_mode: host
         ports:
             - '3000:80'
     story-backend:
+
         build:
             context: ./story-backend
+        network_mode: "host"
         ports:
             - "4000:80"
             - "4443:443"
