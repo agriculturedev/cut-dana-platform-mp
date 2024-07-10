@@ -6,6 +6,10 @@
 <img src="https://user-images.githubusercontent.com/36763878/219619895-12db4431-32d9-458b-a73f-548052404258.png" alt="drawing" />
 </p>
 
+:warning: :warning:
+The README is out of date in will be adjusted shortly.
+:warning: :warning:
+
 The Data Narrator (DANA) is a **[Masterportal](https://www.masterportal.org/)** add-on that can be used to add text,
 photos and images to geo-referenced data sets.
 In this way, the usually very technical and purely data-based representations can be supplemented with information and
