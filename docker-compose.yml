@@ -4,17 +4,24 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        network_mode: host
         ports:
             - '3000:80'
-    story-backend:
 
+    story-backend:
         build:
             context: ./story-backend
-        network_mode: "host"
         ports:
             - "4000:80"
             - "4443:443"
-        dns:
-            - 8.8.8.8  # Google's DNS server
-            - 8.8.4.4  # Google's DNS server
+        depends_on:
+            - mongo
+
+    mongo:
+        image: mongo:latest
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongo-data:/data/db
+
+volumes:
+    mongo-data:
