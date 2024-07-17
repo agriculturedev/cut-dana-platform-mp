@@ -4,13 +4,12 @@ import getLayerInformationModule from "../utils/getLayerInformation";
 import ToolTemplate from "../../ToolTemplate.vue";
 import {getComponent} from "../../../../utils/getComponent";
 import SimpleButton from "../../../../share-components/SimpleButton.vue";
-import getters from "../store/gettersWfst";
 
 export default {
     name: "WfsTransaction",
     components: {SimpleButton, ToolTemplate},
     computed: {
-        ...mapGetters("Tools/Wfst", Object.keys(getters)),
+        ...mapGetters("Tools/Wfst", ["currentInteractionConfig", "currentLayerIndex", "featureProperties", "layerIds", "layersLoading", "layerInformation", "layerSelectDisabled", "layerSelectLabel", "selectedInteraction", "showInteractionsButtons", "isLayerVisible", "active", "deactivateGFI", "icon", "name", "id", "isFormDisabled"]),
 
         loadedLayerIds () {
             return this.$store.getters["Maps/loadedLayers"];

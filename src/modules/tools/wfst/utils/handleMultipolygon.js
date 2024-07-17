@@ -64,7 +64,7 @@ async function separateMultipolygon (multiPolygonFeatures) {
             if (iFeature.ol_uid !== jFeature.ol_uid) {
                 const isFeatureInner = iFeature.getGeometry()?.getCoordinates?.()?.[0]?.[0].every(coord => jFeature.getGeometry()?.intersectsCoordinate(coord));
 
-                if (isFeatureInner && !processedMultiPolygons.has(iFeature)) {
+                if (isFeatureInner && !processedMultiPolygons?.has(iFeature)) {
                     outerFeature = jFeature;
                     isVoidFeature = true;
                     shouldCreateVoidFeature = await validateVoidFeature();
@@ -77,7 +77,7 @@ async function separateMultipolygon (multiPolygonFeatures) {
         }
         else {
             featureMap.set(iFeature.ol_uid, {outerId: "0", feature: iFeature});
-            store.commit("Tools/Wfst/setProcessedMultiPolygons", iFeature);
+            store.commit("Tools/Wfst/addProcessedMultiPolygon", iFeature);
         }
     }
 
