@@ -42,7 +42,7 @@
             "name": "translate#additional:modules.tools.dataNarrator.title",
             "glyphicon": "glyphicon-book",
             "active": true,
-            "backendURL": "http://localhost:4000",
+            "backendURL": "http://story-backend:80",
             "autoplay": true
           },
           "gfi": {
