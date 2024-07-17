@@ -67,16 +67,21 @@ export default {
         /**
          * Regulate the interaction.
          * @param {String} drawType The current draw type.
+         * @param {Number} idx The index of buttons.
          * @returns {void}
          */
-        regulateInteraction (drawType) {
-            this.$emit("stop-drawing");
+        regulateInteraction (drawType, idx) {
+            const toggleButton = this.$refs[`button${idx}`][0].$el.classList.contains("active");
 
-            if (this.selectedDrawType !== drawType) {
-                this.setSelectedDrawType(drawType);
+            if (!toggleButton) {
+                this.$emit("start-drawing");
+                if (this.selectedDrawType !== drawType) {
+                    this.setSelectedDrawType(drawType);
+                }
             }
-
-            this.$emit("start-drawing");
+            else {
+                this.$emit("stop-drawing");
+            }
         }
     }
 };
@@ -85,8 +90,9 @@ export default {
 <template>
     <div class="d-flex mb-2 align-items-center">
         <IconButton
-            v-for="drawType in drawTypes"
+            v-for="(drawType, idx) in drawTypes"
             :id="'draw-' + drawType"
+            :ref="'button' + idx"
             :key="drawType"
             :aria="$t('common:modules.tools.modeler3D.draw.geometries.' + drawType)"
             :class-array="[
@@ -94,7 +100,7 @@ export default {
                 'me-3',
                 selectedDrawType === drawType ? 'active': ''
             ]"
-            :interaction="() => regulateInteraction(drawType)"
+            :interaction="() => regulateInteraction(drawType, idx)"
             :icon="drawIcons[drawType]"
         />
     </div>
