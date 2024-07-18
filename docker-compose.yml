@@ -23,5 +23,16 @@ services:
         volumes:
             - mongo-data:/data/db
 
+    mongo-express:
+        image: mongo-express:latest
+        ports:
+            - "8081:8081"
+        depends_on:
+            - mongo
+        environment:
+            - ME_CONFIG_MONGODB_ADMINUSERNAME=root
+            - ME_CONFIG_MONGODB_ADMINPASSWORD=secretpassword
+            - ME_CONFIG_MONGODB_SERVER=mongo
+
 volumes:
     mongo-data:
