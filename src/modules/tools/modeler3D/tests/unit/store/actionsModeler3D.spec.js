@@ -1080,6 +1080,9 @@ describe("Actions", () => {
                     },
                     extrudedHeight: {
                         getValue: () => 15
+                    },
+                    shadows: global.Cesium.ShadowMode = {
+                        ENABLED: 1
                     }
                 },
                 clampToGround: true

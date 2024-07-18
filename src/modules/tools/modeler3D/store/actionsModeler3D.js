@@ -679,7 +679,8 @@ const actions = {
                 material: new Cesium.ColorMaterialProperty(color),
                 outlineColor: new Cesium.Color(outlineColor.red, outlineColor.green, outlineColor.blue, outlineColor.alpha),
                 height: entity.polygon.height.getValue(),
-                extrudedHeight: entity.polygon.extrudedHeight.getValue()
+                extrudedHeight: entity.polygon.extrudedHeight.getValue(),
+                shadows: Cesium.ShadowMode.ENABLED
             };
         }
         else {
