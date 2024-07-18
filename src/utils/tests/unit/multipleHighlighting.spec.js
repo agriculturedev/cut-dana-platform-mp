@@ -7,8 +7,10 @@ import store from "../../../app-store";
 import Feature from "ol/Feature";
 import Polygon from "ol/geom/Polygon";
 import Collection from "ol/Collection";
+import VectorLayer from "ol/layer/Vector.js";
+import VectorSource from "ol/source/Vector.js";
+import {Style} from "ol/style.js";
 import stateAlerting from "../../../modules/alerting/store/stateAlerting";
-import stateMapMarker from "../../../modules/mapMarker/store/stateMapMarker";
 
 describe("src/utils/multipleHighlighting.js", () => {
     let styleListStub, createStyleStub, mapOL, feature;
@@ -74,7 +76,28 @@ describe("src/utils/multipleHighlighting.js", () => {
                 layers: []
             },
             MapMarker: {
-                ...stateMapMarker
+                pointStyleId: "defaultMapMarkerPoint",
+                polygonStyleId: "defaultMapMarkerPolygon",
+                additionalPolygonStyleId: "defaultAdditionalMapMarkerPolygon",
+                markerPoint: new VectorLayer({
+                    id: "marker_point_layer",
+                    name: "markerPoint",
+                    source: new VectorSource(),
+                    visible: false,
+                    style: new Style(),
+                    alwaysOnTop: true,
+                    altitudeMode: "absolute"
+                }),
+                markerPolygon: new VectorLayer({
+                    id: "marker_polygon_layer",
+                    name: "markerPolygon",
+                    source: new VectorSource(),
+                    visible: false,
+                    style: new Style(),
+                    alwaysOnTop: true,
+                    altitudeMode: "relativeToGround"
+                }),
+                coordinates: []
             },
             Alerting: {
                 ...stateAlerting

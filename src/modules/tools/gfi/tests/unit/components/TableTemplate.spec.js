@@ -85,6 +85,10 @@ describe("src/modules/tools/gfi/components/templates/TableTemplate.vue", () => {
         });
     });
 
+    afterEach(() => {
+        sinon.restore();
+    });
+
 
     it("should have a title", () => {
         const wrapper = mount(TableTemplate, {
