@@ -382,6 +382,11 @@ export default {
                 }
                 else {
                     entity.orientation = orientationMatrix;
+                    const foundImportedEntity = this.importedEntities.find(importedEntity => importedEntity.entityId === entity.id);
+
+                    if (typeof foundImportedEntity !== "undefined") {
+                        foundImportedEntity.rotation = this.rotation;
+                    }
                 }
             }
         },
@@ -691,15 +696,15 @@ export default {
                     >
                         <EntityAttributeSlider
                             id="rotation"
-                            v-model="drawRotationString"
+                            v-model="rotationString"
                             title="rotation"
                             :value-label="$t('modules.tools.modeler3D.entity.captions.rotation') + ' [°]'"
                             :step-label="$t('modules.tools.modeler3D.entity.captions.rotationSwitch')"
                             :min="-180"
                             :max="180"
                             unit="°"
-                            @increment="val => drawRotationString = drawRotation + val"
-                            @decrement="val => drawRotationString = drawRotation - val"
+                            @increment="val => rotationString = rotation + val"
+                            @decrement="val => rotationString = rotation - val"
                         />
                     </div>
                     <div
