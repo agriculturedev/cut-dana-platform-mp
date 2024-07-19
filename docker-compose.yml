@@ -1,4 +1,3 @@
-version: '3.9'
 services:
     data-narrator-frontend:
         build:
@@ -6,6 +5,8 @@ services:
             dockerfile: Dockerfile
         ports:
             - '3000:80'
+        networks:
+            - data-narrator-network
 
     story-backend:
         build:
@@ -15,6 +16,8 @@ services:
             - "4443:443"
         depends_on:
             - mongo
+        networks:
+            - data-narrator-network
 
     mongo:
         image: mongo:latest
@@ -22,6 +25,8 @@ services:
             - "27017:27017"
         volumes:
             - mongo-data:/data/db
+        networks:
+            - data-narrator-network
 
     mongo-express:
         image: mongo-express:latest
@@ -33,6 +38,11 @@ services:
             - ME_CONFIG_MONGODB_ADMINUSERNAME=root
             - ME_CONFIG_MONGODB_ADMINPASSWORD=secretpassword
             - ME_CONFIG_MONGODB_SERVER=mongo
+        networks:
+            - data-narrator-network
 
 volumes:
     mongo-data:
+
+networks:
+    data-narrator-network:
