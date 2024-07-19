@@ -42,7 +42,7 @@
             "name": "translate#additional:modules.tools.dataNarrator.title",
             "glyphicon": "glyphicon-book",
             "active": true,
-            "backendURL": "http://story.datanarrator.city:4000",
+            "backendURL": "http://story.datanarrator.city/db/",
             "autoplay": true
           },
           "gfi": {
