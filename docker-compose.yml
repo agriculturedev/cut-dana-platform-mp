@@ -25,24 +25,6 @@ services:
             - "27017:27017"
         volumes:
             - mongo-data:/data/db
-        environment:
-            - MONGO_INITDB_ROOT_USERNAME=root
-            - MONGO_INITDB_ROOT_PASSWORD=example
-        networks:
-            - data-narrator-network
-
-    mongo-express:
-        image: mongo-express:latest
-        ports:
-            - "8081:8081"
-        depends_on:
-            - mongo
-
-        environment:
-            - ME_CONFIG_MONGODB_ADMINUSERNAME=root
-            - ME_CONFIG_MONGODB_ADMINPASSWORD=example
-            - ME_CONFIG_MONGODB_SERVER=mongo
-            - ME_CONFIG_MONGODB_PORT=27017
         networks:
             - data-narrator-network
 
