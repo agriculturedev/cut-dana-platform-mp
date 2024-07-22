@@ -27,9 +27,9 @@ export function adaptCylinderToEntity (entity, cylinder, position) {
         cartographic = Cesium.Cartographic.fromCartesian(position),
         outlines = entities.values.filter(ent => ent.outline && ent.polyline),
         sampledHeight = scene.sampleHeight(cartographic, [entity, cylinder, ...outlines]),
-        heightDelta = entity?.polygon?.extrudedHeight - sampledHeight || sampledHeight;
+        heightDelta = entity?.polygon?.extrudedHeight - sampledHeight;
 
-    cylinder.cylinder.length = heightDelta + 5;
+    cylinder.cylinder.length = heightDelta + 5 || 20;
 
     cartographic.height = sampledHeight + cylinder.cylinder.length._value / 2;
 
