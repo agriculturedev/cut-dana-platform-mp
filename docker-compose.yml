@@ -5,6 +5,9 @@ services:
             dockerfile: Dockerfile
         ports:
             - '3000:80'
+        volumes:
+            - /opt/psa/var/modules/letsencrypt/etc/live/_plesk_domain/fullchain.pem:/etc/ssl/certs/mycert.pem
+            - /opt/psa/var/modules/letsencrypt/etc/live/_plesk_domain/privkey.pem:/etc/ssl/private/mykey.pem
         networks:
             - data-narrator-network
 
@@ -16,6 +19,9 @@ services:
             - "4443:443"
         depends_on:
             - mongo
+        volumes:
+            - /opt/psa/var/modules/letsencrypt/etc/live/_plesk_domain/fullchain.pem:/etc/ssl/certs/mycert.pem
+            - /opt/psa/var/modules/letsencrypt/etc/live/_plesk_domain/privkey.pem:/etc/ssl/private/mykey.pem
         networks:
             - data-narrator-network
 
