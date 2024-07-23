@@ -60,6 +60,7 @@ services:
             KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
             KC_DB_USERNAME: ${POSTGRES_USER}
             KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+        command: ["sh", "-c", "kc.sh start --optimized"]
         ports:
             - 8080:8080
         restart: always
@@ -67,8 +68,7 @@ services:
             - postgres
         networks:
             - story-network
-        command:
-            - start
+
 
 volumes:
     mongo-data:
