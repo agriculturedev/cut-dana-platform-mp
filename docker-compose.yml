@@ -26,7 +26,7 @@ services:
             - story-network
 
     mongo:
-        image: mongo:5.0.28
+        image: mongo:4.4
         ports:
             - "27017:27017"
         volumes:
