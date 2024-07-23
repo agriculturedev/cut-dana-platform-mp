@@ -9,7 +9,7 @@ services:
             - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/fullchain2.pem:/etc/ssl/certs/mycert.pem
             - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/privkey2.pem:/etc/ssl/private/mykey.pem
         networks:
-            - data-narrator-network
+            - story-network
 
     story-backend:
         build:
@@ -23,7 +23,7 @@ services:
             - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/fullchain2.pem:/etc/ssl/certs/mycert.pem
             - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/privkey2.pem:/etc/ssl/private/mykey.pem
         networks:
-            - data-narrator-network
+            - story-network
 
     mongo:
         image: mongo:latest
@@ -32,7 +32,7 @@ services:
         volumes:
             - mongo-data:/data/db
         networks:
-            - data-narrator-network
+            - story-network
 
     keycloak:
         image: jboss/keycloak:latest
@@ -68,4 +68,4 @@ volumes:
     mongo-data:
 
 networks:
-    data-narrator-network:
+    story-network:
