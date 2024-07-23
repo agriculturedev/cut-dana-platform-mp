@@ -39,7 +39,7 @@ services:
             - story-network
 
     mongo-express:
-        image: mongo-express
+        image: mongo-express:0.54.0
         restart: always
         ports:
             - 8081:8081
@@ -48,6 +48,10 @@ services:
             ME_CONFIG_MONGODB_ADMINPASSWORD: example
             ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
             ME_CONFIG_BASICAUTH: false
+        networks:
+            - story-network
+        depends_on:
+            - mongo
 
     postgres:
         image: postgres:16.2
