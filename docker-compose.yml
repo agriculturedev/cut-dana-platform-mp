@@ -37,7 +37,7 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: example
         networks:
             - story-network
-            -
+
     mongo-express:
         image: mongo-express
         restart: always
