@@ -34,6 +34,36 @@ services:
         networks:
             - data-narrator-network
 
+    keycloak:
+        image: jboss/keycloak:latest
+        ports:
+            - "8080:8080"
+            - "8443:8443"  # Expose 8443 for potential future SSL testing
+        environment:
+            - DB_VENDOR=postgres
+            - DB_ADDR=keycloak-db
+            - DB_DATABASE=keycloak
+            - DB_USER=keycloak
+            - DB_PASSWORD=keycloakpassword
+            - KEYCLOAK_USER=admin
+            - KEYCLOAK_PASSWORD=adminpassword
+            - PROXY_ADDRESS_FORWARDING=true
+        depends_on:
+            - keycloak-db
+        networks:
+            - story-network
+
+    keycloak-db:
+        image: postgres:latest
+        environment:
+            - POSTGRES_DB=keycloak
+            - POSTGRES_USER=keycloak
+            - POSTGRES_PASSWORD=keycloakpassword
+        volumes:
+            - keycloak-data:/var/lib/postgresql/data
+        networks:
+            - story-network
+
 volumes:
     mongo-data:
 
