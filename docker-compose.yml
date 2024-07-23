@@ -26,13 +26,28 @@ services:
             - story-network
 
     mongo:
-        image: mongo:latest
+        image: mongo:5.0.28
         ports:
             - "27017:27017"
         volumes:
             - mongo-data:/data/db
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: example
         networks:
             - story-network
+            -
+    mongo-express:
+        image: mongo-express
+        restart: always
+        ports:
+            - 8081:8081
+        environment:
+            ME_CONFIG_MONGODB_ADMINUSERNAME: root
+            ME_CONFIG_MONGODB_ADMINPASSWORD: example
+            ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+            ME_CONFIG_BASICAUTH: false
 
     postgres:
         image: postgres:16.2
@@ -60,7 +75,6 @@ services:
             KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
             KC_DB_USERNAME: ${POSTGRES_USER}
             KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
-        command: ["kc.sh", "start", "--optimized"]
         ports:
             - 8080:8080
         restart: always
@@ -68,7 +82,8 @@ services:
             - postgres
         networks:
             - story-network
-
+        command:
+            - start
 
 volumes:
     mongo-data:
