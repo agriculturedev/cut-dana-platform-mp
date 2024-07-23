@@ -136,12 +136,12 @@ const Config = {
         changeLanguageOnStartWhen: ["querystring", "localStorage", "htmlTag"]
     },
     login: {
-        oidcAuthorizationEndpoint: "https://keycloak.elie.de/realms/masterportal-dev/protocol/openid-connect/auth",
-        oidcTokenEndpoint: "https://keycloak.elie.de/realms/masterportal-dev/protocol/openid-connect/token",
+        oidcAuthorizationEndpoint: "https://story.datanarrator.city/keycloak/realms/masterportal-dev/protocol/openid-connect/auth",
+        oidcTokenEndpoint: "https://story.datanarrator.city/keycloak/realms/masterportal-dev/protocol/openid-connect/token",
         oidcClientId: "masterportal-dev-client",
         oidcScope: "profile email openid",
-        oidcRedirectUri: "https://elie-dana.onrender.com/",
-        interceptorUrlRegex: "https?://dana-backend.*" // add authorization to all URLs that match the given regex
+        oidcRedirectUri: "https://story.datanarrator.city/mobility-data/",
+        interceptorUrlRegex: "https?://story.datanarrator.*" // add authorization to all URLs that match the given regex
     },
 };
 

@@ -67,11 +67,12 @@ services:
     keycloak:
         image: quay.io/keycloak/keycloak:23.0.6
         environment:
-            KC_HOSTNAME: localhost
-            KC_HOSTNAME_PORT: 8080
+            KC_HOSTNAME: story.datanarrator.city
+            KC_HOSTNAME_PATH: /keycloak
+            KC_HOSTNAME_PORT: 8443
             KC_HOSTNAME_STRICT_BACKCHANNEL: false
             KC_HTTP_ENABLED: true
-            KC_HOSTNAME_STRICT_HTTPS: false
+            KC_HOSTNAME_STRICT_HTTPS: true
             KC_HEALTH_ENABLED: true
             KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
             KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
@@ -80,12 +81,15 @@ services:
             KC_DB_USERNAME: ${POSTGRES_USER}
             KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
         ports:
-            - 8080:8080
+            - 8443:8443
         restart: always
         depends_on:
             - postgres
         networks:
             - story-network
+        volumes:
+            - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/fullchain2.pem:/etc/x509/https/tls.crt
+            - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/privkey2.pem:/etc/x509/https/tls.key
         command:
             - start
 
