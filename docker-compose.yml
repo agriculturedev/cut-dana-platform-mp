@@ -35,7 +35,7 @@ services:
             - story-network
 
     keycloak:
-        image: jboss/keycloak:latest
+        image: quay.io/keycloak/keycloak:latest
         ports:
             - "8080:8080"
             - "8443:8443"  # Expose 8443 for potential future SSL testing
