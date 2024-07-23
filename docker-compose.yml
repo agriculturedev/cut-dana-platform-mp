@@ -66,6 +66,7 @@ services:
 
 volumes:
     mongo-data:
+    keycloak-data:
 
 networks:
     story-network:
