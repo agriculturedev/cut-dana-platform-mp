@@ -33,8 +33,8 @@ services:
             - mongo-data:/data/db
         restart: always
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: example
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
         networks:
             - story-network
 
@@ -44,10 +44,10 @@ services:
         ports:
             - 8081:8081
         environment:
-            ME_CONFIG_MONGODB_ADMINUSERNAME: root
-            ME_CONFIG_MONGODB_ADMINPASSWORD: example
-            ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
-            ME_CONFIG_BASICAUTH: false
+            - ME_CONFIG_MONGODB_ADMINUSERNAME=${ME_CONFIG_MONGODB_ADMINUSERNAME}
+            - ME_CONFIG_MONGODB_ADMINPASSWORD=${ME_CONFIG_MONGODB_ADMINPASSWORD}
+            - ME_CONFIG_MONGODB_URL=${ME_CONFIG_MONGODB_URL}
+            - ME_CONFIG_BASICAUTH=false
         networks:
             - story-network
         depends_on:
