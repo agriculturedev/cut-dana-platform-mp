@@ -81,7 +81,7 @@ services:
             KC_DB_USERNAME: ${POSTGRES_USER}
             KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
         ports:
-            - 8443:8443
+            - 8444:8443
         restart: always
         depends_on:
             - postgres
