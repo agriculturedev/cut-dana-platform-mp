@@ -27,6 +27,11 @@ export default {
             type: Boolean,
             default: true,
             required: false
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     data () {
@@ -87,6 +92,7 @@ export default {
                     data-toggle="button"
                     class="listButton list-group-item list-group-item-action"
                     :class="{active: object.id === currentModelId}"
+                    :disabled="disabled"
                     @click="enableCheckboxes ? hasActiveClass($event, object.id) : ''"
                 >
                     <input
@@ -196,6 +202,7 @@ export default {
                     <button
                         id="tool-modeler3D-export-button"
                         class="primary-button-wrapper"
+                        :class="disabled ? 'disabled' : ''"
                         :title="$t(`common:modules.tools.modeler3D.draw.captions.exportTitle`)"
                         @click="$emit('export-geojson')"
                         @keydown.enter="$emit('export-geojson')"
@@ -305,5 +312,10 @@ export default {
     }
     .checkbox-selected-entity {
         margin-right: 0.5rem;
+    }
+
+    .disabled {
+        filter: opacity(0.5);
+        pointer-events: none;
     }
 </style>

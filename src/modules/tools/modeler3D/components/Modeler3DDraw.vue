@@ -859,6 +859,7 @@ export default {
                     :objects="drawnModels"
                     :entity="true"
                     :geometry="true"
+                    :disabled="isDrawing"
                     @change-visibility="changeVisibility"
                     @export-geojson="exportToGeoJson"
                     @zoom-to="zoomTo"
@@ -882,6 +883,7 @@ export default {
                         role="switch"
                         :aria-checked="clampToGround"
                         :checked="clampToGround"
+                        :disabled="isDrawing"
                         @change="clampToGround = !clampToGround; resetDrawing();"
                     >
                     <label
@@ -899,6 +901,7 @@ export default {
                         role="switch"
                         :aria-checked="dimensions"
                         :checked="dimensions"
+                        :disabled="isDrawing"
                         @change="dimensions = !dimensions; resetDrawing();"
                     >
                     <label
@@ -922,6 +925,7 @@ export default {
                 <DrawModels
                     id="tool-modeler3D-draw-models"
                     :draw-model-types="drawModelTypes"
+                    :disabled="isDrawing"
                     :selected-draw-model-type="selectedDrawModelType"
                     :set-selected-draw-model-type="setSelectedDrawModelType"
                     @start-placing="startPlacing"
@@ -940,6 +944,7 @@ export default {
                     :draw-types="drawTypes"
                     :selected-draw-type="selectedDrawType"
                     :set-selected-draw-type="setSelectedDrawType"
+                    :disabled="isDrawing"
                     @start-drawing="startDrawing"
                     @stop-drawing="stopDrawing"
                 />

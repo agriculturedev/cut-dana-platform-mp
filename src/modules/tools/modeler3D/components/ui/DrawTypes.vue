@@ -61,6 +61,11 @@ export default {
         setSelectedDrawType: {
             type: Function,
             required: true
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
     methods: {
@@ -102,6 +107,7 @@ export default {
             ]"
             :interaction="() => regulateInteraction(drawType, idx)"
             :icon="drawIcons[drawType]"
+            :disabled="disabled && selectedDrawType !== drawType "
         />
     </div>
 </template>
