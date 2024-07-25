@@ -22,6 +22,7 @@
 ### Removed
 
 ### Fixed
+- Issue #1227: search via urlparam 'query=': display marker waits for style loaded.
 
 ---
 ## v2.47.0 - 2024-07-03

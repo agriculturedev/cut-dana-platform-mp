@@ -3,6 +3,7 @@ import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList";
 import createStyle from "@masterportal/masterportalapi/src/vectorStyle/createStyle";
 import Point from "ol/geom/Point.js";
 import Feature from "ol/Feature.js";
+import store from "../../../app-store";
 
 /**
  * @const {String} configPaths an array of possible config locations. First one found will be used
@@ -33,7 +34,7 @@ export default {
      *                  keep or erase previously drawn markers
      * @returns {void}
      */
-    placingPointMarker ({state, rootState, commit, dispatch}, value) {
+    placingPointMarker ({state, rootState, rootGetters, dispatch}, value) {
         const styleObject = styleList.returnStyleObject(state.pointStyleId);
         let coordValues = [];
 
@@ -53,22 +54,43 @@ export default {
             else {
                 coordValues = value;
             }
-            const iconfeature = new Feature({
-                    geometry: new Point(coordValues)
-                }),
-                featureStyle = createStyle.createStyle(styleObject, iconfeature, false, Config.wfsImgPath);
-
-            iconfeature.setStyle(featureStyle);
-            iconfeature.set("styleId", state.pointStyleId);
-            iconfeature.set("featureId", iconfeature.ol_uid);
-
-            commit("addFeatureToMarker", {feature: iconfeature, marker: "markerPoint"});
-            commit("setVisibilityMarker", {visibility: true, marker: "markerPoint"});
-            dispatch("Maps/addLayerOnTop", state.markerPoint, {root: true});
+            if (rootGetters.styleListLoaded) {
+                dispatch("styleAndAddPointMarkerFeature", {coordValues, styleObject});
+            }
+            else {
+                store.watch((stateOfRoot, getters) => getters.styleListLoaded, loaded => {
+                    if (loaded) {
+                        dispatch("styleAndAddPointMarkerFeature", {coordValues, styleObject});
+                    }
+                });
+            }
         }
         else {
             dispatch("Alerting/addSingleAlert", i18next.t("common:modules.mapMarker.nostyleObject", {styleId: state.pointStyleId}), {root: true});
         }
+    },
+    /**
+     * Creates the feature for pointMarker ans styles it. Sets the marker visible and adds it to map.
+     * @param {Object} param.commit the commit
+     * @param {Object} param.dispatch the dispatch
+     * @param {Object} payload the payload
+     * @param {Array} payload.coordValues coordinates to place the marker on
+     * @param {Array} payload.styleObject styleObject to use
+     * @returns {void}
+     */
+    styleAndAddPointMarkerFeature ({state, commit, dispatch}, {coordValues, styleObject}) {
+        const iconfeature = new Feature({
+                geometry: new Point(coordValues)
+            }),
+            featureStyle = createStyle.createStyle(styleObject, iconfeature, false, Config.wfsImgPath);
+
+        iconfeature.setStyle(featureStyle);
+        iconfeature.set("styleId", state.pointStyleId);
+        iconfeature.set("featureId", iconfeature.ol_uid);
+
+        commit("addFeatureToMarker", {feature: iconfeature, marker: "markerPoint"});
+        commit("setVisibilityMarker", {visibility: true, marker: "markerPoint"});
+        dispatch("Maps/addLayerOnTop", state.markerPoint, {root: true});
     },
 
     /**
@@ -168,7 +190,7 @@ export default {
      * @param {ol/Feature} feature The ol feature that is added to the map.
      * @returns {void}
      */
-    placingPolygonMarker ({state, commit, dispatch}, feature) {
+    placingPolygonMarker ({state, dispatch, rootGetters}, feature) {
         if (!feature) {
             return;
         }
@@ -177,16 +199,37 @@ export default {
         dispatch("removePolygonMarker");
 
         if (styleObject) {
-            const featureStyle = createStyle.createStyle(styleObject, feature, false, Config.wfsImgPath);
-
-            feature.setStyle(featureStyle);
-            commit("addFeatureToMarker", {feature: feature, marker: "markerPolygon"});
-            commit("setVisibilityMarker", {visibility: true, marker: "markerPolygon"});
-            dispatch("Maps/addLayerOnTop", state.markerPolygon, {root: true});
+            if (rootGetters.styleListLoaded) {
+                dispatch("styleAndAddPolygonMarkerFeature", {feature, styleObject});
+            }
+            else {
+                store.watch((rootState, getters) => getters.styleListLoaded, loaded => {
+                    if (loaded) {
+                        dispatch("styleAndAddPolygonMarkerFeature", {feature, styleObject});
+                    }
+                });
+            }
         }
         else {
             dispatch("Alerting/addSingleAlert", i18next.t("common:modules.mapMarker.nostyleObject", {styleId: state.polygonStyleId}), {root: true});
         }
+    },
+    /**
+     * Creates the feature for polygonMarker ans styles it. Sets the marker visible and adds it to map.
+     * @param {Object} param.commit the commit
+     * @param {Object} param.dispatch the dispatch
+     * @param {Object} payload the payload
+     * @param {Array} payload.feature feature dedicated feature
+     * @param {Array} payload.styleObject styleObject to use
+     * @returns {void}
+     */
+    styleAndAddPolygonMarkerFeature ({state, commit, dispatch}, {feature, styleObject}) {
+        const featureStyle = createStyle.createStyle(styleObject, feature, false, Config.wfsImgPath);
+
+        feature.setStyle(featureStyle);
+        commit("addFeatureToMarker", {feature: feature, marker: "markerPolygon"});
+        commit("setVisibilityMarker", {visibility: true, marker: "markerPolygon"});
+        dispatch("Maps/addLayerOnTop", state.markerPolygon, {root: true});
     },
 
     /**
