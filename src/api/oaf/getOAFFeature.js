@@ -5,16 +5,21 @@ import {getUniqueValuesFromFetchedFeatures} from "../../modules/tools/filter/uti
 
 /**
  * Gets all features of given collection.
- * @param {String} baseUrl The base url.
- * @param {String} collection The collection.
- * @param {Number} limit The limit of features per request.
- * @param {String} [filter] The filter. See https://ogcapi.ogc.org/features/ for more information.
- * @param {String} [filterCrs] The filter crs. Needs to be set if a filter is used.
- * @param {String} [crs] The crs for the geometry of the features.
- * @param {String[]} [propertyNames] The property names to narrow the request.
+ * @param {Object} options The request options and parameters.
+ * @param {String} options.baseUrl The base url.
+ * @param {String} options.baseUrl The base url.
+ * @param {String} options.collection The collection.
+ * @param {Number} options.limit The limit of features per request.
+ * @param {String} [options.filter] The filter. See https://ogcapi.ogc.org/features/ for more information.
+ * @param {String} [options.filterCrs] The filter crs. Needs to be set if a filter is used.
+ * @param {String} [options.crs] The crs for the geometry of the features.
+ * @param {String[]} [options.propertyNames] The property names to narrow the request.
+ * @param {Number[] | String} [options.bbox] Bounding box as [minx,miny,maxx,maxy] for features. Can be provided as Array or comma separated string.
+ * @param {String} [options.bboxCrs] The bbox crs. Needs to be set if a bbox is used.
+ * @param {{[key: String]: String}} [options.literalFilters] Literal filters provided as dict, e.g. {"stadtteil": "Barmbek-Süd"}.
  * @returns {Promise} An promise which resolves an array of oaf features.
  */
-async function getOAFFeatureGet (
+async function getOAFFeatureGet ({
     baseUrl,
     collection,
     limit = 400,
@@ -26,7 +31,7 @@ async function getOAFFeatureGet (
     bbox = undefined,
     bboxCrs = undefined,
     literalFilters = undefined
-) {
+}) {
     if (typeof baseUrl !== "string") {
         return new Promise((resolve, reject) => {
             reject(new Error(`Please provide a valid base url! Got ${baseUrl}`));
