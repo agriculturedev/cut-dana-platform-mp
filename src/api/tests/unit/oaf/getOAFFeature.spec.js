@@ -14,7 +14,19 @@ import {getUniqueValuesFromFetchedFeatures} from "../../../../modules/tools/filt
  * @param {String[]} [propertyNames] The property names to narrow the request.
  * @returns {Promise} An promise which resolves an array of oaf features.
  */
-async function getOAFFeatureGet (baseUrl, collection, limit = 400, filter = undefined, filterCrs = undefined, crs = undefined, propertyNames = undefined, skipGeometry = false) {
+async function getOAFFeatureGet (
+    baseUrl,
+    collection,
+    limit = 400,
+    filter = undefined,
+    filterCrs = undefined,
+    crs = undefined,
+    propertyNames = undefined,
+    skipGeometry = false,
+    bbox = undefined,
+    bboxCrs = undefined,
+    literalFilters = undefined
+) {
     if (typeof baseUrl !== "string") {
         return new Promise((resolve, reject) => {
             reject(new Error(`Please provide a valid base url! Got ${baseUrl}`));
@@ -40,6 +52,20 @@ async function getOAFFeatureGet (baseUrl, collection, limit = 400, filter = unde
 
     if (skipGeometry) {
         extendedUrl += `&skipGeometry=${skipGeometry}`;
+    }
+
+    if (bbox) {
+        extendedUrl += `&bbox=${Array.isArray(opts.bbox) ? opts.bbox.slice(0, 4).join(",") : opts.bbox}`;
+
+        if (bboxCrs) {
+            extendedUrl += `&bbox-crs=${bbox}`;
+        }
+    }
+
+    if (isObject(literalFilters)) {
+        for (const attr in literalFilters) {
+            extendedUrl += `&${attr}=${literalFilters[attr]}`;
+        }
     }
 
     return this.oafRecursionHelper(result, extendedUrl);
