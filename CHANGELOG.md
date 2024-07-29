@@ -23,6 +23,8 @@
 
 ### Fixed
 - Issue #1227: search via urlparam 'query=': display marker waits for style loaded.
+- Filter
+  - SliderRange: The maximum Slider value should be the maximum current slider value if the slider scolls to the end.
 
 ---
 ## v2.47.0 - 2024-07-03

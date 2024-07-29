@@ -478,6 +478,8 @@ export default {
         /**
          * Calculates the distance between both slider buttons in percent.
          * @info a 5% offset is calculated in to compensate for button width
+         * If the width is 100%, the sliderUntil value should be the max value. Sometimes because of the percentage calculation, it could be possible
+         * the width is less than 100%, but rounded to 100% so that the value of sliderUntil is not as same as currentSliderMax.
          * @returns {String} the percentage to use for css width style
          */
         getMeasureWidth () {
@@ -488,9 +490,14 @@ export default {
             }
 
             const range = (this.currentSliderMax - this.currentSliderMin) * pow,
-                measure = (this.sliderUntil - this.sliderFrom) * pow;
+                measure = (this.sliderUntil - this.sliderFrom) * pow,
+                currentWidth = String((95 / Math.max(1, range) * measure + 5).toFixed(1)) + "%";
 
-            return String((95 / Math.max(1, range) * measure + 5).toFixed(1)) + "%";
+            if (currentWidth === "100.0%") {
+                this.sliderUntil = this.currentSliderMax;
+            }
+
+            return currentWidth;
         },
         /**
          * Emits the current rule to whoever is listening.
