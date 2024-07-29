@@ -3,7 +3,6 @@ import {mapGetters, mapActions, mapMutations} from "vuex";
 import actions from "../store/actionsModeler3D";
 import getters from "../store/gettersModeler3D";
 import mutations from "../store/mutationsModeler3D";
-import crs from "@masterportal/masterportalapi/src/crs";
 import EntityModel from "./Modeler3DEntityModel.vue";
 import {adaptCylinderToEntity, adaptCylinderToGround, adaptCylinderUnclamped, calculatePolygonArea} from "../utils/draw";
 import DrawTypes from "./ui/DrawTypes.vue";
@@ -44,7 +43,6 @@ export default {
     },
     computed: {
         ...mapGetters("Tools/Modeler3D", Object.keys(getters)),
-        ...mapGetters("Maps", ["mouseCoordinate"]),
         clampToGround: {
             /**
              * Getter for the computed property clampToGround.
@@ -100,7 +98,7 @@ export default {
 
             const scene = mapCollection.getMap("3D").getCesiumScene(),
                 entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
+                floatingPoint = entities.getById(this.cylinderId);
 
             floatingPoint.position = this.clampToGround ?
                 new Cesium.CallbackProperty(() => adaptCylinderToGround(floatingPoint, this.currentPosition), false) :
@@ -108,7 +106,7 @@ export default {
 
             eventHandler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
 
-            eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+            eventHandler.setInputAction(this.debounce(this.onMouseMove), Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             eventHandler.setInputAction((event) => {
                 this.onMouseMove({endPosition: event.position});
                 this.addGeometryPosition();
@@ -119,7 +117,7 @@ export default {
                 eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
             eventHandler.setInputAction(() => {
-                eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                eventHandler.setInputAction(this.debounce(this.onMouseMove), Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             }, Cesium.ScreenSpaceEventType.LEFT_UP);
             document.addEventListener("keydown", this.catchUndoRedo);
         },
@@ -141,6 +139,20 @@ export default {
             }
         },
         /**
+         * Creates a debounced version of a function. Useful for buffering user inputs such as mouse movements or text edits.
+         * @param {Function} func - A function which should only be called if it is not called again within a specified amount of time.
+         * @param {Number} [delay=50] - The time in milliseconds to be waited for before func is called.
+         * @returns {Function} - A new function which is the debounced version of the passed one.
+         */
+        debounce (func, delay = 50) {
+            let timer;
+
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => func.apply(this, args), delay);
+            };
+        },
+        /**
          * Called on mouse move. Repositions the current pin to set the position.
          * @param {Event} event changed mouse position event
          * @returns {void}
@@ -148,9 +160,11 @@ export default {
         onMouseMove (event) {
             const scene = mapCollection.getMap("3D").getCesiumScene(),
                 entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
+                floatingPoint = entities.getById(this.cylinderId);
 
-
+            if (!this.isDrawing || !floatingPoint) {
+                return;
+            }
             if (this.clampToGround) {
                 const ray = scene.camera.getPickRay(event.endPosition),
                     position = scene.globe.pick(ray, scene);
@@ -164,23 +178,24 @@ export default {
                 }
             }
             else {
-                const transformedCoordinates = crs.transformFromMapProjection(mapCollection.getMap("3D").getOlMap(), "EPSG:4326", [this.mouseCoordinate[0], this.mouseCoordinate[1]]),
-                    cartographic = Cesium.Cartographic.fromDegrees(transformedCoordinates[0], transformedCoordinates[1]),
-                    polygon = entities.values.find(ent => ent.id === this.currentModelId),
+                const position = scene.pickPosition(event.endPosition),
+                    cartographic = position ? Cesium.Cartographic.fromCartesian(position) : undefined,
+                    polygon = entities.getById(this.currentModelId),
                     ignoreObjects = polygon ? [floatingPoint, polygon] : [floatingPoint];
 
-                if (cartographic) {
-                    document.body.style.cursor = "copy";
+                if (!cartographic) {
+                    return;
                 }
 
+                document.body.style.cursor = "copy";
                 cartographic.height = scene.sampleHeight(cartographic, ignoreObjects);
 
-                if (this.currentPosition !== Cesium.Cartographic.toCartesian(cartographic)) {
-                    this.currentPosition = Cesium.Cartographic.toCartesian(cartographic);
+                if (this.currentPosition !== position) {
+                    this.currentPosition = position;
                 }
             }
             if (Cesium.defined(this.currentPosition)) {
-                this.activeShapePoints.splice(floatingPoint.positionIndex, 1, this.currentPosition);
+                this.activeShapePoints.splice(floatingPoint.positionIndex, 1, Cesium.Cartesian3.clone(this.currentPosition));
                 const shape = entities.getById(this.shapeId);
 
                 if (shape?.polygon?.rectangle && this.activeShapePoints.length > 1) {
@@ -200,7 +215,7 @@ export default {
             this.lastAddedPosition = this.currentPosition;
 
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                floatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
+                floatingPoint = entities.getById(this.cylinderId);
 
             let entity = entities.getById(this.shapeId),
                 label = null;
@@ -219,7 +234,7 @@ export default {
                         const midpoint = Cesium.Cartesian3.midpoint(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3()),
                             midPointCart = Cesium.Cartographic.fromCartesian(midpoint);
 
-                        return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, (entity.polygon?.extrudedHeight?.getValue() || midPointCart.height) + 2);
+                        return Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, (entity?.polygon?.extrudedHeight?.getValue() || midPointCart.height) + 2);
                     }, false),
                     text: new Cesium.CallbackProperty(() => {
                         const distance = Cesium.Cartesian3.distance(this.activeShapePoints[(this.activeShapePoints.length - 2) || 0], this.currentPosition, new Cesium.Cartesian3());
@@ -239,7 +254,7 @@ export default {
                     distance = Cesium.Cartesian3.distance(this.activeShapePoints[arrayLength - 2], this.activeShapePoints[arrayLength - 1], new Cesium.Cartesian3());
 
                 label = this.addLabel("distance", {
-                    position: Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, (entity.polygon?.extrudedHeight?.getValue() || midPointCart.height) + 2),
+                    position: Cesium.Cartesian3.fromRadians(midPointCart.longitude, midPointCart.latitude, (entity?.polygon?.extrudedHeight?.getValue() || midPointCart.height) + 2),
                     text: Math.round(distance * 100) / 100 + " m"
                 });
                 this.labelList.push(label);
@@ -303,7 +318,7 @@ export default {
                 });
             }
             const entities = mapCollection.getMap("3D").getDataSourceDisplay().defaultDataSource.entities,
-                newFloatingPoint = entities.values.find(cyl => cyl.id === this.cylinderId);
+                newFloatingPoint = entities.getById(this.cylinderId);
 
             newFloatingPoint.position = this.clampToGround ?
                 new Cesium.CallbackProperty(() => adaptCylinderToGround(floatingPoint, this.currentPosition), false) :
@@ -638,6 +653,10 @@ export default {
                 attachedEntity = labelInfo.attachedEntity || entities.getById(this.shapeId),
                 position = labelInfo.position;
             let label;
+
+            if (!attachedEntity) {
+                return undefined;
+            }
 
             if (type === "distance") {
                 label = {
