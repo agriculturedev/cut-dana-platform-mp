@@ -11,6 +11,14 @@ import {
     mergeFeatures
 } from "../../../gfi/getWmsFeaturesByMimeType.js";
 
+global.mapCollection = {
+    getMap: () => ({
+        getView: () => ({
+            getProjection: () => "EPSG:25832"
+        })
+    })
+};
+
 describe("src/api/gfi/getWmsFeaturesByMimeType.js", () => {
     const url = "url";
     let layer = null,
