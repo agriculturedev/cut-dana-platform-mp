@@ -23,6 +23,7 @@
     "test:vue:excludeAddon": "mochapack --recursive --webpack-config devtools/webpack.vue.test.js --file devtools/setupUnitTests.js \"./src/**/*.spec.js\" \"./addons/!(cosi)/!(node_modules)/**/*.spec.js\"",
     "test:vue:excludeAddon:watch": "npm run test:vue:excludeAddon -- --watch",
     "test:vue:watch": "npm run test:vue -- --watch",
+    "test:vue:file": "mochapack --recursive --webpack-config devtools/webpack.vue.test.js --file devtools/setupUnitTests.js",
     "test:all": "npm run test && npm run test:vue",
     "test:all:excludeAddon": "npm run test && npm run test:vue:excludeAddon",
     "test:all:watch": "npm-run-all --parallel test:watch test:vue:watch",

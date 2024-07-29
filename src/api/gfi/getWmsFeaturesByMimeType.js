@@ -150,7 +150,7 @@ export function getJSONFeatures (layer, url) {
  * @returns {Object[]}  a list of object{getTheme, getTitle, getAttributesToShow, getProperties, getGfiUrl} or an emtpy array
  */
 export function handleJSONResponse (featureInfos, layer, url) {
-    const geojsonReader = new GeoJSON({dataProjection: mapCollection.getMap("2D").getView().getProjection(), featureProjection: featureInfos?.crs?.properties?.name});
+    const geojsonReader = new GeoJSON({dataProjection: mapCollection.getMap("2D")?.getView().getProjection(), featureProjection: featureInfos?.crs?.properties?.name});
     let result = [];
 
     if (typeof featureInfos === "object" && Array.isArray(featureInfos?.features)) {
