@@ -9,7 +9,7 @@ describe("src/api/oaf", () => {
         it("should returns a promise which rejects if baseUrl is not a string", async () => {
             let catchError = null;
 
-            await getOAFFeature.getOAFFeatureGet({baseUrl: null}).catch(error => {
+            await getOAFFeature.getOAFFeatureGet({baseUrl: undefined}).catch(error => {
                 catchError = error;
             });
 
