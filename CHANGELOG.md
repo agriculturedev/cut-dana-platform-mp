@@ -7,6 +7,8 @@
 ### __Breaking Changes__
 
 ### Added
+- getOAFFeature: API Helper to load individual OAF Features (analogue to WFS) added
+    - taken and updated from Masterportal 3 release
 - WFS-T:
     - Enables layers to support the insertion, update, and deletion of multipolygon geometries
     - Includes UI updates with a new "Add areas" button
