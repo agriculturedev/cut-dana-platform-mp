@@ -60,10 +60,10 @@ async function getOAFFeatureGet ({
     }
 
     if (bbox) {
-        extendedUrl += `&bbox=${Array.isArray(opts.bbox) ? opts.bbox.slice(0, 4).join(",") : opts.bbox}`;
+        extendedUrl += `&bbox=${Array.isArray(bbox) ? bbox.slice(0, 4).join(",") : bbox}`;
 
         if (bboxCrs) {
-            extendedUrl += `&bbox-crs=${bbox}`;
+            extendedUrl += `&bbox-crs=${bboxCrs}`;
         }
     }
 

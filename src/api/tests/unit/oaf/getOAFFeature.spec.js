@@ -46,6 +46,32 @@ describe("src/api/oaf", () => {
             expect(oafRecursionHelperStub.calledWith([], `${param1}/collections/${param2}/items?limit=${defaultLimit}`)).to.be.true;
             sinon.restore();
         });
+        it("should call oafRecursionHelper with literal filters, if provided as param", async () => {
+            const oafRecursionHelperStub = sinon.stub(getOAFFeature, "oafRecursionHelper"),
+                param1 = "foo",
+                param2 = "bar",
+                defaultLimit = 400,
+                literalFilters = {
+                    [param1]: param2
+                };
+
+            await getOAFFeature.getOAFFeatureGet({baseUrl: param1, collection: param2, literalFilters});
+            expect(oafRecursionHelperStub.calledWith([], `${param1}/collections/${param2}/items?limit=${defaultLimit}&${param1}=${param2}`)).to.be.true;
+            sinon.restore();
+        });
+        it("should call oafRecursionHelper with bbox (minx,miny,maxx,maxy) and bboxCrs as string, if bbox is provided as Array", async () => {
+            const oafRecursionHelperStub = sinon.stub(getOAFFeature, "oafRecursionHelper"),
+                param1 = "foo",
+                param2 = "bar",
+                defaultLimit = 400,
+                bbox = [1,2,3,4,"EPSG:1234"],
+                bboxAsString = "1,2,3,4"
+                bboxCrs = "EPSG:9999"
+
+            await getOAFFeature.getOAFFeatureGet({baseUrl: param1, collection: param2, bbox, bboxCrs});
+            expect(oafRecursionHelperStub.calledWith([], `${param1}/collections/${param2}/items?limit=${defaultLimit}&bbox=${bboxAsString}&bbox-crs=${bboxCrs}`)).to.be.true;
+            sinon.restore();
+        });
     });
     describe("readAllOAFToGeoJSON", () => {
         it("should return the given param if it is not an array", () => {
