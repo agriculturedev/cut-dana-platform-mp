@@ -15,16 +15,27 @@
     - Added confirmation dialog for creating multipolygons with voids
 
 ### Changed
-- The following packages have been updated:
-    - dependencies:
-        - @masterportal/masterportalapi: 2.39.0 to 2.40.0
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+---
+
+## v2.48.0 - 2024-08-07
+
+### Added
+- WFS-T:
+    - Enables layers to support the insertion, update, and deletion of multipolygon geometries
+    - Includes UI updates with a new "Add areas" button
+    - Added confirmation dialog for creating multipolygons with voids
+
+### Fixed
 - Issue #1227: search via urlparam 'query=': display marker waits for style loaded.
+- Filter
+  - SliderRange: The maximum Slider value should be the maximum current slider value if the slider scolls to the end.
 
 ---
 ## v2.47.0 - 2024-07-03

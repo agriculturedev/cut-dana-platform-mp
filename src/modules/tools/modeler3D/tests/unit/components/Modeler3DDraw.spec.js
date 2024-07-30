@@ -12,16 +12,7 @@ config.mocks.$t = key => key;
 
 describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
     const globalURL = global.URL,
-        mockMapGetters = {
-            mouseCoordinate: () => {
-                return [11.549606597773037, 48.17285700012215];
-            }
-        },
-        Cartesian3Coordinates = {
-            x: 3739310.9273738265,
-            y: 659341.4057539968,
-            z: 5107613.232959453
-        },
+        mockMapGetters = {},
         pickRayResult = {
             origin: {},
             direction: {}
@@ -54,14 +45,7 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                         entities: entities
                     }
                 };
-            },
-            getOlMap: () => ({
-                getView: () => ({
-                    getProjection: () => ({
-                        getCode: () => "EPSG:25832"
-                    })
-                })
-            })
+            }
         };
 
     let store,
@@ -93,7 +77,8 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                     cartographicToCartesian: () => ({x: 100, y: 100, z: 100})
                 }
             },
-            sampleHeight: sinon.stub().returns(5)
+            sampleHeight: sinon.stub().returns(5),
+            pickPosition: sinon.stub().returns({x: 100, y: 100, z: 100})
         };
 
         global.Cesium = {
@@ -164,6 +149,13 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
                  * @returns {void} Nothing.
                     */
                 static fromRadians () {
+                    return {x: 100, y: 100, z: 100};
+                }
+                /**
+                 * Mock static method
+                 * @returns {void} Nothing.
+                    */
+                static clone () {
                     return {x: 100, y: 100, z: 100};
                 }
             },
@@ -261,6 +253,26 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             expect(wrapper.find("#tool-modeler3D-outline-color").exists()).to.be.false;
         });
     });
+    describe("debounce function", () => {
+        it("should call passed function only once if second call is made before delay is over", () => {
+            const funcSpy = sinon.spy(() => undefined),
+                debouncedFunc = wrapper.vm.debounce(funcSpy, 10);
+
+            debouncedFunc();
+            setTimeout(debouncedFunc, 1);
+
+            setTimeout(() => expect(funcSpy.calledOnce).to.be.true, 100);
+        });
+        it("should call passed function twice if second call is made after delay is over", () => {
+            const funcSpy = sinon.spy(() => undefined),
+                debouncedFunc = wrapper.vm.debounce(funcSpy, 1);
+
+            debouncedFunc();
+            setTimeout(debouncedFunc, 10);
+
+            setTimeout(() => expect(funcSpy.calledTwice).to.be.true, 100);
+        });
+    });
     describe("Modeler3DDraw.vue methods", () => {
         it("should update currentPosition in Clamp-to-Ground mode", () => {
             const mouseMoveEvent = {
@@ -270,13 +282,15 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
 
             wrapper.vm.clampToGround = true;
+            wrapper.vm.setIsDrawing(true);
+            wrapper.vm.setCylinderId("FloatingPointId");
             wrapper.vm.onMouseMove(mouseMoveEvent);
 
             expect(scene.camera.getPickRay.calledOnceWith(mouseMoveEvent.endPosition)).to.be.true;
             expect(scene.globe.pick.calledOnceWith(pickRayResult, scene)).to.be.true;
             expect(document.body.style.cursor).to.equal("copy");
             expect(wrapper.vm.currentPosition).to.eql({});
-            expect(wrapper.vm.activeShapePoints[0]).to.eql({});
+            expect(wrapper.vm.activeShapePoints[0]).to.eql({x: 100, y: 100, z: 100});
         });
         it("should update currentPosition with coordinate transformation in normal mode", () => {
             const mouseMoveEvent = {
@@ -286,11 +300,13 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             entities.values.push({id: "FloatingPointId", positionIndex: 0, cylinder: {length: 4}});
 
             wrapper.vm.clampToGround = false;
+            wrapper.vm.setIsDrawing(true);
+            wrapper.vm.setCylinderId("FloatingPointId");
             wrapper.vm.onMouseMove(mouseMoveEvent);
 
             expect(document.body.style.cursor).to.equal("copy");
-            expect(wrapper.vm.currentPosition).to.eql(Cartesian3Coordinates);
-            expect(wrapper.vm.activeShapePoints[0]).to.eql(Cartesian3Coordinates);
+            expect(wrapper.vm.currentPosition).to.eql({x: 100, y: 100, z: 100});
+            expect(wrapper.vm.activeShapePoints[0]).to.eql({x: 100, y: 100, z: 100});
         });
 
         it("should add new geometry position and call drawShape when activeShapePoints length is 1", () => {
