@@ -12,6 +12,7 @@ import mutations from "../store/mutationsModeler3D";
 import crs from "@masterportal/masterportalapi/src/crs";
 import getGfiFeatures from "../../../../api/gfi/getGfiFeaturesByTileFeature";
 import {adaptCylinderUnclamped} from "../utils/draw";
+import debounce from "../utils/debounce.js";
 import VectorLayer from "ol/layer/Vector.js";
 import VectorSource from "ol/source/Vector.js";
 import Feature from "ol/Feature.js";
@@ -39,7 +40,8 @@ export default {
             originalCursorStyle: null,
             originalPosition: null,
             undonePosition: null,
-            lastAction: null
+            lastAction: null,
+            isInPedView: false
         };
     },
     computed: {
@@ -733,6 +735,7 @@ export default {
          * @returns {void}
          */
         positionPovCamera () {
+            this.isInPedView = true;
             const scene = mapCollection.getMap("3D").getCesiumScene(),
                 transformedCoordinates = crs.transformFromMapProjection(mapCollection.getMap("3D").getOlMap(), "EPSG:4326", this.clickCoordinate),
                 currentPosition = scene.camera.positionCartographic,
@@ -824,6 +827,7 @@ export default {
                     this.setOverviewLayer(undefined);
                 }
             });
+            this.isInPedView = false;
 
             this.resetPov();
         },
@@ -848,9 +852,11 @@ export default {
          */
         changeSwitches (id) {
             if (id === "povActiveSwitch") {
-                if (this.povActive) {
-                    this.resetPov();
+                if (this.isInPedView) {
                     this.escapePedView(undefined);
+                }
+                else if (this.povActive) {
+                    this.resetPov();
                 }
                 else {
                     this.setPovActive(true);
@@ -862,8 +868,11 @@ export default {
             else if (id === "hideObjectsSwitch" || this.hideObjects) {
                 this.originalHideOption = !this.hideObjects;
                 this.setHideObjects(!this.hideObjects);
-                if (this.povActive) {
+                if (this.isInPedView) {
                     this.escapePedView(undefined);
+                }
+                else if (this.povActive) {
+                    this.resetPov();
                 }
                 // document.body.style.cursor = this.originalCursorStyle;
             }
@@ -875,6 +884,9 @@ export default {
          * @returns {void}
          */
         clickHandler () {
+            if (!this.clickCoordinate) {
+                return;
+            }
             document.body.style.cursor = this.originalCursorStyle;
             eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             eventHandler.setInputAction(this.selectObject, Cesium.ScreenSpaceEventType.LEFT_CLICK);
@@ -907,7 +919,7 @@ export default {
                 document.body.style.cursor = "copy";
             }
 
-            if (!Cesium.Cartesian3.equals(this.currentCartesian, currentCartesian)) {
+            if (!Cesium.Cartesian3.equals(this.currentCartesian, currentCartesian) && !this.isInPedView) {
                 this.currentCartesian = currentCartesian;
             }
         },
@@ -937,8 +949,11 @@ export default {
                 povCylinder = entities.getById(this.cylinderId);
                 povCylinder.position = new Cesium.CallbackProperty(() => adaptCylinderUnclamped(povCylinder, this.currentCartesian), false);
             }
-            eventHandler.setInputAction(this.moveHandler, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-            eventHandler.setInputAction(this.clickHandler, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            eventHandler.setInputAction(debounce(this.moveHandler, this), Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+            eventHandler.setInputAction(() => {
+                this.moveHandler();
+                this.clickHandler();
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
         }
     }
 };
