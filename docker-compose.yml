@@ -80,7 +80,8 @@ services:
             KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
             KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
 
-            JAVA_OPTS: -Xms512m -Xmx512m
+            KC_HTTPS_CERTIFICATE_FILE: /etc/ssl/certs/mycert.pem
+            KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/ssl/private/mykey.pem
         ports:
             - 8444:8443
             - 9000:8080
