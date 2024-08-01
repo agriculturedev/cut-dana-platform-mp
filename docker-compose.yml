@@ -68,7 +68,7 @@ services:
     keycloak:
         image: quay.io/keycloak/keycloak:23.0.6
         environment:
-            #KC_HOSTNAME: story.datanarrator.city/keycloak/
+            KC_HOSTNAME: story.datanarrator.city/keycloak/
             KC_HEALTH_ENABLED: true
             KC_METRICS_ENABLED: true
             KC_PROXY_HEADERS: forwarded
