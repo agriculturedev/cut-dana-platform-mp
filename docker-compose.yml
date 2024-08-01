@@ -90,8 +90,8 @@ services:
         networks:
             - story-network
         volumes:
-            - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/fullchain2.pem:/etc/x509/https/tls.crt
-            - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/privkey2.pem:/etc/x509/https/tls.key
+            - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/fullchain2.pem:/etc/ssl/certs/mycert.pem
+            - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/privkey2.pem:/etc/ssl/private/mykey.pem
         command:
             - start
 
