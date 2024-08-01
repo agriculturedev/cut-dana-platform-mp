@@ -18,7 +18,7 @@ services:
             - "4000:80"
             - "4443:443"
         depends_on:
-            - mongo
+            - mongodb
         volumes:
             - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/fullchain2.pem:/etc/ssl/certs/mycert.pem
             - /opt/psa/var/modules/letsencrypt/etc/archive/_plesk_domain/privkey2.pem:/etc/ssl/private/mykey.pem
@@ -52,7 +52,7 @@ services:
         networks:
             - story-network
         depends_on:
-            - mongo
+            - mongodb
 
     postgres:
         image: postgres:16.2
