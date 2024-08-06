@@ -97,9 +97,24 @@ services:
         command:
             - start
 
+    minio:
+        image: minio/minio:RELEASE.2024-07-15T19-02-30Z
+        container_name: minio
+        environment:
+            - MINIO_ROOT_USER=${MINIO_ROOT_USER}      # MinIO access key
+            - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD} # MinIO secret key
+        ports:
+            - "9001:9000"  # Expose MinIO on port 9001 on the host
+        volumes:
+            - minio-data:/data # Mount the MinIO data volume
+        networks:
+            - story-network
+        command: server /data  # Start the MinIO server
+
 volumes:
     mongo-data:
     postgres_data:
+    minio-data:
 
 networks:
     story-network:
