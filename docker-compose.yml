@@ -101,8 +101,9 @@ services:
         image: minio/minio:RELEASE.2024-07-15T19-02-30Z
         container_name: minio
         environment:
-            - MINIO_ROOT_USER=${MINIO_ROOT_USER}      # MinIO access key
-            - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD} # MinIO secret key
+            - MINIO_ROOT_USER=ROOTNAME  # MinIO access key for testing - needs to go to .env ${MINIO_ROOT_USER}
+            - MINIO_ROOT_PASSWORD=CHANGEME123 # MinIO secret key for testing - needs to go to .env ${MINIO_ROOT_PASSWORD}
+            - MINIO_DEFAULT_BUCKETS=csldatanarrator
         ports:
             - '9001:9000'
             - '9002:9001'
