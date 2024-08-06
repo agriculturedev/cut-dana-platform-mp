@@ -107,10 +107,10 @@ services:
             - '9001:9000'
             - '9002:9001'
         volumes:
-            - minio-data:/data # Mount the MinIO data volume
+            - minio-data:/data
         networks:
             - story-network
-        command: server /data  # Start the MinIO server
+        command: server /data --console-address ":9002"
 
 volumes:
     mongo-data:
