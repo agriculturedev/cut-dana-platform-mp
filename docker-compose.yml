@@ -104,7 +104,8 @@ services:
             - MINIO_ROOT_USER=${MINIO_ROOT_USER}      # MinIO access key
             - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD} # MinIO secret key
         ports:
-            - "9001:9000"  # Expose MinIO on port 9001 on the host
+            - '9001:9000'
+            - '9002:9001'
         volumes:
             - minio-data:/data # Mount the MinIO data volume
         networks:
