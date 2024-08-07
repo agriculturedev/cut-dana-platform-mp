@@ -11,11 +11,6 @@
     - Includes UI updates with a new "Add areas" button
     - Added confirmation dialog for creating multipolygons with voids
 
-### Changed
-- The following packages have been updated:
-    - dependencies:
-        - @masterportal/masterportalapi: 2.39.0 to 2.40.0
-
 ### Fixed
 - Issue #1227: search via urlparam 'query=': display marker waits for style loaded.
 - Filter
