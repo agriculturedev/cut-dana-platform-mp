@@ -3,8 +3,7 @@
 
 [Semantic versioning](https://semver.org/spec/v2.0.0.html) is used.
 
-## Unreleased - in development
-### __Breaking Changes__
+## v2.48.0 - 2024-08-07
 
 ### Added
 - WFS-T:
@@ -16,10 +15,6 @@
 - The following packages have been updated:
     - dependencies:
         - @masterportal/masterportalapi: 2.39.0 to 2.40.0
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 - Issue #1227: search via urlparam 'query=': display marker waits for style loaded.
