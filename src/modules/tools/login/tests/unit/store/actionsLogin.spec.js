@@ -88,15 +88,18 @@ describe("src/modules/tools/login/store/actionsLogin.js", () => {
             });
 
             Config.login = {
+                oidcClientId: "client",
                 oidcRevocationEndpoint: "https://idm.localhost/revoke"
             };
 
             actionsLogin.logout({state, commit});
 
             expect(oidcStub.firstCall.args[0]).to.equal("https://idm.localhost/revoke");
-            expect(oidcStub.firstCall.args[1]).to.equal("accessToken");
+            expect(oidcStub.firstCall.args[1]).to.equal("client");
+            expect(oidcStub.firstCall.args[2]).to.equal("accessToken");
             expect(oidcStub.secondCall.args[0]).to.equal("https://idm.localhost/revoke");
-            expect(oidcStub.secondCall.args[1]).to.equal("refreshToken");
+            expect(oidcStub.secondCall.args[1]).to.equal("client");
+            expect(oidcStub.secondCall.args[2]).to.equal("refreshToken");
 
             local_sandbox.restore();
         });
