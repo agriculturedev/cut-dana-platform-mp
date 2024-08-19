@@ -10,6 +10,19 @@ export function getStateAsUrlParams (rootState, rootGetters) {
         layerVisibilities = rootState.Tools.SaveSelection.layerVisibilities,
         layerTransparencies = rootState.Tools.SaveSelection.layerTransparencies;
 
+    if (rootGetters["Maps/mode"] === "3D") {
+        return location.origin + location.pathname +
+        "?Map/layerIds=" + layerIds +
+        "&visibility=" + layerVisibilities +
+        "&transparency=" + layerTransparencies +
+        "&Map/center=[" + rootGetters["Maps/center"] +
+        "]&Map/zoomLevel=" + rootGetters["Maps/getView"].getZoom() +
+        "&Map/mapMode=" + rootGetters["Maps/mode"] +
+        "&tilt=" + mapCollection.getMap("3D").getCamera().getTilt() +
+        "&heading=" + mapCollection.getMap("3D").getCamera().getHeading() +
+        "&altitude=" + mapCollection.getMap("3D").getCamera().getAltitude();
+    }
+
     return location.origin + location.pathname +
         "?Map/layerIds=" + layerIds +
         "&visibility=" + layerVisibilities +

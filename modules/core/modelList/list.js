@@ -161,6 +161,7 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
         this.listenTo(Radio.channel("Map"), {
             "beforeChange": function (mapMode) {
                 if (mapMode === "3D" || mapMode === "Oblique") {
+                    store.dispatch("Tools/SaveSelection/createUrlParams", filterAndReduceLayerList(mapMode, this.where({isSelected: true, type: "layer"})));
                     this.toggleWfsCluster(false);
                 }
                 else if (mapMode === "2D") {
@@ -1369,14 +1370,14 @@ const ModelList = Backbone.Collection.extend(/** @lends ModelList.prototype */{
      * @param {Boolean} value Is selected value.
      * @returns {void}
      */
-    selectedChanged: function (model, value) {
+    selectedChanged: async function (model, value) {
         let selectedLayers = [];
 
         if (model.get("type") === "layer") {
             model.setIsVisibleInMap(value);
             this.updateLayerView();
         }
-        this.trigger("updateSelection");
+        await this.trigger("updateSelection");
         Radio.channel("ModelList").trigger("updateVisibleInMapList");
         Radio.channel("ModelList").trigger("updatedSelectedLayerList", this.where({isSelected: true, type: "layer"}));
 

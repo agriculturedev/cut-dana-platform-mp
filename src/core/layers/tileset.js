@@ -173,6 +173,10 @@ TileSetLayer.prototype.setIsSelected = function (newValue, attr) {
             this.showObjects(this.get("hiddenFeatures"));
         }
     }
+    else {
+        this.setIsVisibleInMap(newValue);
+        this.attributes.isSelected = newValue;
+    }
 };
 
 /**
