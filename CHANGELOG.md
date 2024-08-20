@@ -24,6 +24,8 @@
 - SaveSelection:
     - If mapMode is 3D it adds the mapMode, tilt, heading and altitude attribute to the url.
     - In 3D the visible layer list contains the 3D layer now.
+- Login:
+    - Fixed token revocation not working correctly
 
 ---
 
