@@ -198,6 +198,7 @@ function refreshToken (oidcTokenEndpoint, oidcClientId, refresh_token) {
  * Revokes a token
  *
  * @param {String} oidcRevocationEndpoint the oidc revocation endpoint
+ * @param {String} oidcClientId the oidc client id
  * @param {String} token the token to revoke
  * @returns {XMLHttpRequest} the sent request
  */
