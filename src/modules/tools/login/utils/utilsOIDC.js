@@ -209,7 +209,7 @@ function revokeToken (oidcRevocationEndpoint, oidcClientId, token) {
     xhr.send(new URLSearchParams({
         grant_type: "refresh_token",
         client_id: oidcClientId,
-        refresh_token: token
+        token: token
     }));
 
     if (xhr.status !== 200) {
