@@ -143,7 +143,7 @@ pipelines:
                     - git clone --single-branch --branch dev https://geowerkstatt@bitbucket.org/geowerkstatt-hamburg/masterportal.git
                     - cd masterportal
                     - git push https://$OpenCode_User:$OpenCode_Password@gitlab.opencode.de/geowerkstatt-hamburg/masterportal.git -f
-         publish html doc:
+        publish html doc:
             - variables:
                 - name: BITBUCKET_TAG
                   description: tag to publish docs for, e.g. v2.45.0
