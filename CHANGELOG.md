@@ -21,6 +21,7 @@
 ### Removed
 
 ### Fixed
+- Issue #1235: layerInformation does not show download sources from previous layer if it does not have its own metadata.
 - SaveSelection:
     - If mapMode is 3D it adds the mapMode, tilt, heading and altitude attribute to the url.
     - In 3D the visible layer list contains the 3D layer now.

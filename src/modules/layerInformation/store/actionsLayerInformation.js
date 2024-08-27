@@ -3,7 +3,6 @@ import {getRecordById, getMetadata} from "../../../api/csw/getRecordById";
 import xml2json from "../../../api/utils/xml2json";
 import getProxyUrl from "../../../utils/getProxyUrl";
 import sortBy from "../../../utils/sortBy";
-import store from "../../../app-store";
 
 const actions = {
 
@@ -105,10 +104,11 @@ const actions = {
      * @returns {void}
      */
     getAbstractInfo: async function ({commit, dispatch, state, rootGetters}, metaInfo) {
-        const layerInfoConfig = store.state.configJson?.Portalconfig?.layerInformation;
+        const layerInfoConfig = state.configJson?.Portalconfig?.layerInformation;
         let metadata;
 
         commit("setCustomText", null);
+        commit("setDownloadLinks", null);
         /**
          * @deprecated in the next major-release!
          * useProxy
