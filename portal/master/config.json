@@ -1034,7 +1034,7 @@
             "schulname",
             "kapitelbezeichnung"
           ],
-          "gfiTheme": "schulinfo",          
+          "gfiTheme": "schulinfo",
           "additionalInfoField": "adresse_strasse_hausnr",
           "loadingStrategy": "all"
         },
