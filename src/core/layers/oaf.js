@@ -61,10 +61,10 @@ OAFLayer.prototype.createLayer = function (attrs) {
             limit: typeof attrs.limit === "undefined" ? 400 : attrs.limit,
             collection: attrs.collection,
             offset: attrs.offset,
-            bbox: attrs.bbox,
+            bbox: attrs.bbox || Array.isArray(attrs.datasets) && attrs.datasets[0]?.bbox || store.getters["Maps/getCurrentExtent"],
             datetime: attrs.datetime,
             crs,
-            bboxCrs: attrs.bboxCrs,
+            bboxCrs: attrs.bboxCrs || crs,
             params: attrs.params
         },
         layerParams = {

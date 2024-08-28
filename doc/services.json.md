@@ -1348,6 +1348,9 @@ With these confurations a url in the feature properties can be displayed either 
 |authenticationUrl|no|String||Additional url called to trigger basic authentication in the browser.|"https://api.hamburg.de/datasets/v1/schulen/collections/staatliche_schulen/appschema"|
 |limit|false|Number||Limits the number of items presented in the response document. Ignored if bulk is `true`.|`10`|
 |crs|false|String|http://www.opengis.net/def/crs/EPSG/0/25832|The coordinate reference system of the response geometries. If not supported, server will respond with error 400. See collections index of your oaf service for supported crs. e.g. https://api.hamburg.de/datasets/v1/schulen/collections. Can also be set to false to disable the crs parameter|`"EPSG:25832"`|
+|bbox|no|String||Record extension. If not set, bbox in datasets is used or maps current extent.|
+|bboxCrs|no|String|"http://www.opengis.net/def/crs/EPSG/0/25832"|The coordinate reference system to record extension (bbox).|
+
 
 **OAF example:**
 
