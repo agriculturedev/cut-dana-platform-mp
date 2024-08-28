@@ -1022,7 +1022,7 @@
         },
         {
           "id": "8712",
-          "visibility": true,
+          "visibility": false,
           "name": "Schulinfosystem",
           "styleId": "8712",
           "searchField": "schulname",
