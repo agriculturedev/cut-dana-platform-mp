@@ -1022,7 +1022,7 @@
         },
         {
           "id": "8712",
-          "visibility": false,
+          "visibility": true,
           "name": "Schulinfosystem",
           "styleId": "8712",
           "searchField": "schulname",
@@ -1034,7 +1034,7 @@
             "schulname",
             "kapitelbezeichnung"
           ],
-          "gfiTheme": "schulinfo",
+          "gfiTheme": "schulinfo",          
           "additionalInfoField": "adresse_strasse_hausnr",
           "loadingStrategy": "all"
         },
