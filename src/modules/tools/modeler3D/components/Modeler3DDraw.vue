@@ -76,6 +76,9 @@ export default {
             set (value) {
                 this.setDimensions(value);
             }
+        },
+        alreadyFixedPointsInDrawing () {
+            return this.activeShapePoints.length >= 2;
         }
     },
     methods: {
@@ -106,7 +109,7 @@ export default {
 
             eventHandler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
 
-            eventHandler.setInputAction(this.debounce(this.onMouseMove), Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+            eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             eventHandler.setInputAction((event) => {
                 this.onMouseMove({endPosition: event.position});
                 this.addGeometryPosition();
@@ -117,7 +120,7 @@ export default {
                 eventHandler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             }, Cesium.ScreenSpaceEventType.LEFT_DOWN);
             eventHandler.setInputAction(() => {
-                eventHandler.setInputAction(this.debounce(this.onMouseMove), Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+                eventHandler.setInputAction(this.onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
             }, Cesium.ScreenSpaceEventType.LEFT_UP);
             document.addEventListener("keydown", this.catchUndoRedo);
         },
@@ -137,20 +140,6 @@ export default {
                 this.redoLabelPosition();
                 event.preventDefault();
             }
-        },
-        /**
-         * Creates a debounced version of a function. Useful for buffering user inputs such as mouse movements or text edits.
-         * @param {Function} func - A function which should only be called if it is not called again within a specified amount of time.
-         * @param {Number} [delay=50] - The time in milliseconds to be waited for before func is called.
-         * @returns {Function} - A new function which is the debounced version of the passed one.
-         */
-        debounce (func, delay = 50) {
-            let timer;
-
-            return function (...args) {
-                clearTimeout(timer);
-                timer = setTimeout(() => func.apply(this, args), delay);
-            };
         },
         /**
          * Called on mouse move. Repositions the current pin to set the position.
@@ -902,8 +891,8 @@ export default {
                         role="switch"
                         :aria-checked="clampToGround"
                         :checked="clampToGround"
-                        :disabled="isDrawing"
-                        @change="clampToGround = !clampToGround; resetDrawing();"
+                        :disabled="alreadyFixedPointsInDrawing"
+                        @change="clampToGround = !clampToGround; stopDrawing();"
                     >
                     <label
                         class="form-check-label"
@@ -920,8 +909,8 @@ export default {
                         role="switch"
                         :aria-checked="dimensions"
                         :checked="dimensions"
-                        :disabled="isDrawing"
-                        @change="dimensions = !dimensions; resetDrawing();"
+                        :disabled="alreadyFixedPointsInDrawing"
+                        @change="dimensions = !dimensions; stopDrawing();"
                     >
                     <label
                         class="form-check-label"
@@ -944,7 +933,7 @@ export default {
                 <DrawModels
                     id="tool-modeler3D-draw-models"
                     :draw-model-types="drawModelTypes"
-                    :disabled="isDrawing"
+                    :disabled="alreadyFixedPointsInDrawing"
                     :selected-draw-model-type="selectedDrawModelType"
                     :set-selected-draw-model-type="setSelectedDrawModelType"
                     @start-placing="startPlacing"
@@ -963,7 +952,7 @@ export default {
                     :draw-types="drawTypes"
                     :selected-draw-type="selectedDrawType"
                     :set-selected-draw-type="setSelectedDrawType"
-                    :disabled="isDrawing"
+                    :disabled="alreadyFixedPointsInDrawing"
                     @start-drawing="startDrawing"
                     @stop-drawing="stopDrawing"
                 />

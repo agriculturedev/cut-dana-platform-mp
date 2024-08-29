@@ -79,10 +79,13 @@ export default {
             const toggleButton = this.$refs[`button${idx}`][0].$el.classList.contains("active");
 
             if (!toggleButton) {
-                this.$emit("start-drawing");
                 if (this.selectedDrawType !== drawType) {
+                    if (this.selectedDrawType) {
+                        this.$emit("stop-drawing");
+                    }
                     this.setSelectedDrawType(drawType);
                 }
+                this.$emit("start-drawing");
             }
             else {
                 this.$emit("stop-drawing");

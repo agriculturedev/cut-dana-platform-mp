@@ -253,26 +253,6 @@ describe("src/modules/tools/modeler3D/components/Modeler3DDraw.vue", () => {
             expect(wrapper.find("#tool-modeler3D-outline-color").exists()).to.be.false;
         });
     });
-    describe("debounce function", () => {
-        it("should call passed function only once if second call is made before delay is over", () => {
-            const funcSpy = sinon.spy(() => undefined),
-                debouncedFunc = wrapper.vm.debounce(funcSpy, 10);
-
-            debouncedFunc();
-            setTimeout(debouncedFunc, 1);
-
-            setTimeout(() => expect(funcSpy.calledOnce).to.be.true, 100);
-        });
-        it("should call passed function twice if second call is made after delay is over", () => {
-            const funcSpy = sinon.spy(() => undefined),
-                debouncedFunc = wrapper.vm.debounce(funcSpy, 1);
-
-            debouncedFunc();
-            setTimeout(debouncedFunc, 10);
-
-            setTimeout(() => expect(funcSpy.calledTwice).to.be.true, 100);
-        });
-    });
     describe("Modeler3DDraw.vue methods", () => {
         it("should update currentPosition in Clamp-to-Ground mode", () => {
             const mouseMoveEvent = {
