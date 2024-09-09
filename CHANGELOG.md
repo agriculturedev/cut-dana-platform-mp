@@ -30,7 +30,9 @@
     - In 3D the visible layer list contains the 3D layer now.
 - Login:
     - Fixed token revocation not working correctly
+    - The WMS-Time layer are now available after you have logged in with the login module.
 - OAF-Layer: if parameter 'bbox' ist not defined at layer, 'bbox' in parameter 'datasets' or maps extent is used. If parameter 'bboxCrs' is not set, 'crs' is used.
+-
 
 ---
 
