@@ -9,6 +9,7 @@
  * @property {Boolean}  renderToWindow - if true, component is rendered in a window pane instead of sidebar
  * @property {Boolean}  resizableWindow - if true and if rendered to window pane, the pane is resizable
  * @property {Array}  layers - the layer configuration for filter
+ * @property {String} questionLink - The url of the question link.
  */
 
 export default {
@@ -36,5 +37,6 @@ export default {
     filterGeometry: false,
     geometryFeature: undefined,
     jumpToId: undefined,
-    neededUrlParams: ["rulesOfFilters", "selectedAccordions", "selectedGroups"]
+    neededUrlParams: ["rulesOfFilters", "selectedAccordions", "selectedGroups"],
+    questionLink: ""
 };

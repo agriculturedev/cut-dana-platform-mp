@@ -1702,6 +1702,7 @@ Das Filterwerkzeug bietet eine Reihe von Optionen zum Filtern von Vektordaten au
 |layers|nein|[filterLayer](#markdown-header-portalconfigmenutoolfilterfilterlayer)[]|[]|Konfiguration der zu filternden Layer. Wenn hier ein Array von Layer-Ids angegeben wird, versucht das System eine automatische Ermittlung der Layer- und seine Snippet-Einstellungen.|false|
 |layerGroups|nein|[filterLayerGroups](#markdown-header-portalconfigmenutoolfilterlayerGroups)[]|[]|Konfiguration der zu filternden zusammengehörenden Layern.|false|
 |saveTo|nein|String|"void"|Wenn auf "url" gestellt ist, wird die aktuelle Filtereinstellungen in der URL abgespeichert. Dadurch kann die Filtereinstellung als Lesezeichen abgelegt werden.|false|
+|questionLink|nein|String|""|Die Url der Frage.|false|
 
 **Beispiel**
 
@@ -1716,6 +1717,7 @@ Beispiel für die Konfiguration eines Filters mit einem einzigen Layer. Das Laye
         "renderToWindow": false,
         "deactivateGFI": false,
         "layerSelectorVisible": false,
+        "questionLink": "https://bitbucket.org/geowerkstatt-hamburg/addons/src/dev/cosi/manuals/005filter.md",
         "geometrySelectorOptions": {
             "visible": true
         },

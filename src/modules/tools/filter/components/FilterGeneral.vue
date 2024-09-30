@@ -442,6 +442,14 @@ export default {
                     mapMoveListener(evt);
                 }
             });
+        },
+        /**
+         * Opens the link in a new window.
+         * @param {String} url the link url.
+         * @returns {void}
+         */
+        openLink (url) {
+            window.open(url);
         }
     }
 };
@@ -462,6 +470,19 @@ export default {
                 v-if="active"
                 id="tool-general-filter"
             >
+                <div
+                    v-if="typeof questionLink === 'string' && questionLink !== ''"
+                    class="question"
+                >
+                    <button
+                        :title="questionLink"
+                        tabindex="0"
+                        @click="openLink(questionLink)"
+                        @keydown="openLink(questionLink)"
+                    >
+                        <i class="bi bi-question-circle-fill" />
+                    </button>
+                </div>
                 <GeometryFilter
                     v-if="isGeometrySelectorVisible()"
                     :circle-sides="geometrySelectorOptions.circleSides"
@@ -663,5 +684,19 @@ export default {
         padding: 10px;
         margin-bottom: 10px;
         border: 1px solid #ddd;
+    }
+
+    .question {
+        text-align: right;
+        margin-bottom: 10px;
+        button {
+            color: $secondary_icon_button;
+            padding: 5px 5px 3px 5px;
+            font-size: larger;
+            &:hover {
+                background-color: $accent_hover;
+                color: #ffffff;
+            }
+        }
     }
 </style>

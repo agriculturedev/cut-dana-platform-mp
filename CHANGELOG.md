@@ -6,6 +6,7 @@
 ### __Breaking Changes__
 
 ### Added
+- Filter: A new parameter "questionLink" to enable to open a link.
 
 ### Changed
 
