@@ -85,9 +85,8 @@ describe("src/modules/tools/draw/utils/setCsvAttributes.js", () => {
     });
 
     it("should set the polygon geometry with another epsg code", function () {
-        const wktFeatures = setCsvAttributes(features, code);
-
         code = "EPSG:4326";
+        const wktFeatures = setCsvAttributes(features, code);
 
         expect(wktFeatures[0].get("attributes").epsg).to.be.equal(code);
     });

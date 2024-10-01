@@ -22,13 +22,7 @@ export function setCsvAttributes (features, code) {
                 feature.set("attributes", {});
             }
             feature.get("attributes").geometry = wktGeometry;
-
-            if (feature.get("isGeoCircle")) {
-                feature.get("attributes").epsg = "EPSG:4326";
-            }
-            else {
-                feature.get("attributes").epsg = code;
-            }
+            feature.get("attributes").epsg = code;
         }
     });
 

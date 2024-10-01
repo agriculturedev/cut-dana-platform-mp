@@ -15,6 +15,7 @@
 ### Removed
 
 ### Fixed
+- draw: download a drawn circle as csv has now the correct epsg code from the map projection
 
 ---
 
