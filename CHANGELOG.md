@@ -2,24 +2,18 @@
  All important changes in this project are stored in this file.
 
 [Semantic versioning](https://semver.org/spec/v2.0.0.html) is used.
-## Unreleased - in development
-### __Breaking Changes__
+
+## v2.50.0 - 2024-10-02
 
 ### Added
 - Filter: A new parameter "questionLink" to enable to open a link.
-
-### Changed
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 - draw: download a drawn circle as csv has now the correct epsg code from the map projection
 
 ---
 
-## 04-09-2024 - v2.49.0
+## v2.49.0 - 2024-09-04
 ### __Breaking Changes__
 
 ### Added
