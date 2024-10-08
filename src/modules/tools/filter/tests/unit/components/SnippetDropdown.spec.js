@@ -6,6 +6,7 @@ import createStyle from "@masterportal/masterportalapi/src/vectorStyle/createSty
 import SnippetDropdown from "../../../components/SnippetDropdown.vue";
 import {expect} from "chai";
 import sinon from "sinon";
+import FilterStore from "../../../store/indexFilter";
 
 const localVue = createLocalVue();
 
@@ -16,9 +17,22 @@ config.mocks.$t = key => key;
 describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
     let defaultWrapper;
 
+    const store = new Vuex.Store({
+        namespaced: true,
+        modules: {
+            Tools: {
+                namespaced: true,
+                modules: {
+                    Filter: FilterStore
+                }
+            }
+        }
+    });
+
     beforeEach(() => {
         defaultWrapper = shallowMount(SnippetDropdown, {
-            localVue
+            localVue,
+            store
         });
     });
     afterEach(() => {
@@ -61,7 +75,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                 propsData: {
                     visible: false
                 },
-                localVue
+                localVue,
+                store
             });
 
             expect(wrapper.find(".snippetDropdownContainer").element.style._values.display).to.be.equal("none");
@@ -72,7 +87,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                 propsData: {
                     disabled: true
                 },
-                localVue
+                localVue,
+                store
             });
 
             expect(wrapper.find(".filter-select-box-container").exists()).to.be.true;
@@ -84,7 +100,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                 propsData: {
                     title: "foobar"
                 },
-                localVue
+                localVue,
+                store
             });
 
             expect(wrapper.find(".select-box-label").text()).to.be.equal("foobar");
@@ -95,7 +112,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                 propsData: {
                     title: false
                 },
-                localVue
+                localVue,
+                store
             });
 
             expect(wrapper.find(".select-box-label").exists()).to.be.false;
@@ -107,7 +125,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     api: {},
                     autoInit: false
                 },
-                localVue
+                localVue,
+                store
             });
 
             expect(wrapper.vm.dropdownValue).to.be.an("array").and.to.be.empty;
@@ -118,7 +137,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                 propsData: {
                     operator: "operator"
                 },
-                localVue
+                localVue,
+                store
             });
 
             expect(wrapper.vm.securedOperator).to.not.be.equal("operator");
@@ -131,7 +151,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                         addSelectAll: true,
                         multiselect: true
                     },
-                    localVue
+                    localVue,
+                    store
                 }),
                 click = wrapper.find(".snippetListContainer").find(".grid-container").findAll(".grid-item").at(1).find("a");
 
@@ -150,7 +171,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                 propsData: {
                     value: ["Altona", "Eimsbüttel", "Bergedorf"]
                 },
-                localVue
+                localVue,
+                store
             });
 
             expect(wrapper.vm.dropdownValue).to.deep.equal(["Altona", "Eimsbüttel", "Bergedorf"]);
@@ -169,7 +191,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     operator: "EQ",
                     delimiter: "|"
                 },
-                localVue
+                localVue,
+                store
             });
 
             wrapper.vm.emitCurrentRule("value", "startup");
@@ -197,7 +220,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     operator: "EQ",
                     delimiter: "|"
                 },
-                localVue
+                localVue,
+                store
             });
 
             wrapper.vm.emitCurrentRule([
@@ -229,7 +253,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                 propsData: {
                     snippetId: 1234
                 },
-                localVue
+                localVue,
+                store
             });
 
             wrapper.vm.deleteCurrentRule();
@@ -247,7 +272,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     value: ["value"],
                     prechecked: ["value"]
                 },
-                localVue
+                localVue,
+                store
             });
             let called = false;
 
@@ -265,7 +291,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
         it("should not set the current source if anything but a string is given", () => {
             const wrapper = shallowMount(SnippetDropdown, {
                 propsData: {},
-                localVue
+                localVue,
+                store
             });
 
             wrapper.vm.setCurrentSource({});
@@ -286,7 +313,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
         it("should set the current source", () => {
             const wrapper = shallowMount(SnippetDropdown, {
                 propsData: {},
-                localVue
+                localVue,
+                store
             });
 
             wrapper.vm.setCurrentSource("test");
@@ -304,7 +332,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     "multiselect": false,
                     "value": ["yek", "do"]
                 },
-                localVue
+                localVue,
+                store
             });
 
             await wrapper.vm.$nextTick();
@@ -322,7 +351,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     "multiselect": true,
                     "value": ["yek", "do"]
                 },
-                localVue
+                localVue,
+                store
             });
 
             await wrapper.vm.$nextTick();
@@ -340,7 +370,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     "multiselect": true,
                     "value": ["yek", "do"]
                 },
-                localVue
+                localVue,
+                store
             });
 
             await wrapper.vm.$nextTick();
@@ -410,7 +441,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     localVue,
                     propsData: {
                         renderIcons: "fromLegend"
-                    }
+                    },
+                    store
                 });
                 expect(setOpacitySpy.calledOnce).to.be.true;
                 expect(setOpacitySpy.firstCall.args[0]).to.be.equals(0);
@@ -425,7 +457,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     localVue,
                     propsData: {
                         renderIcons: "fromLegend"
-                    }
+                    },
+                    store
                 });
                 expect(setOpacitySpy.calledOnce).to.be.true;
                 expect(setOpacitySpy.firstCall.args[0]).to.be.equals(0);
@@ -440,7 +473,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     localVue,
                     propsData: {
                         renderIcons: "fromLegend"
-                    }
+                    },
+                    store
                 });
                 expect(setOpacitySpy.calledOnce).to.be.true;
                 expect(setOpacitySpy.firstCall.args[0]).to.be.equals(0);
@@ -456,7 +490,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     propsData: {
                         renderIcons: "fromLegend",
                         layerId: "layerId"
-                    }
+                    },
+                    store
                 });
                 expect(setOpacitySpy.notCalled).to.be.true;
                 expect(setVisibleSpy.notCalled).to.be.true;
@@ -472,7 +507,8 @@ describe("src/modules/tools/filter/components/SnippetDropdown.vue", () => {
                     propsData: {
                         renderIcons: "fromLegend",
                         layerId: "layerId"
-                    }
+                    },
+                    store
                 });
                 expect(setOpacitySpy.notCalled).to.be.true;
                 expect(setVisibleSpy.notCalled).to.be.true;

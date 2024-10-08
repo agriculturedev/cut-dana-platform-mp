@@ -10,6 +10,7 @@
  * @property {Boolean}  resizableWindow - if true and if rendered to window pane, the pane is resizable
  * @property {Array}  layers - the layer configuration for filter
  * @property {String} questionLink - The url of the question link.
+ * @property {Boolean} closeDropdownOnSelect - if true, the dropdown list will be closed after choosing option on the multiselect dropdown.
  */
 
 export default {
@@ -38,5 +39,6 @@ export default {
     geometryFeature: undefined,
     jumpToId: undefined,
     neededUrlParams: ["rulesOfFilters", "selectedAccordions", "selectedGroups"],
-    questionLink: ""
+    questionLink: "",
+    closeDropdownOnSelect: true
 };

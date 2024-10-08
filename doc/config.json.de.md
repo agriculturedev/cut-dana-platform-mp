@@ -1703,6 +1703,7 @@ Das Filterwerkzeug bietet eine Reihe von Optionen zum Filtern von Vektordaten au
 |layerGroups|nein|[filterLayerGroups](#markdown-header-portalconfigmenutoolfilterlayerGroups)[]|[]|Konfiguration der zu filternden zusammengehörenden Layern.|false|
 |saveTo|nein|String|"void"|Wenn auf "url" gestellt ist, wird die aktuelle Filtereinstellungen in der URL abgespeichert. Dadurch kann die Filtereinstellung als Lesezeichen abgelegt werden.|false|
 |questionLink|nein|String|""|Die Url der Frage.|false|
+|closeDropdownOnSelect|nein|Boolean|true|Aktivieren/Deaktivieren des Schließens der Dropdownliste nach Auswahl einer Option.|false|
 
 **Beispiel**
 
@@ -1718,6 +1719,7 @@ Beispiel für die Konfiguration eines Filters mit einem einzigen Layer. Das Laye
         "deactivateGFI": false,
         "layerSelectorVisible": false,
         "questionLink": "https://bitbucket.org/geowerkstatt-hamburg/addons/src/dev/cosi/manuals/005filter.md",
+        "closeDropdownOnSelect": true,
         "geometrySelectorOptions": {
             "visible": true
         },

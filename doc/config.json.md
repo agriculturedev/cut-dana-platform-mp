@@ -1765,6 +1765,7 @@ The filter tool offers a range of options to filter vector data from WFS, OAF, G
 |layerGroups|no|[filterLayerGroups](#markdown-header-portalconfigmenutoolfilterfilterlayergroups)[]|[]|Configuration of the related layers to be filtered.|false|
 |saveTo|no|String|"void"|If set to "url", the current filter setting is saved in the URL. This allows the filter setting to be bookmarked.|false|
 |questionLink|no|String|""|The url of the question link.|false|
+|closeDropdownOnSelect|no|Boolean|true|Enable/disable closing dropdown list after selecting an option.|false|
 
 **Example**
 
@@ -1780,6 +1781,7 @@ The following example uses only a layer id to generate the filter automatically.
       "deactivateGFI": false,
       "layerSelectorVisible": false,
       "questionLink": "https://bitbucket.org/geowerkstatt-hamburg/addons/src/dev/cosi/manuals/005filter.md",
+      "closeDropdownOnSelect": true,
       "geometrySelectorOptions": {
         "visible": true
       },

@@ -21,7 +21,9 @@
 ## v2.50.0 - 2024-10-02
 
 ### Added
-- Filter: A new parameter "questionLink" to enable to open a link.
+- Filter:
+  - A new parameter "questionLink" to enable to open a link.
+  - A new parameter "closeDropdownOnSelect" to enable/disable closing list after selecting an option in multiselect dropdown list.
 
 ### Fixed
 - draw: download a drawn circle as csv has now the correct epsg code from the map projection

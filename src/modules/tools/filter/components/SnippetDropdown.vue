@@ -9,6 +9,7 @@ import isObject from "../../../../utils/isObject";
 import SnippetInfo from "./SnippetInfo.vue";
 import localeCompare from "../../../../utils/localeCompare";
 import openlayerFunctions from "../utils/openlayerFunctions.js";
+import {mapGetters} from "vuex";
 
 export default {
     name: "SnippetDropdown",
@@ -184,10 +185,14 @@ export default {
                 "ENDSWITH"
             ],
             source: "",
-            allValues: false
+            allValues: false,
+            selectedValue: undefined,
+            isLoading: true
         };
     },
     computed: {
+        ...mapGetters("Tools/Filter", ["closeDropdownOnSelect"]),
+
         ariaLabelDropdown () {
             return this.$t("modules.tools.filter.ariaLabel.dropdown", {param: this.attrName});
         },
@@ -330,7 +335,13 @@ export default {
             });
         },
         disabled (value) {
-            this.disable = typeof value === "boolean" ? value : true;
+            if (typeof this.selectedValue === "undefined") {
+                this.disable = typeof value === "boolean" ? value : true;
+            }
+            else {
+                this.disable = false;
+            }
+            this.isLoading = typeof value === "boolean" ? value : true;
         },
         legendsInfo (value) {
             if (this.renderIcons === "fromLegend") {
@@ -349,6 +360,7 @@ export default {
             this.$nextTick(() => {
                 this.isInitializing = false;
                 this.disable = false;
+                this.isLoading = false;
                 this.emitSnippetPrechecked();
             });
         }
@@ -358,6 +370,7 @@ export default {
             this.$nextTick(() => {
                 this.isInitializing = false;
                 this.disable = false;
+                this.isLoading = false;
                 this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
             });
         }
@@ -370,6 +383,7 @@ export default {
                         this.$nextTick(() => {
                             this.isInitializing = false;
                             this.disable = false;
+                            this.isLoading = false;
                             this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
                             if (this.showAllValues && this.prechecked === "all") {
                                 this.allValues = this.dropdownSelected;
@@ -378,6 +392,7 @@ export default {
                     });
                 }, error => {
                     this.disable = false;
+                    this.isLoading = false;
                     this.isInitializing = false;
                     this.emitSnippetPrechecked();
                     console.warn(error);
@@ -396,6 +411,7 @@ export default {
             this.$nextTick(() => {
                 this.isInitializing = false;
                 this.disable = false;
+                this.isLoading = false;
                 this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
             });
         }
@@ -690,6 +706,15 @@ export default {
                 return;
             }
             this.source = source;
+        },
+
+        /**
+         * Sets the current selected value.
+         * @param {String|Array|Object} val The selected option.
+         * @returns {void}
+         */
+        onSelect (val) {
+            this.selectedValue = val;
         }
     }
 };
@@ -739,13 +764,14 @@ export default {
                     open-direction="auto"
                     :options-limit="optionsLimit"
                     :hide-selected="true"
-                    :close-on-select="true"
+                    :close-on-select="typeof closeDropdownOnSelect === 'boolean' ? closeDropdownOnSelect: true"
                     :clear-on-select="false"
-                    :loading="disable"
+                    :loading="isLoading"
                     :group-select="multiselect && addSelectAll"
                     :group-values="(multiselect && addSelectAll) ? 'list' : ''"
                     :group-label="(multiselect && addSelectAll) ? 'selectAllTitle' : ''"
                     @remove="setCurrentSource('dropdown')"
+                    @select="onSelect"
                 >
                     <span slot="noOptions">{{ emptyList }}</span>
                     <span slot="noResult">{{ noElements }}</span>
