@@ -29,10 +29,45 @@ describe("src/modules/mouseHover/store/actionsMouseHover", () => {
         it("initializes the mouseHover module", () => {
             actions.initialize({state, commit, dispatch});
             expect(mapCollection.getMap("2D").addOverlay.calledOnce).to.be.true;
+            expect(dispatch.firstCall.args[0]).to.equal("setMouseHoverLayers");
+            expect(commit.firstCall.args[0]).to.equal("setMouseHoverInfos");
+            expect(commit.args[1]).to.eql(["setNumFeaturesToShow", 2]);
+            expect(commit.args[2]).to.eql(["setInfoText", "common:modules.mouseHover.infoText"]);
+        });
+    });
+
+    describe("setMouseHoverLayers", () => {
+        it("setlayers with mouseHoverField to state", () => {
+            const rootGetters = {
+                allLayerConfigs: [
+                    {
+                        id: 123,
+                        mouseHoverField: ["a", "b"]
+                    },
+                    {
+                        id: 456
+                    },
+                    {
+                        id: 789,
+                        mouseHoverField: ["x", "y"]
+                    }
+                ]
+            };
+
+            actions.setMouseHoverLayers({commit, rootGetters});
+
+            expect(commit.calledOnce).to.be.true;
             expect(commit.firstCall.args[0]).to.equal("setMouseHoverLayers");
-            expect(commit.secondCall.args[0]).to.equal("setMouseHoverInfos");
-            expect(commit.args[2]).to.eql(["setNumFeaturesToShow", 2]);
-            expect(commit.args[3]).to.eql(["setInfoText", "(weitere Objekte. Bitte zoomen.)"]);
+            expect(commit.firstCall.args[1]).to.deep.equal([
+                {
+                    id: 123,
+                    mouseHoverField: ["a", "b"]
+                },
+                {
+                    id: 789,
+                    mouseHoverField: ["x", "y"]
+                }
+            ]);
         });
     });
 
@@ -54,32 +89,6 @@ describe("src/modules/mouseHover/store/actionsMouseHover", () => {
             expect(commit.firstCall.args[1]).to.equal(false);
             expect(commit.secondCall.args[0]).to.equal("setInfoBox");
             expect(commit.args[3]).to.eql(["setInfoBox", [["erstesFeature", "123"], ["zweitesFeature", "456"]]]);
-        });
-    });
-
-    describe("highlightFeature", () => {
-        it("highlights a feature depending on its geometryType", () => {
-            const feature = {
-                    id: "feature",
-                    getId: () => "feature",
-                    getGeometry: () => sinon.spy({
-                        getType: () => "Point",
-                        getCoordinates: () => [100, 100]
-                    }),
-                    getProperties: () => []
-                },
-                layer = {
-                    id: "layerId",
-                    values_: {
-                        id: "layerId"
-                    },
-                    get: (key) => {
-                        return key;
-                    }
-                };
-
-            actions.highlightFeature({state, dispatch}, {feature, layer});
-            expect(dispatch.firstCall.args[0]).to.equal("Maps/highlightFeature");
         });
     });
 });

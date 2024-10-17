@@ -1,16 +1,22 @@
 <script>
-import {mapGetters, mapMutations} from "vuex";
-import getters from "../../store/gettersOrientation";
+import {mapActions, mapGetters, mapMutations} from "vuex";
 import mutations from "../../store/mutationsOrientation";
 
+/**
+ * Orientation control that allows the user to locate themselves on the map.
+ * @module modules/controls/PoiChoice
+ * @vue-computed {Object} choices - Object with two strings for position.
+ * @vue-event {String} track - Triggers tracking.
+ */
 export default {
     name: "PoiChoice",
+    emits: ["track"],
     computed: {
-        ...mapGetters("controls/orientation", Object.keys(getters)),
+        ...mapGetters("Controls/Orientation", ["poiMode", "customPosition"]),
         choices () {
             return {
                 "currentPosition": this.$t("common:modules.controls.orientation.poiChoiceCurrentPostion"),
-                "customPosition": this.$t("common:modules.controls.orientation.poiChoiceCustomPostion")
+                "customPosition": this.$t(this.customPosition)
             };
         }
     },
@@ -23,7 +29,8 @@ export default {
         });
     },
     methods: {
-        ...mapMutations("controls/orientation", Object.keys(mutations)),
+        ...mapMutations("Controls/Orientation", Object.keys(mutations)),
+        ...mapActions("Maps", ["registerListener", "unregisterListener"]),
 
         /**
          * Callback when close icon has been clicked.
@@ -78,6 +85,25 @@ export default {
         triggerTrack () {
             this.$emit("track");
             this.hidePoiChoice(false);
+
+            this.registerListener({
+                type: "click",
+                listener: this.mapClicked
+            });
+        },
+
+        /**
+         * Reacts when the map is clicked
+         * @param {Object} evt the click event.
+         * @returns {void}
+         */
+        mapClicked (evt) {
+            this.setPosition(evt.coordinate);
+            this.setShowPoi(true);
+            this.unregisterListener({
+                type: "click",
+                listener: this.mapClicked
+            });
         },
 
         /**
@@ -85,10 +111,15 @@ export default {
          * @returns {void}
          */
         stopPoi () {
+            this.unregisterListener({
+                type: "click",
+                listener: this.mapClicked
+            });
             this.setPoiMode("currentPosition");
             this.setCurrentPositionEnabled(true);
-            this.$store.dispatch("MapMarker/removePointMarker");
+            this.$store.dispatch("Maps/removePointMarker");
             this.hidePoiChoice();
+            document.querySelector("#geolocatePOI").classList.remove("toggleButtonPressed");
         }
     }
 };
@@ -163,9 +194,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-    @import "~/css/mixins.scss";
     @import "~variables";
-
     .modal-backdrop{
         pointer-events: all;
         cursor: default;
@@ -182,12 +211,6 @@ export default {
                 font-size: $font_size_icon_lg;
                 padding: 12px;
                 cursor: pointer;
-                &:focus {
-                    @include primary_action_focus;
-                }
-                &:hover {
-                    @include primary_action_hover;
-                }
             }
         }
         .modal-title {

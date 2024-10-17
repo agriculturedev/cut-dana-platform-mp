@@ -1,0 +1,7 @@
+/*
+    This style increases the width of the content area.
+    https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#content-area-width
+ */
+.md-grid {
+    max-width: clamp(400px,90%,2560px);
+}

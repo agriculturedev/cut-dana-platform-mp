@@ -1,14 +1,13 @@
-/* eslint-disable no-process-env */
 const webpack = require("webpack"),
     MiniCssExtractPlugin = require("mini-css-extract-plugin"),
     path = require("path"),
     fse = require("fs-extra"),
-    VueLoaderPlugin = require("vue-loader/lib/plugin"),
+    {VueLoaderPlugin} = require("vue-loader"),
 
     rootPath = path.resolve(__dirname, "../"),
     addonBasePath = path.resolve(rootPath, "addons"),
     addonConfigPath = path.resolve(addonBasePath, "addonsConf.json"),
-    entryPoints = {masterportal: path.resolve(rootPath, "js/main.js")};
+    entryPoints = {masterportal: path.resolve(rootPath, "src/main.js")};
 
 let addonEntryPoints = {};
 
@@ -94,11 +93,13 @@ module.exports = function () {
         resolve: {
             alias: {
                 text: "text-loader",
-                "variables": path.resolve(__dirname, "..", "css", "variables.scss")
+                "mixins": path.resolve(__dirname, "..", "src", "assets", "css", "mixins.scss"),
+                "variables": path.resolve(__dirname, "..", "src", "assets", "css", "variables.scss")
             },
             extensions: [".tsx", ".ts", ".js"]
         },
         module: {
+            unknownContextCritical: false,
             rules: [
                 // ignore all files ending with ".test.js".
                 {
@@ -128,6 +129,11 @@ module.exports = function () {
                     }
                 },
                 {
+                    test: /\.mjs$/,
+                    include: /node_modules/,
+                    type: "javascript/auto"
+                },
+                {
                     test: /\.scss$/,
                     use: [
                         {
@@ -149,12 +155,7 @@ module.exports = function () {
                 },
                 {
                     test: /\.vue$/,
-                    loader: "vue-loader",
-                    options: {
-                        loaders: {
-                            js: "esbuild-loader?"
-                        }
-                    }
+                    loader: "vue-loader"
                 },
                 {
                     test: /\.(png|jpe?g|gif)$/i,
@@ -175,12 +176,7 @@ module.exports = function () {
         plugins: [
             // provide libraries globally
             new webpack.ProvidePlugin({
-                jQuery: "jquery",
-                $: "jquery",
-                Backbone: "backbone",
-                Radio: "backbone.radio",
-                i18next: ["i18next/dist/cjs/i18next.js"],
-                _: "underscore"
+                i18next: ["i18next/dist/cjs/i18next.js"]
             }),
             // create css under build/
             new MiniCssExtractPlugin({
@@ -190,6 +186,8 @@ module.exports = function () {
             // create global constant at compile time
             new webpack.DefinePlugin({
                 ADDONS: JSON.stringify(addonsRelPaths),
+                __VUE_OPTIONS_API__: true,
+                __VUE_PROD_DEVTOOLS__: false,
                 VUE_ADDONS: JSON.stringify(vueAddonsRelPaths)
             })
         ]

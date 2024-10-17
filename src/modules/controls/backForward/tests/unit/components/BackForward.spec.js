@@ -1,13 +1,10 @@
-import Vuex from "vuex";
-import {config, mount, createLocalVue} from "@vue/test-utils";
+import {createStore} from "vuex";
+import {config, mount} from "@vue/test-utils";
 import BackForward from "../../../components/BackForward.vue";
 import BackForwardModule from "../../../store/indexBackForward";
 import {expect} from "chai";
 
-const localVue = createLocalVue();
-
-localVue.use(Vuex);
-config.mocks.$t = key => key;
+config.global.mocks.$t = key => key;
 
 describe("src/modules/controls/backForward/components/BackForward.vue", () => {
     let store,
@@ -43,13 +40,12 @@ describe("src/modules/controls/backForward/components/BackForward.vue", () => {
         zoom = null;
         center = null;
         counter = 0;
-        store = new Vuex.Store({
-            namespaces: true,
+        store = createStore({
             modules: {
-                controls: {
+                Controls: {
                     namespaced: true,
                     modules: {
-                        backForward: BackForwardModule
+                        BackForward: BackForwardModule
                     }
                 },
                 Maps: {
@@ -65,22 +61,31 @@ describe("src/modules/controls/backForward/components/BackForward.vue", () => {
     });
 
     it("renders the forward/backward buttons", () => {
-        const wrapper = mount(BackForward, {store, localVue});
+        const wrapper = mount(BackForward, {
+            global: {
+                plugins: [store]
+            }});
 
-        expect(wrapper.find(".back-forward-buttons").exists()).to.be.true;
+        expect(wrapper.find("#back-forward-buttons").exists()).to.be.true;
         expect(wrapper.findAll("button")).to.have.length(2);
     });
 
     it("has initially inactive buttons", () => {
-        const wrapper = mount(BackForward, {store, localVue}),
+        const wrapper = mount(BackForward, {
+                global: {
+                    plugins: [store]
+                }}),
             buttons = wrapper.findAll("button");
 
-        expect(buttons.at(0).attributes().disabled).to.equal("disabled");
-        expect(buttons.at(1).attributes().disabled).to.equal("disabled");
+        expect(buttons.at(0).attributes().disabled).to.equal("");
+        expect(buttons.at(1).attributes().disabled).to.equal("");
     });
 
     it("has active back and forward buttons on matching state", async () => {
-        const wrapper = mount(BackForward, {store, localVue}),
+        const wrapper = mount(BackForward, {
+                global: {
+                    plugins: [store]
+                }}),
             buttons = wrapper.findAll("button");
 
         // memorize 0th and 1st state
@@ -89,7 +94,7 @@ describe("src/modules/controls/backForward/components/BackForward.vue", () => {
         await wrapper.vm.$nextTick();
 
         // no future state, but past state available
-        expect(buttons.at(0).attributes().disabled).to.equal("disabled");
+        expect(buttons.at(0).attributes().disabled).to.equal("");
         expect(buttons.at(1).attributes().disabled).to.be.undefined;
 
         // click back button
@@ -98,14 +103,14 @@ describe("src/modules/controls/backForward/components/BackForward.vue", () => {
 
         // no previous state, but future state available
         expect(buttons.at(0).attributes().disabled).to.be.undefined;
-        expect(buttons.at(1).attributes().disabled).to.equal("disabled");
+        expect(buttons.at(1).attributes().disabled).to.equal("");
         expect(zoom).to.equal(2);
         expect(center).to.eql([0, 1]);
 
         // click forward button
         buttons.at(0).trigger("click");
         await wrapper.vm.$nextTick();
-        expect(buttons.at(0).attributes().disabled).to.equal("disabled");
+        expect(buttons.at(0).attributes().disabled).to.equal("");
         expect(buttons.at(1).attributes().disabled).to.be.undefined;
         expect(zoom).to.equal(5);
         expect(center).to.eql([3, 4]);

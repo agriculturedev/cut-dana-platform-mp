@@ -1,0 +1,39 @@
+{
+    "globalAlerts": ["wartungsarbeiten"],
+  
+    "restrictedAlerts": {
+      "https://geoportal-hamburg.de/geo-online/": ["failing-service"],
+      "https://localhost:9001/portal/auto/": ["umfrage"]
+    },
+  
+    "alerts": {
+      "umfrage": {
+        "displayClass": "info",
+        "category": "Zufriedenheitsumfrage",
+        "content": "Liebe Nutzerinnen und Nutzer,<br><br>Wir hätten gerne ihre Meinung! Was ist gut, was kann besser werden, was wünschen sie sich? Beteiligen sie sich an unserer Nutzerbefragung und helfen sie mit ihrem Feedback Geo-Online besser zu machen!<br><br>Die Umfrage dauert ca. 10 min. Wir würden uns freuen wenn sie sich die Zeit nehmen.<br><a href='https://testlink'>Hier gehts zur Umfrage.</a><br><br>Ihr Team Geodatenanwendungen",
+        "displayFrom": "2024-07-01 00:00",
+        "displayUntil": "2024-09-30 23:59",
+        "mustBeConfirmed": true,
+        "once": true
+      },
+      "failing-service": {
+        "displayClass": "info",
+        "category": "Info zum Thema Starkregengefahrenkarte",
+        "content": "Es kommt zurzeit zu Problemen bei der Darstellung der Starkregengefahrenkarte. An der Behebung des Problems wird gearbeitet",
+        "displayFrom": "2024-07-01 08:00",
+        "displayUntil": "2025-07-01 23:00",
+        "mustBeConfirmed": true,
+        "once": true
+      },
+      "wartungsarbeiten": {
+        "displayClass": "info",
+        "category": "Aktuelle Informationen",
+        "content": "Liebe Nutzer,<br><br>am Mittwoch den 23.02.2022 und Donnerstag den 24.02.2022 finden umfangreiche Wartungsarbeiten an unseren Servern statt. Es kann daher jeweils ab 15:00Uhr zu Einschränkungen kommen. Wir bitten um Verständnis und entschuldigen uns für entstehende Unannehmlichkeiten.<br><br>Ihr Team<br>LGV Geodatenanwendungen",
+        "displayFrom": "2024-08-01 13:00",
+        "displayUntil": "2024-08-02 18:00",
+        "mustBeConfirmed": true,
+        "once": true
+      }
+    }
+  }
+  

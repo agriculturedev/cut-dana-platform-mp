@@ -1,5 +1,8 @@
+import {generateSimpleMutations} from "../../../../shared/js/utils/generators";
+import backForwardState from "./stateBackForward";
+
 /**
- * updates map and state as side-effect
+ * Updates map and state as side-effect.
  * @param {Object} state state object
  * @param {module:ol/Map} map openlayers map object
  * @param {Number} diff indices to move by
@@ -25,6 +28,8 @@ function changeActiveMemory (state, map, diff) {
 }
 
 export default {
+    ...generateSimpleMutations(backForwardState),
+
     /**
      * Memorizes a ViewMemory and moves to it.
      * At most 10 ViewMemory objects are kept, discarding oldest.
@@ -60,6 +65,7 @@ export default {
 
         state.memory = nextMemory;
     },
+
     /**
      * Changes view and state to next memory.
      * @param {Object} state module state
@@ -69,6 +75,7 @@ export default {
     forward (state, map) {
         changeActiveMemory(state, map, +1);
     },
+
     /**
      * Changes view and state to previous memory.
      * @param {Object} state module state

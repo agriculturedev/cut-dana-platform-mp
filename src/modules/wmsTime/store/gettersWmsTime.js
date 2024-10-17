@@ -1,4 +1,4 @@
-import {generateSimpleGetters} from "../../../app-store/utils/generators";
+import {generateSimpleGetters} from "../../../shared/js/utils/generators";
 import initialState from "./stateWmsTime";
 import findCurrentTimeSliderObject from "../utils/findCurrentTimeSliderObject";
 
@@ -15,8 +15,8 @@ const getters = {
      * Test whether the current width surpasses the mobileWidth
      * (Width with which the mobile view is triggered).
      *
-     * @param {number} windowWidth Current width (window.innerWidth) of the window in px.
-     * @returns {boolean} True, if the mobile view is not shown; false, else.
+     * @param {Number} windowWidth Current width (window.innerWidth) of the window in px.
+     * @returns {Boolean} True, if the mobile view is not shown; false, else.
      */
     minWidth ({windowWidth}) {
         const mobileWidth = 800;

@@ -1,74 +1,58 @@
 <script>
 import {mapGetters} from "vuex";
-import ControlIcon from "../../ControlIcon.vue";
-import TableStyleControl from "../../TableStyleControl.vue";
-import FreezeScreenWindow from "./FreezeScreenWindow.vue";
-import uiStyle from "../../../../utils/uiStyle";
+import ControlIcon from "../../components/ControlIcon.vue";
+import FreezeScreenUnfreeze from "./FreezeScreenUnfreeze.vue";
 
 /**
  * Freeze control that allows the user to freeze the current window
  * of desktop and Mobile browser
+ * @module modules/controls/FreezeScreen
  */
 export default {
     name: "FreezeScreen",
     components: {
-        FreezeScreenWindow,
+        FreezeScreenUnfreeze,
         ControlIcon
     },
-    data: function () {
+    data: () => {
         return {
-            isActive: false
+            isFreezed: false
         };
     },
     computed: {
-        ...mapGetters(["uiStyle"]),
-
-        component () {
-            return uiStyle.getUiStyle() === "TABLE" ? TableStyleControl : ControlIcon;
-        }
+        ...mapGetters("Controls/Freeze", ["icon"])
     },
     methods: {
         /**
-         * showing the freezed window
+         * Showing the freezed window.
          * @returns {void}
          */
         showFreezeWin () {
-            this.isActive = true;
+            this.isFreezed = true;
         },
 
         /**
-         * hiding the freezed window
+         * Hiding the freezed window.
          * @returns {void}
          */
         hideFreezeWin () {
-            this.isActive = false;
+            this.isFreezed = false;
         }
     }
 };
 </script>
 
 <template>
-    <div class="freeze-view-start">
-        <component
-            :is="component"
-            :class="[component ? 'control' : 'Table']"
+    <div id="freeze-screen-button">
+        <ControlIcon
             :title="$t(`common:modules.controls.freeze.freeze`)"
-            :icon-name="'lock-fill'"
+            class="control"
+            :icon-name="icon"
             :on-click="showFreezeWin"
         />
-        <FreezeScreenWindow
-            v-if="isActive"
-            @hideFreezeWin="hideFreezeWin"
+        <FreezeScreenUnfreeze
+            v-if="isFreezed"
+            @hide-freeze-win="hideFreezeWin"
         />
     </div>
 </template>
-
-<style lang="scss" scoped>
-    @import "~variables";
-
-    .controls-row-right {
-        .freeze-view-start {
-            margin-top: 20px;
-        }
-    }
-</style>

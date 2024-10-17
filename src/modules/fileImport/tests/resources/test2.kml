@@ -1,0 +1,36 @@
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/kml/2.2 https://developers.google.com/kml/schema/kml22gx.xsd">
+	<Placemark id="ID_00001">
+		<Style>
+			<LineStyle>
+				<color>ff000000</color>
+				<width>1</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>ff4aaf4d</color>
+			</PolyStyle>
+		</Style>
+		<ExtendedData>
+			<Data name="drawState"/>
+			<Data name="fromDrawTool">
+				<value>true</value>
+			</Data>
+			<Data name="invisibleStyle"/>
+			<Data name="isOuterCircle">
+				<value>false</value>
+			</Data>
+			<Data name="isVisible">
+				<value>true</value>
+			</Data>
+			<Data name="styleId">
+				<value>3</value>
+			</Data>
+		</ExtendedData>
+		<Polygon>
+			<outerBoundaryIs>
+				<LinearRing>
+					<coordinates>10.008220017341653,53.55209194910824 10.017741633299043,53.552772148408316 10.00859362885588,53.54429012069778 10.008220017341653,53.55209194910824</coordinates>
+				</LinearRing>
+			</outerBoundaryIs>
+		</Polygon>
+	</Placemark>
+</kml>

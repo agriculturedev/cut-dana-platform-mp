@@ -1,37 +1,43 @@
 /**
- * User type definition
- * @typedef {Object} layerInformationState
- * @property {boolean} active if true LayerInformation will be shown
- * @property {string} metaDataCatalogueId id of the MateDataCatalogue
- * @property {string} datePublication the date of the publication
- * @property {string} dateRevision the date of the revision
- * @property {array} downloadLinks the download Links
- * @property {string} periodicityKey the key for the periodicity
- * @property {Object} layerInfo additional layer Information
- * @property {Object} additionalLayer additional layer Information for group layer
- * @property {string} abstractText the abstract Info text
- * @property {string} customText the custom Info text
- * @property {string} title the layer Title
- * @property {string} noMetadataLoaded no metadata Loaded Text
- * @property {array} metaURLs the metadata URLs
- * @property {string} currentLayerName the current Layer Name in case of group layers
- * @property {boolean} showUrlGlobal parameter to globally toggle the dispaly of the service url for all layers
+* The state of the layerInformation.
+ * @module modules/layerInformation/store/stateLayerInformation
+ *
+ * @property {String} [abstractText=""] the abstract Info text
+ * @property {String} [customText=null] the custom Info text
+ * @property {String} [datePublication=""] the date of the publication
+ * @property {String[]} [downloadLinks=null] the download Links
+ * @property {String} [icon="bi-info-circle"] Icon next to name (config-param).
+ * @property {Object} [layerInfo={}] additional layer Information
+ * @property {Object[]} [menuSide="mainMenu"] Specifies in which menu the GFI should be rendered
+ * @property {String} [metaDataCatalogueId"2"] id of the MateDataCatalogue
+ * @property {String[]} [metaURLs=[]] the metadata URLs
+ * @property {String} [name="common:modules.layerInformation.name"] name of this module
+ * @property {String} [noMetadataLoaded=""] no metadata Loaded Text
+ * @property {String} [periodicityKey=""] the key for the periodicity
+ * @property {Boolean} [showUrlGlobal=null] parameter to globally toggle the dispaly of the service url for all layers
+ * @property {String} [title=""] the layer Title
+ * @property {String} [type="layerInformation"] the type of layer information
+ * @property {Boolean} [legendAvailable=true] true, if legend is available
+ * @property {String} [pointOfContact=""] point of contact information from metadata
+ * @property {String} [publisher=""] publisher information from metadata
  */
 export default {
-    active: false,
-    // default value 2, will be overwritten in mounted hook in LayerInformation.vue
-    metaDataCatalogueId: "2",
-    datePublication: "",
-    dateRevision: "",
-    downloadLinks: null,
-    periodicityKey: "",
-    layerInfo: {},
-    additionalLayer: {},
     abstractText: "",
     customText: null,
-    title: "",
-    noMetadataLoaded: "",
+    datePublication: "",
+    downloadLinks: null,
+    icon: "bi-info-circle",
+    layerInfo: {},
+    menuSide: "mainMenu",
+    metaDataCatalogueId: "2",
     metaURLs: [],
-    currentLayerName: "",
-    showUrlGlobal: null
+    name: "common:modules.layerInformation.name",
+    noMetadataLoaded: "",
+    periodicityKey: "",
+    showUrlGlobal: null,
+    title: "",
+    type: "layerInformation",
+    legendAvailable: true,
+    pointOfContact: "",
+    publisher: ""
 };

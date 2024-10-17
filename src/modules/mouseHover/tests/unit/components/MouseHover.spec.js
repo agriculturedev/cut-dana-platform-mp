@@ -1,13 +1,11 @@
-import Vuex from "vuex";
+import {createStore} from "vuex";
 import {expect} from "chai";
-import {shallowMount, createLocalVue} from "@vue/test-utils";
+import {config, shallowMount} from "@vue/test-utils";
 import MouseHoverComponent from "../../../components/MouseHover.vue";
 import MouseHover from "../../../store/indexMouseHover";
 import sinon from "sinon";
 
-const localVue = createLocalVue();
-
-localVue.use(Vuex);
+config.global.mocks.$t = key => key;
 
 describe("src/modules/mouseHover/components/MouseHover.vue", () => {
     const mockMapGetters = {
@@ -18,10 +16,15 @@ describe("src/modules/mouseHover/components/MouseHover.vue", () => {
 
     beforeEach(() => {
         MouseHover.actions.initialize = sinon.stub(MouseHover.actions.initialize);
-        store = new Vuex.Store({
+        store = createStore({
             namespaced: true,
             modules: {
-                MouseHover,
+                Modules: {
+                    namespaced: true,
+                    modules: {
+                        MouseHover
+                    }
+                },
                 Maps: {
                     namespaced: true,
                     getters: mockMapGetters
@@ -29,13 +32,19 @@ describe("src/modules/mouseHover/components/MouseHover.vue", () => {
             },
             getters: {
                 mobile: () => false
+            },
+            actions: {
+                initializeModule: sinon.stub()
             }
         });
     });
 
     it("renders mouseHover module", () => {
-        store.commit("MouseHover/setActive", true);
-        wrapper = shallowMount(MouseHoverComponent, {store, localVue});
+        wrapper = shallowMount(MouseHoverComponent, {
+            global: {
+                plugins: [store]
+            }
+        });
 
         expect(wrapper.find("#mousehover-overlay").exists()).to.be.true;
     });

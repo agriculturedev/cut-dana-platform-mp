@@ -1,0 +1,2 @@
+Controls should not have mouse interactions with the map like mouseMapInteractions of the modules.
+If interaction with map is needed implement a module and configure to start it as control (src\modules\controls\startModule\components\StartModule.vue).

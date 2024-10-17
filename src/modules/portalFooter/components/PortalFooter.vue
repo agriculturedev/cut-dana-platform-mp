@@ -1,420 +1,181 @@
 <script>
-import {mapGetters, mapActions, mapMutations} from "vuex";
-import getters from "../store/gettersPortalFooter";
-import mutations from "../store/mutationsPortalFooter";
-import ScaleLine from "../../scaleLine/components/ScaleLine.vue";
-import LanguageItem from "../../language/components/LanguageItem.vue";
-import MousePosition from "../../controls/mousePosition/components/MousePosition.vue";
-import store from "../../../app-store/index";
-import {getComponent} from "../../../utils/getComponent";
+import {mapActions, mapGetters} from "vuex";
+import ScaleLine from "./ScaleLine.vue";
 
 /**
- * Footer that is displayed below the map. The version of the masterportal and links can be displayed here.
+ * Footer that is displayed below the map. Links can be displayed here.
+ * @module modules/PortalFooter
+ * @vue-computed {Number} aliasLength - Returns the alias length for relevant device mode.
  */
 export default {
     name: "PortalFooter",
     components: {
-        LanguageItem,
-        ScaleLine,
-        MousePosition
+        ScaleLine
     },
     computed: {
-        ...mapGetters(["footerConfig", "mobile", "masterPortalVersionNumber"]),
-        ...mapGetters("Maps", ["is3D"]),
-        ...mapGetters("PortalFooter", Object.keys(getters)),
-        showLanguageSwitcher () {
-            return this.$i18n.i18next.options.isEnabled() && Object.keys(this.$i18n.i18next.options.getLanguages()).length > 1;
+        ...mapGetters(["isMobile"]),
+        ...mapGetters("Modules/PortalFooter", [
+            "configPaths",
+            "scaleLine",
+            "seperator",
+            "type",
+            "urls"
+        ]),
+        ...mapGetters("Menu", [
+            "mainExpanded",
+            "secondaryExpanded",
+            "mainMenu",
+            "secondaryMenu"
+        ]),
+        /**
+         * Returns the alias length for relevant device mode.
+         * @returns {Number} The alias length for the relevant device mode.
+         */
+        aliasLength () {
+            if (this.isMobile) {
+                return this.urls.filter(url => url.alias_mobil).length;
+            }
+
+            return this.urls.filter(url => url.alias).length;
         },
-        showShortMenu () {
-            return this.mobile;
+        /**
+         * Returns the menu where the about module is configured in.
+          * @returns {String|null} The menu where the about module is in.
+         */
+        aboutModuleSide () {
+            if (this.mainMenu.sections[0].find(m => {
+                return m.type === "about";
+            })) {
+                return "mainMenu";
+            }
+            else if (this.secondaryMenu.sections[0].find(m => {
+                return m.type === "about";
+            })) {
+                return "secondaryMenu";
+            }
+
+            return null;
         }
     },
     mounted () {
-        this.initialize();
-
-        if (this.footerConfig) {
-            this.setShowFooter(true);
-        }
-        if (this.footerInfo) {
-            this.renderFooterInfo();
-        }
+        this.initializeModule({configPaths: this.configPaths, type: this.type});
     },
     methods: {
-        ...mapActions("PortalFooter", [
-            "initialize",
-            "renderFooterInfo"
-        ]),
-        ...mapMutations("PortalFooter", Object.keys(mutations)),
-
+        ...mapActions(["initializeModule"]),
+        ...mapActions("Menu", ["changeCurrentComponent"]),
+        ...mapActions("Menu", ["toggleMenu"]),
         /**
-         * Toggles the given Tool
-         * @param {string} toolModelId The Model ID of the tool to activate/deactivate. ID may be empty.
-         * @param {object} event The Click event
+         * Opens the about module if it is configured and scrolls to the imprint section.
          * @returns {void}
          */
-        toggleTool (toolModelId, event) {
-            let model, active;
+        openImprint () {
+            if (this.aboutModuleSide === "mainMenu" && !this.mainExpanded) {
+                this.toggleMenu("mainMenu");
+            }
+            else if (this.aboutModuleSide === "secondaryMenu" && !this.secondaryExpanded) {
+                this.toggleMenu("secondaryMenu");
+            }
 
-            if (toolModelId) {
-                if (store.state.Tools[toolModelId]) {
-                    model = getComponent(store.state.Tools[toolModelId].id);
-                    active = store.getters["Tools/" + toolModelId + "/active"];
-                    Radio.trigger("ModelList", "setActiveToolsToFalse", store.getters["Tools/getActiveToolNames"]);
-                    store.commit("Tools/" + toolModelId + "/setActive", !active);
-                }
-                else {
-                    model = Radio.request("ModelList", "getModelByAttributes", {id: toolModelId});
-                }
-                if (model) {
-                    if (event) {
-                        event.preventDefault();
-                    }
-                    model.setIsActive(!active);
-                }
-            }
-        },
-        supportedIn3D (toolModelId) {
-            if (!toolModelId) {
-                return true;
-            }
-            if (this.is3D) {
-                const toolsSupportedIn3d = Radio.request("Tool", "getSupportedIn3d");
+            this.changeCurrentComponent({type: "about", side: this.aboutModuleSide, props: {name: this.$t("common:modules.about.name")}});
 
-                return toolsSupportedIn3d.find(name => name.toLowerCase() === toolModelId.toLowerCase());
-            }
-            return true;
-        },
-
-        /**
-         * toogles the area for the footer information (InfoTabs)
-         * @param {Number} index index for the information tabs
-         * @returns {void}
-        */
-        toggleFooterInfo: function (index) {
-            if (this.infoShownDiv === index) {
-                this.setInfoShownDiv(-1);
-            }
-            else {
-                this.setInfoShownDiv(index);
-            }
-        },
-        /**
-         * toogles the footerbar with the info links
-         * @param {object} state state
-         * @returns {void}
-         */
-        toggleMobileFooterInfo: function () {
-            this.setIsShortMenuOpen(!this.isShortMenuOpen);
+            // timeout is needed to scroll to the correct position of the imprint
+            setTimeout(() => {
+                document.getElementById("imprint").scrollIntoView({behavior: "smooth", block: "start"});
+            }, 500);
         }
     }
 };
 </script>
 
-<template>
+<template lang="html">
     <footer
-        id="portal-footer"
-        :class="!showFooter && 'hide-portal-footer'"
+        id="module-portal-footer"
+        class="portal-footer d-flex px-2 py-1"
     >
-        <template
-            v-if="footerInfo"
+        <a
+            v-if="aboutModuleSide"
+            class="impressumLink"
+            role="button"
+            tabindex="0"
+            @click="openImprint"
+            @keydown="openImprint"
         >
-            <div id="footerInfo">
-                <div
-                    class="accordion"
-                    data-bs-parent="#footerInfo"
+            {{ $t("common:modules.about.imprintTitle") }}
+        </a>
+        <div
+            v-for="(url, index) in urls"
+            :key="`portal-footer-url-${index}`"
+        >
+            <span>
+                {{ $t(url.bezeichnung) }}
+                <a
+                    :href="url.url"
+                    target="_blank"
+                    class="p-0 footerUrl"
                 >
-                    <div
-                        v-for="(info, index) in footerInfo"
-                        :id="`${info.title}`"
-                        :key="`footerInfo-${index}`"
-                    >
-                        <div
-                            v-if="infoShownDiv === index"
-                            id="infoDiv-${index}"
-                            class="footer-info-div"
-                        >
-                            <div class="info-top">
-                                <p class="info-top-titel">
-                                    {{ $t(info.title) }}
-                                </p>
-                                <div v-if="info.description">
-                                    <p
-                                        class="info-top-text"
-                                        v-html="$t(info.description)"
-                                    />
-                                </div>
-                            </div>
-                            <div class="info-bottom">
-                                <div
-                                    v-for="(subtext, i) in info.subtexts"
-                                    id="footer-info-subtext-${i}"
-                                    :key="`footer-info-subtext-${i}`"
-                                >
-                                    <p
-                                        class="info-bottom-titel"
-                                        v-html="$t(subtext.subtitle)"
-                                    />
-                                    <p
-                                        class="info-bottom-text"
-                                        v-html="$t(subtext.text)"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </template>
-        <MousePosition class="portal-footer-mouse-position" />
-        <!-- keep div#footer as anchor for mouse position even if no footer is to be rendered -->
-        <template v-if="showFooter">
-            <template v-for="(url, index) in urls">
+                    {{ $t(isMobile ? $t(url.alias_mobile) : $t(url.alias)) }}
+                </a>
                 <span
-                    v-if="supportedIn3D(url.toolModelId)"
-                    :key="`portal-footer-url-${index}`"
+                    v-if="index < aliasLength - 1"
+                    class="d-md-inline-block px-2"
                 >
-                    {{ $t(url.bezeichnung) }}
-                    <a
-                        :href="url.url"
-                        target="_blank"
-                        @click="toggleTool(url.toolModelId, $event)"
-                    >
-                        {{ $t(mobile ? $t(url.alias_mobil) : $t(url.alias)) }}
-                    </a>
-                    <span
-                        v-if="index < Object.keys(urls).length - 1 || showVersion"
-                        class="separator bootstrap-icon d-none d-md-inline-block"
-                    >
-                        <b
-                            v-html="seperator"
-                        />
-                    </span>
-                </span>
-            </template>
-            <template v-if="showVersion">
-                <span class="d-none d-md-block">
-                    {{ $t("masterPortalVersion", {masterPortalVersionNumber}) }}
-                </span>
-            </template>
-            <span class="spacer" />
-
-            <template v-if="footerInfo">
-                <template
-                    v-if="showShortMenu && mobileFooterInfoToggler"
-                >
-                    <span
-                        v-if="isShortMenuOpen"
-                        class="bi bi-chevron-down"
-                        role="button"
-                        tabindex="0"
-                        @click.self="toggleMobileFooterInfo"
-                        @keydown="toggleMobileFooterInfo"
+                    <b
+                        v-html="seperator"
                     />
-                    <span
-                        v-else
-                        class="bi bi-chevron-up"
-                        role="button"
-                        tabindex="0"
-                        @click.self="toggleMobileFooterInfo"
-                        @keydown="toggleMobileFooterInfo"
-                    />
-                </template>
-                <template
-                    v-for="(info, index) in infoTitles"
-                    v-else
-                >
-                    <span
-                        :key="`footer-info-link-${index}`"
-                        class="separator"
-                    >
-                        <a
-                            role="button"
-                            tabindex="0"
-                            @click="toggleFooterInfo(index)"
-                            @keydown="toggleFooterInfo(index)"
-                        >
-                            {{ $t(info) }}
-                        </a>
-                        <b
-                            v-if="index < infoTitles.length - 1"
-                            v-html="seperator"
-                        />
-                    </span>
-                </template>
-            </template>
-
-            <span class="spacer" />
-            <ScaleLine />
-            <LanguageItem v-if="showLanguageSwitcher" />
-        </template>
-        <ScaleLine
-            v-else
-            class="portal-footer-scaleLine"
+                </span>
+            </span>
+        </div>
+        <span
+            class="spacer"
         />
-        <template
-            v-if="showFooter && showShortMenu && isShortMenuOpen"
-        >
-            <div id="footerInfoMobile">
-                <div
-                    class="accordion"
-                    data-bs-parent="#footerInfoMobile"
-                >
-                    <!-- for mobile use -->
-                    <template
-                        v-for="(info, index) in infoTitles"
-                    >
-                        <div
-                            :key="`${index}`"
-                        >
-                            <span
-                                :key="`footer-info-link-${index}`"
-                            >
-                                <a
-                                    role="button"
-                                    tabindex="0"
-                                    @click="toggleFooterInfo(index)"
-                                    @keydown="toggleFooterInfo(index)"
-                                >
-                                    {{ $t(info) }}
-                                </a>
-
-                            </span>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </template>
+        <ScaleLine
+            v-if="scaleLine"
+        />
     </footer>
 </template>
 
 <style lang="scss" scoped>
-    @import "~/css/mixins.scss";
+    @import "~mixins";
     @import "~variables";
 
-    #footerInfo {
-        width: 100%;
-        position: absolute;
-        bottom: 100%;
-        left: 0px;
-        max-height: 76vh;
-        overflow-y: auto;
-    }
-
-    #footerInfoMobile {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        position: relative;
-        justify-content: center
-    }
-    #portal-footer {
-        width: 100%;
-
-        background: fade($secondary, 90%);
-
-        font-family: $font_family_narrow;
-        color: $secondary_contrast;
-        font-size: $font-size-sm;
-
+    .portal-footer {
+        background-color: $menu-background-color;
         box-shadow: 0 -6px 12px $shadow;
-        padding: 4px 10px;
-
-        z-index: 2;
-
-        display: flex;
-        flex-wrap: wrap;
+        font-family: $font_family_narrow;
+        // font-size: $font-size-sm;
+        font-size: 12px; // todo rem auf welcher Grudnlage 14 oder 16px???
+        flex-wrap: nowrap;
+        margin-top: auto;
+        pointer-events: auto;
         position: relative;
-
-        a {
-            color: darken($secondary_focus, 10%);
-            &:hover{
-                @include primary_action_hover;
-            }
-        }
-
-        &.hide-portal-footer {
-            padding: 0;
-        }
-
-        .spacer {
-            flex-grow: 1;
-        }
-
-        .separator {
-            padding: 0 8px;
-        }
-
-        .portal-footer-mouse-position {
-            position: absolute;
-            left: 0;
-            bottom: 100%;
-            /* should share bottom-line last control element */
-            margin-bottom: 15px;
-            z-index: -1;
-        }
+        width: 100%;
 
         a[target=_blank]{
-            color: $primary;
+            color: $secondary;
             padding: .2rem;
             &:hover{
                 @include primary_action_hover;
             }
         }
 
-        .portal-footer-scaleLine {
-            position: absolute;
-            right: 0;
-            bottom: 100%;
+        .spacer {
+            flex-grow: 1;
         }
 
-        .footer-info-div {
-            background-color: $white;
-            width: 100%;
-            height: 30%;
-            bottom: 0px;
-            padding: 3rem 20rem;
-
-            .info-top {
-                margin-bottom: 2.5rem;
-
-                p.info-top-titel {
-                    color: $light_grey_inactive_contrast;
-                    font-size: $font-size-lg;
-                    margin-bottom: 1rem;
-                }
-                p.info-top-text {
-                    color: $light_grey_inactive_contrast;
-                    margin-bottom: 1rem;
-                    font-size: $font-size-base;
-                }
-            }
-            .info-bottom {
-                display: flex;
-                grid-gap: 20px;
-                flex-wrap: wrap;
-
-                p.info-bottom-titel {
-                    color: $dark_blue;
-                    font-size: $font_size_big;
-                    margin-bottom: 1rem;
-                    line-height: 2.4rem;
-                }
-                @include media-breakpoint-down(sm) {
-                    p.info-bottom-titel {
-                        margin-bottom: 0;
-                    }
-                }
-                p.info-bottom-text {
-                    color: $light_grey_inactive_contrast;
-                    font-size: $font-size-base;
-                    line-height: inherit;
-                }
-            }
-        }
-        @include media-breakpoint-down(sm) {
-            .footer-info-div {
-                padding: 2rem 3rem;
+        .impressumLink {
+            padding-right: 1rem;
+            color: $secondary;
+            &:hover{
+                @include primary_action_hover;
             }
         }
     }
+
+    @include media-breakpoint-up(sm)  {
+        .portal-footer {
+            left: 47.25px; // width des Menucollapse-Button...
+            width: calc( 100% + 94.5px); // zweimal den Menucollapse-Button...
+        }
+    }
+
 </style>

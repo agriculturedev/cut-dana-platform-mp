@@ -1,0 +1,137 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    font-size: 14px;
+}
+
+#masterportal-root {
+    height: 100%;
+}
+
+#cursorGlyph {
+    position: absolute;
+    z-index: 1000;
+    cursor: none;
+}
+
+.font-bold {
+    font-family: 'MasterPortalFont Bold','Arial Narrow',Arial,sans-serif;
+}
+.font-arial {
+    font-family: Arial,sans-serif;
+}
+
+label {
+    font-weight: normal;
+}
+
+#map {
+    position: relative;
+}
+
+.bi-check2-square, .bi-square, .bi-arrow-down-circle, .bi-arrow-up-circle, .bi-chevron-down, .bi-plus-circle-fill, .bi-dash-circle-fill, .bi-arrow-repeat, .bi-folder2, .bi-folder2-open, .bi-question-circle-fill {
+    cursor: pointer;
+}
+
+@media (max-width: 767px) {
+    .bi-plus-circle-fill, .bi-dash-circle-fill, .bi-info-circle-fill, .bi-check2-square, .bi-square, .bi-envelope, .bi-lightbulb {
+        font-size: 1.125rem;
+    }
+    html, body {
+        font-size: 16px;
+    }
+    #portalTitle {
+        display:none;
+    }
+}
+
+@media (min-height:200px) {
+    #poibody {
+        max-height:120px;
+    }
+}
+
+@media (min-height:250px) {
+    #poibody {
+        max-height:200px;
+    }
+}
+
+@media (min-height:300px) {
+    #poibody {
+        max-height:220px;
+    }
+}
+
+@media (min-height:480px) {
+    #poibody {
+        max-height:400px;
+    }
+}
+
+@media (min-height: 768px) {
+    #poibody {
+        max-height:700px;
+    }
+}
+
+#poibody {
+    overflow:auto;
+}
+
+/*bootstrap overwrite*/
+.list-group {
+    margin-bottom: 0;
+}
+
+.cluster {
+    font-size:25px;
+    border-radius:30px!important;
+    float:left;
+    margin:10px;
+}
+
+/* For center anything in the unknown */
+.centered-box-wrapper {
+    text-align: center;
+    white-space: nowrap;
+}
+.centered-box-wrapper:before {
+    content: " ";
+    display: inline-block;
+    height: 100%;
+    margin-right: -0.25em;
+    vertical-align: middle;
+}
+.centered-box-wrapper > .centered-box-content {
+    display: inline-block;
+    vertical-align: middle;
+}
+/* End "For center anything in the unknown" */
+
+
+.blurry {
+    filter: blur(3px);
+}
+
+/* Scrollbar */
+
+* ::-webkit-scrollbar-track
+{
+  border-radius: 10px;
+  background-color: white;
+}
+
+* ::-webkit-scrollbar
+{
+  width: 12px;
+  background-color: white;
+}
+
+* ::-webkit-scrollbar-thumb
+{
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  background-color: lightgray;
+  border: 3px solid white;
+}

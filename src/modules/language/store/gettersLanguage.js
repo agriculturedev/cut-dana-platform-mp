@@ -1,10 +1,8 @@
-import {generateSimpleGetters} from "../../../app-store/utils/generators";
+import {generateSimpleGetters} from "../../../shared/js/utils/generators";
 import state from "./stateLanguage";
 
 const getters = {
     ...generateSimpleGetters(state)
-
-    // NOTE overwrite getters here if you need a special behaviour in a getter
 };
 
 export default getters;

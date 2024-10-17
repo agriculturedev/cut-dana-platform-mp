@@ -1,4 +1,4 @@
-import {generateSimpleGetters} from "../../../../app-store/utils/generators";
+import {generateSimpleGetters} from "../../../../shared/js/utils/generators";
 import OrientationState from "./stateOrientation";
 
 const getters = {

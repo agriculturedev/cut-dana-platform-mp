@@ -1,51 +1,31 @@
+import {generateSimpleGetters} from "../../../shared/js/utils/generators";
+import alertState from "./stateAlerting";
+
 export default {
-    /**
-     * Getter for fetchBroadcastUrl.
-     * @param {object} state state
-     * @returns {string} fetchBroadcastUrl
-     */
-    fetchBroadcastUrl: (state) => {
-        return state.fetchBroadcastUrl;
-    },
-
-    /**
-     * Getter for localStorageDisplayedAlertsKey.
-     * @param {object} state state
-     * @returns {string} localStorageDisplayedAlertsKey
-     */
-    localStorageDisplayedAlertsKey: (state) => {
-        return state.localStorageDisplayedAlertsKey;
-    },
-
-    /**
-     * Getter for displayedAlerts.
-     * @param {object} state state
-     * @returns {object} displayedAlerts
-     */
-    displayedAlerts: (state) => {
-        return state.displayedAlerts;
-    },
-
-    /**
-     * Getter for showTheModal.
-     * @param {object} state state
-     * @returns {boolean} showTheModal
-     */
-    showTheModal: (state) => {
-        return state.showTheModal;
-    },
-
+    ...generateSimpleGetters(alertState),
     /**
      * This returns the alerts queue array grouped by the alerts' category property.
-     * @param {object} state state
-     * @returns {array} sortedAlerts
+     * And show error-warning-success -Alerts before info and news
+     * @param {Object} state state
+     * @param {string} which identifyer, if the "alertOnEvent"-events shall be sortet or the "initial" events
+     * @returns {Object[]} sortedAlerts
      */
-    sortedAlerts: (state) => {
+    sortedAlerts: (state) => (which) => {
         const
             resultByCategory = {},
             results = [];
 
-        state.alerts.forEach(singleAlert => {
+        let alertsToSort = state.alerts;
+
+        if (which === "onEvent") {
+            alertsToSort = state.alertsOnEvent;
+        }
+
+        alertsToSort.forEach(singleAlert => {
+            if (which === "initial" && Object.hasOwn(singleAlert, "displayOnEvent")) {
+                return;
+            }
+
             if (resultByCategory[singleAlert.category] === undefined) {
                 resultByCategory[singleAlert.category] = [];
             }
@@ -54,6 +34,12 @@ export default {
 
         Object.keys(resultByCategory).forEach(key => {
             results.push({category: key, content: resultByCategory[key]});
+        });
+
+        results.sort(function (a, b) {
+            const sortingArr = ["success", "warning", "error"];
+
+            return sortingArr.indexOf(b.category) - sortingArr.indexOf(a.category);
         });
 
         return results;

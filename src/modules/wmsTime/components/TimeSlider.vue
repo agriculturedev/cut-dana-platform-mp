@@ -1,13 +1,16 @@
 <script>
 import {mapActions, mapGetters, mapMutations} from "vuex";
-import getters from "../store/gettersWmsTime";
-import mutations from "../store/mutationsWmsTime";
-import RoutingLoadingSpinner from "../../tools/routing/components/RoutingLoadingSpinner.vue";
+import layerCollection from "../../../core/layers/js/layerCollection";
+import FlatButton from "../../../shared/modules/buttons/components/FlatButton.vue";
+import IconButton from "../../../shared/modules/buttons/components/IconButton.vue";
+import SpinnerItem from "../../../shared/modules/spinner/components/SpinnerItem.vue";
 
 export default {
     name: "TimeSlider",
     components: {
-        RoutingLoadingSpinner
+        FlatButton,
+        IconButton,
+        SpinnerItem
     },
     props: {
         layerId: {
@@ -17,7 +20,13 @@ export default {
     },
     data: () => ({playing: false, playbackHandle: null, sliderValue: 0}),
     computed: {
-        ...mapGetters("WmsTime", Object.keys(getters)),
+        ...mapGetters("Modules/WmsTime", ["timeRange", "minWidth", "timeSlider"]),
+        ...mapGetters("Modules/LayerSwiper", {
+            layerSwiperActive: "active"
+        }),
+        ...mapGetters("Modules/CompareMaps", {
+            compareMapsActive: "active"
+        }),
         sliderOptionCount () {
             return this.timeRange.length - 1;
         },
@@ -26,6 +35,11 @@ export default {
         }
     },
     watch: {
+        compareMapsActive (newValue) {
+            if (newValue) {
+                this.timeSlider.active = false;
+            }
+        },
         defaultValue () {
             this.sliderValue = this.timeRange.indexOf(this.defaultValue);
         },
@@ -39,16 +53,12 @@ export default {
                 this.playing = false;
             }
 
-            const layer = Radio.request(
-                    "ModelList",
-                    "getModelByAttributes",
-                    {id: this.layerId}
-                ),
+            const layer = layerCollection.getLayerById(this.layerId),
                 targetTime = this.timeRange[this.sliderValue];
 
             if (layer) {
                 layer.updateTime(this.layerId, targetTime);
-                if (this.layerSwiper.active) {
+                if (this.layerSwiperActive) {
                     this.updateMap();
                 }
             }
@@ -58,8 +68,9 @@ export default {
         this.sliderValue = this.timeRange.indexOf(this.defaultValue);
     },
     methods: {
-        ...mapActions("WmsTime", ["toggleSwiper", "updateMap"]),
-        ...mapMutations("WmsTime", Object.keys(mutations)),
+        ...mapActions("Modules/LayerSwiper", ["updateMap"]),
+        ...mapActions("Modules/WmsTime", ["toggleSwiper"]),
+        ...mapMutations("Modules/WmsTime", ["setTimeSliderPlaying"]),
         setSliderValue (value) {
             this.sliderValue = Number(value);
         },
@@ -111,54 +122,47 @@ export default {
 
 <template>
     <div class="timeSlider-wrapper centered-box-wrapper">
-        <RoutingLoadingSpinner
+        <SpinnerItem
             v-if="!layerId"
         />
         <div
             class="timeSlider-control-row"
-            :class="!layerId ? 'disabled' : ''"
         >
             <div
                 v-if="minWidth"
                 class="timeSlider-innerWrapper"
             >
-                <button
+                <FlatButton
                     :id="'timeSlider-activate-layerSwiper-' + layerId"
-                    class="btn btn-sm btn-secondary"
-                    @click="toggleSwiper(layerId)"
-                >
-                    {{ $t(`common:modules.wmsTime.timeSlider.buttons.${minWidth && layerSwiper.active ? "deactivateL" : "l"}ayerSwiper`) }}
-                </button>
+                    :aria-label="$t('common:modules.wmsTime.timeSlider.buttons')"
+                    :interaction="() => toggleSwiper(layerId)"
+                    :text="$t(minWidth && layerSwiperActive ? 'common:modules.wmsTime.timeSlider.buttons.deactivateLayerSwiper' : 'common:modules.wmsTime.timeSlider.buttons.layerSwiper')"
+                />
             </div>
             <div class="timeSlider-innerWrapper-interactions">
-                <button
+                <IconButton
                     :id="'timeSlider-button-backward-' + layerId"
-                    class="btn btn-sm btn-secondary"
-                    :aria-label="$t('common:modules.wmsTime.timeSlider.buttons.backward')"
+                    :aria="$t('common:modules.wmsTime.timeSlider.buttons.backward')"
+                    :icon="'bi-skip-start-fill'"
                     :disabled="nextIndex(false) === -1"
-                    @click="moveOne(false)"
-                >
-                    <i class="bi-skip-start-fill" />
-                </button>
-                <button
+                    :interaction="() => moveOne(false)"
+                    :class-array="['btn-secondary']"
+                />
+                <IconButton
                     :id="'timeSlider-button-play-' + layerId"
-                    class="btn btn-sm btn-secondary"
-                    :aria-label="$t('common:modules.wmsTime.timeSlider.buttons.play')"
-                    @click="play"
-                >
-                    <i
-                        :class="[playing ? 'bi-pause-fill' : 'bi-play-fill']"
-                    />
-                </button>
-                <button
+                    :aria="$t('common:modules.wmsTime.timeSlider.buttons.play')"
+                    :icon-array="[playing ? 'bi-pause-fill' : 'bi-play-fill']"
+                    :interaction="() => play()"
+                    :class-array="['btn-secondary']"
+                />
+                <IconButton
                     :id="'timeSlider-button-forward-' + layerId"
-                    class="btn btn-sm btn-secondary"
-                    :aria-label="$t('common:modules.wmsTime.timeSlider.buttons.forward')"
+                    :aria="$t('common:modules.wmsTime.timeSlider.buttons.forward')"
+                    :icon="'bi-skip-end-fill'"
                     :disabled="nextIndex() === timeRange.length"
-                    @click="moveOne(true)"
-                >
-                    <i class="bi-skip-end-fill" />
-                </button>
+                    :interaction="() => moveOne(true)"
+                    :class-array="['btn-secondary']"
+                />
             </div>
         </div>
         <label
@@ -169,7 +173,7 @@ export default {
             <input
                 :id="'timeSlider-input-range-' + layerId"
                 type="range"
-                class="timeSlider-input-range-label-input"
+                class="timeSlider-input-range-label-input form-range"
                 :value="sliderValue"
                 :min="0"
                 :max="sliderOptionCount"
@@ -200,6 +204,9 @@ export default {
     position: absolute;
     background: rgba(0, 0, 0, 0);
 }
+.roundBtn {
+    padding-top: .4rem;
+}
 
 .timeSlider-wrapper {
     $base-margin: 0.25em;
@@ -214,7 +221,7 @@ export default {
     flex-direction: column;
     background: white;
     box-shadow: $tool_box_shadow;
-
+    pointer-events: all;
     .timeSlider-control-row {
         display: flex;
         flex-direction: row;
