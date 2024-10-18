@@ -1,5 +1,5 @@
 import {WKT} from "ol/format.js";
-import isObject from "../../../shared/js/utils/isObject";
+import isObject from "../../../../utils/isObject";
 import Feature from "ol/Feature";
 
 /**
@@ -18,17 +18,11 @@ export function setCsvAttributes (features, code) {
         if (feature instanceof Feature) {
             const wktGeometry = wktParser.writeGeometry(feature.getGeometry());
 
-            if (!isObject(feature.get("csv_attributes"))) {
-                feature.set("csv_attributes", {});
+            if (!isObject(feature.get("attributes"))) {
+                feature.set("attributes", {});
             }
-            feature.get("csv_attributes").geometry = wktGeometry;
-            feature.get("csv_attributes").epsg = code;
-
-            Object.keys(feature.getProperties()).forEach(key => {
-                if (!["masterportal_attributes", "geometry", "csv_attributes"].includes(key)) {
-                    feature.get("csv_attributes")[key] = feature.get(key);
-                }
-            });
+            feature.get("attributes").geometry = wktGeometry;
+            feature.get("attributes").epsg = code;
         }
     });
 

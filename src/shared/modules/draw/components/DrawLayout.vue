@@ -1,31 +1,17 @@
 <script>
-import {convertColor} from "../../../js/utils/convertColor";
-import SliderItem from "../../slider/components/SliderItem.vue";
+import {convertColor} from "../../../../../utils/convertColor";
 
 /**
  * Shared component that provides buttons for setting the layout of drawings.
  * @module shared/modules/draw/DrawLayout
- * @vue-prop {String} [circleType="innerCircle"] - The circle type "innerCircle" or "outerCircle".
  * @vue-prop {Object} currentLayout - The current layout for the styling.
  * @vue-prop {String} selectedDrawType - The selected draw type.
- * @vue-prop {Function} setCurrentLayout - Setter for current layout.
  * @vue-prop {Number[]} [strokeRange=[1, 32]] - The stroke range in the unit pixel.
- * @vue-prop {Boolean} [hasExtrudedHeight=false] - Whether the layout includes extruded height.
- * @vue-data {String} activeLayoutKey - The currently activated layout.
  * @vue-data {Object} mappingLayout - The mapping object for layout.
  */
 export default {
     name: "DrawLayout",
-    components: {
-        SliderItem
-    },
     props: {
-        circleType: {
-            type: String,
-            default () {
-                return "innerCircle";
-            }
-        },
         currentLayout: {
             type: Object,
             required: true
@@ -34,51 +20,38 @@ export default {
             type: String,
             required: true
         },
-        setCurrentLayout: {
-            type: Function,
-            required: true
-        },
         strokeRange: {
             type: Array,
             default () {
                 return [1, 32];
             }
-        },
-        hasExtrudedHeight: {
-            type: Boolean,
-            default: false
         }
     },
     data () {
-        const mappingLayout = {
-            fillColor: {
-                drawTypes: ["box", "circle", "doubleCircle", "point", "polygon", "rectangle"],
-                icon: "bi-paint-bucket"
-            },
-            strokeColor: {
-                drawTypes: ["box", "circle", "doubleCircle", "line", "pen", "point", "polygon", "rectangle"],
-                icon: "bi-pencil-fill"
-            },
-            strokeWidth: {
-                drawTypes: ["box", "circle", "doubleCircle", "line", "pen", "point", "polygon", "rectangle"],
-                icon: "bi-border-width"
-            },
-            fillTransparency: {
-                drawTypes: ["box", "circle", "doubleCircle", "point", "polygon", "rectangle"],
-                icon: "bi-droplet-half"
-            }
-        };
-
-        if (this.hasExtrudedHeight) {
-            mappingLayout.extrudedHeight = {
-                drawTypes: ["polygon", "rectangle"],
-                icon: "bi-box-arrow-up"
-            };
-        }
-
         return {
-            activeLayoutKey: "",
-            mappingLayout
+            mappingLayout: {
+                fillColor: {
+                    drawTypes: ["polygon", "rectangle"],
+                    icon: "bi-paint-bucket"
+                },
+                strokeColor: {
+                    drawTypes: ["line", "polygon", "rectangle"],
+                    icon: "bi-pencil-fill"
+                },
+                strokeWidth: {
+                    drawTypes: ["line"],
+                    icon: "bi-border-width"
+                },
+                fillTransparency: {
+                    drawTypes: ["polygon", "rectangle"],
+                    icon: "bi-droplet-half"
+                },
+                extrudedHeight: {
+                    drawTypes: ["polygon", "rectangle"],
+                    icon: "bi-box-arrow-up"
+                }
+            },
+            activeLayoutKey: ""
         };
     },
     computed: {
@@ -112,7 +85,7 @@ export default {
          * @returns {void}
          */
         setActiveLayoutKey (layoutKey) {
-            this.activeLayoutKey = layoutKey;
+            this.activeLayoutKey = this.activeLayoutKey !== layoutKey ? layoutKey : "";
         },
 
         /**
@@ -131,8 +104,7 @@ export default {
                 currentLayout[layoutKey] = parseFloat(value);
             }
 
-            this.setCurrentLayout(currentLayout);
-            this.$emit("update-current-layout", currentLayout);
+            this.$emit("update-layout", currentLayout);
         }
     }
 };
@@ -140,20 +112,10 @@ export default {
 
 <template>
     <div class="d-flex flex-column">
-        <label
-            v-if="selectedDrawType === 'doubleCircle'"
-            :for="'draw-layout-buttons-' + circleType"
-            class="mb-2"
-        >
-            {{ $t("common:shared.modules.draw.drawLayout." + circleType) }}
-        </label>
-        <div
-            :id="'draw-layout-buttons-' + circleType"
-            class="draw-layout-buttons d-flex flex-row align-items-center"
-        >
+        <div class="d-flex flex-row align-items-center mb-5">
             <button
                 v-for="layoutKey in Object.keys(mappingLayoutBySelectedDrawType)"
-                :id="'draw-layout-' + circleType + '-' + layoutKey"
+                :id="'draw-layout-' + layoutKey"
                 :key="layoutKey"
                 tabindex="0"
                 :class="[
@@ -163,20 +125,20 @@ export default {
                     activeLayoutKey === layoutKey ? 'active' : ''
                 ]"
                 type="button"
-                :aria-label="$t('common:shared.modules.draw.drawLayout.' + layoutKey)"
-                :title="$t('common:shared.modules.draw.drawLayout.' + layoutKey)"
+                :aria-label="$t('common:modules.tools.modeler3D.draw.captions.' + layoutKey)"
+                :title="$t('common:modules.tools.modeler3D.draw.captions.' + layoutKey)"
                 @click="setActiveLayoutKey(layoutKey)"
             >
                 <label
                     v-if="layoutKey === 'fillColor' || layoutKey === 'strokeColor'"
-                    :for="'color-picker-' + circleType + '-' + layoutKey"
+                    :for="'color-picker-' + layoutKey"
                 >
                     <i
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
                     <input
-                        :id="'color-picker-' + circleType + '-' + layoutKey"
+                        :id="'color-picker-' + layoutKey"
                         type="color"
                         :value="convertColor(currentLayout[layoutKey], 'hex')"
                         @input="event => updateCurrentLayout(layoutKey, event.target.value)"
@@ -184,105 +146,142 @@ export default {
                 </label>
                 <label
                     v-else-if="layoutKey === 'fillTransparency'"
-                    :for="'text-fill-transparency-' + circleType + '-' + layoutKey"
+                    :for="'text-fill-transparency-' + layoutKey"
                 >
                     <i
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
-                    <span>{{ currentLayout[layoutKey]+"%" }}</span>
+                    <span
+                        :id="'text-fill-transparency-' + layoutKey"
+                        :key="layoutKey"
+                        class="iconLabel"
+                        :title="`${currentLayout[layoutKey]}%`"
+                        role="button"
+                        tabIndex="0"
+                    >
+                        {{ `${currentLayout[layoutKey]}%` }}
+                    </span>
                 </label>
                 <label
                     v-else-if="layoutKey === 'strokeWidth'"
-                    :for="'text-stroke-width-' + circleType + '-' + layoutKey"
+                    :for="'text-stroke-width-' + layoutKey"
                 >
                     <i
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
-                    <span>{{ currentLayout[layoutKey]+"px" }}</span>
+                    <span
+                        :id="'text-stroke-width-' + layoutKey"
+                        :key="layoutKey"
+                        class="iconLabel"
+                        :title="`${currentLayout[layoutKey]}px`"
+                        role="button"
+                        tabIndex="0"
+                    >
+                        {{ `${currentLayout[layoutKey]}px` }}
+                    </span>
                 </label>
                 <label
-                    v-else-if="layoutKey === 'extrudedHeight' && hasExtrudedHeight"
-                    :for="'text-extruded-height-' + circleType + '-' + layoutKey"
+                    v-else-if="layoutKey === 'extrudedHeight'"
+                    :for="'text-extruded-height-' + layoutKey"
                 >
                     <i
                         :class="mappingLayout[layoutKey].icon"
                         role="img"
                     />
-                    <span>{{ currentLayout[layoutKey]+"m" }}</span>
+                    <span
+                        :id="'text-extruded-height-' + layoutKey"
+                        :key="layoutKey"
+                        class="iconLabel"
+                        :title="`${currentLayout[layoutKey]}m`"
+                        role="button"
+                        tabIndex="0"
+                    >
+                        {{ `${currentLayout[layoutKey]}m` }}
+                    </span>
                 </label>
             </button>
         </div>
         <div
             v-if="activeLayoutKey === 'strokeWidth'"
-            class="d-flex mt-4"
+            class="d-flex mb-3"
         >
-            <SliderItem
-                :id="'slider-stroke-width-' + circleType"
-                :aria="`${currentLayout.strokeWidth}px`"
-                :label="`${currentLayout.strokeWidth}px`"
-                :min="strokeRange[0].toString()"
-                :max="strokeRange[1].toString()"
-                :value="currentLayout.strokeWidth.toString()"
-                :step="1"
-                :interaction="event => updateCurrentLayout('strokeWidth', event.target.value)"
-            />
+            <input
+                :id="'slider-stroke-width'"
+                class="me-3"
+                type="range"
+                :title="`${currentLayout.strokeWidth}px`"
+                :value="currentLayout.strokeWidth"
+                :min="strokeRange[0]"
+                :max="strokeRange[1]"
+                step="1"
+                @input="event => updateCurrentLayout('strokeWidth', event.target.value)"
+            >
+            <label
+                :for="'slider-stroke-width'"
+            >
+                {{ `${currentLayout.strokeWidth}px` }}
+            </label>
         </div>
         <div
             v-else-if="activeLayoutKey === 'fillTransparency'"
-            class="d-flex mt-4"
+            class="d-flex mb-3"
         >
-            <SliderItem
-                :id="'slider-fill-transparency-' + circleType"
-                :aria="`${currentLayout.fillTransparency}%`"
-                :label="`${currentLayout.fillTransparency}%`"
-                :min="'0'"
-                :max="'100'"
-                :value="currentLayout.fillTransparency.toString()"
-                :step="1"
-                :interaction="event => updateCurrentLayout('fillTransparency', event.target.value)"
-            />
+            <input
+                :id="'slider-fill-transparency'"
+                class="me-3"
+                type="range"
+                :title="`${currentLayout.fillTransparency}%`"
+                :value="currentLayout.fillTransparency"
+                min="0"
+                max="100"
+                step="1"
+                @input="event => updateCurrentLayout('fillTransparency', event.target.value)"
+            >
+            <label
+                :for="'slider-fill-transparency'"
+            >
+                {{ `${currentLayout.fillTransparency}%` }}
+            </label>
         </div>
         <div
-            v-else-if="activeLayoutKey === 'extrudedHeight' && hasExtrudedHeight"
-            class="d-flex mt-4"
+            v-else-if="activeLayoutKey === 'extrudedHeight'"
+            class="d-flex mb-3"
         >
-            <SliderItem
-                :id="'slider-extruded-height-' + circleType"
-                :aria="`${currentLayout.extrudedHeight}m`"
-                :label="`${currentLayout.extrudedHeight}m`"
-                :min="'0'"
-                :max="'100'"
-                :value="currentLayout.extrudedHeight.toString()"
-                :step="1"
-                :interaction="event => updateCurrentLayout('extrudedHeight', event.target.value)"
-            />
+            <input
+                :id="'slider-extruded-height'"
+                class="me-3"
+                type="range"
+                :title="`${currentLayout.extrudedHeight}m`"
+                :value="currentLayout.extrudedHeight"
+                min="0"
+                max="100"
+                step="1"
+                @input="event => updateCurrentLayout('extrudedHeight', event.target.value)"
+            >
+            <label
+                :for="'slider-extruded-height'"
+            >
+                {{ `${currentLayout.extrudedHeight}m` }}
+            </label>
         </div>
     </div>
 </template>
 
 <style lang="scss" scoped>
+@import "~/css/mixins.scss";
 @import "~variables";
-@import "~mixins";
 
 .btn {
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
     position: sticky;
     text-align: center;
     top: auto;
     font-size: 1.143rem;
     border-radius: 50%;
     border: solid $white 1px;
-
-    &:hover {
-        > label {
-            > input {
-                color: $white;
-            }
-        }
-    }
     /* position label in center of button */
     > label {
         position: absolute;
@@ -292,23 +291,39 @@ export default {
         transform: translate(-50%, -50%);
         line-height: 0.5rem;
 
-        > input:hover{
-            color: $white;
+        > input {
+            color: $light_grey;
+
+            &:hover {
+                color: $white;
+            }
+        }
+
+        .iconLabel {
+            font-size: 0.58rem;
+            width: 3rem;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            font-size: $font_size_sm;
+            width: 3rem;
+            text-align: center;
         }
 
         input[type="color"] {
-            height: 0.5rem;
-            width: 1.8rem;
-            margin-top: .3rem;
+            height: 0.75rem;
+            width: 2rem;
         }
+    }
 
-        span {
-            font-size: $font_size_sm;
-            padding-top: .3rem;
-            width: 3rem;
-            text-align: center;
-            padding-top: .3rem;
-        }
+    &:focus {
+        @include primary_action_focus;
+    }
+    &:hover {
+        background-color: lighten($primary, 10%);
+        color: $light_grey_contrast;
+        cursor: pointer;
     }
 }
 
@@ -320,9 +335,30 @@ export default {
     }
 }
 
+.btn:disabled {
+    opacity: 1;
+    background: $white;
+
+    > i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    > i.outerCircle {
+        font-size: 1.5rem;
+    }
+}
+
 input {
     cursor: pointer;
     border: none;
+}
+
+input[type="range"] {
+    accent-color: $secondary;
+    width: 100%
 }
 
 </style>

@@ -176,4 +176,28 @@ describe("src/modules/wfst/store/gettersWfst.js", () => {
             expect(gettersWfst.savingErrorMessage(state)(feature)).to.equal("");
         });
     });
+    describe("isLayerVisible", () => {
+        let layerInformation;
+
+        beforeEach(() => {
+            layerInformation = [
+                {isVisibleInMap: true},
+                {isVisibleInMap: false}
+            ];
+        });
+
+        it("should return true if the layer at the current index is visible in the map", () => {
+            state = {currentLayerIndex: 0};
+            const visible = gettersWfst.isLayerVisible(state, {layerInformation});
+
+            expect(visible).to.be.true;
+        });
+
+        it("should return false if the layer at the current index is not visible in the map", () => {
+            state = {currentLayerIndex: 1};
+            const visible = gettersWfst.isLayerVisible(state, {layerInformation});
+
+            expect(visible).to.be.false;
+        });
+    });
 });

@@ -1,49 +1,31 @@
 import axios from "axios";
-import store from "../../../../../../app-store";
-import state from "./../../../../store/stateRouting";
+import store from "../../../../../../../app-store";
 import {expect} from "chai";
 import sinon from "sinon";
-import {RoutingGeosearchResult} from "../../../../js/classes/routing-geosearch-result";
+import {RoutingGeosearchResult} from "../../../../utils/classes/routing-geosearch-result";
 import {
-    checkConfiguredBbox,
     fetchRoutingBkgGeosearch,
-    getRoutingBkgGeosearchUrl,
+    fetchRoutingBkgGeosearchReverse,
     getRoutingBkgGeosearchReverseUrl,
-    fetchRoutingBkgGeosearchReverse
-} from "../../../../js/geosearch/routing-bkg-geosearch";
+    checkConfiguredBbox
+} from "../../../../utils/geosearch/routing-bkg-geosearch";
 
-describe("src/modules/routing/js/geosearch/routing-bkg-geosearch.js", () => {
+describe("src/modules/tools/routing/utils/geosearch/routing-bkg-geosearch.js", () => {
     let service;
 
     beforeEach(() => {
         service = "https://service";
         sinon.stub(i18next, "t").callsFake((...args) => args);
         store.getters = {
-            restServiceById: sinon.stub().callsFake(() =>{
+            getRestServiceById: sinon.stub().callsFake(() =>{
                 return {url: service};
             })
         };
-        store.state.Modules.Routing.geosearchReverse = {
+        store.state.geosearchReverse = {
             serviceId: {
-                url: "http://serviceId.url"
-            },
-            distance: "1000"
-        };
-        store.state.Modules.Routing.geosearch = {
-            serviceId: {
-                url: "http://serviceId.url"
-            },
-            limit: 1000,
-            bbox: {"CAR": "10,20,30,40"}
-        };
-        store.state.Modules.Routing.directionsSettings = {
-            speedProfile: "CAR"
-        };
-        global.window = {
-            location: {
-                origin: "https://origin"
-            }
-        };
+                url: "http://serviceId.url",
+                distance: "1000"
+            }};
     });
 
     afterEach(() => {
@@ -226,13 +208,13 @@ describe("src/modules/routing/js/geosearch/routing-bkg-geosearch.js", () => {
     });
     describe("should checkConfiguredBbox", () => {
         it("should process result as false with no configuration", () => {
-            store.state.Modules.Routing.directionsSettings = {};
             const result = checkConfiguredBbox();
 
             expect(result).to.be.false;
         });
-        it("should process result correctly with given bbox", () => {
-            state.geosearch = {bbox: {"CAR": "10,20,30,40"}};
+        it("should process result correct with given bbox", () => {
+            store.commit("Tools/Routing/setGeosearch", {bbox: {"CAR": "10,20,30,40"}});
+
             const result = checkConfiguredBbox();
 
             expect(result).to.eql("10,20,30,40");
@@ -250,12 +232,14 @@ describe("src/modules/routing/js/geosearch/routing-bkg-geosearch.js", () => {
             expect(createdUrl.searchParams.get("properties")).to.eql("text");
             expect(createdUrl.searchParams.get("distance")).to.eql("1000");
         });
+
         it("createUrl should respect questionmark in serviceUrl", () => {
             const coordinates = ["1", "2"];
             let createdUrl = null;
 
             service = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map";
             createdUrl = getRoutingBkgGeosearchReverseUrl(coordinates);
+
             expect(createdUrl.origin).to.eql("https://mapservice.regensburg.de");
             expect(decodeURI(createdUrl)).to.eql(service + "&lon=1&lat=2&count=1&properties=text&distance=1000&filter=typ%3Aort");
             expect(createdUrl.searchParams.get("lon")).to.eql(coordinates[0]);
@@ -263,41 +247,6 @@ describe("src/modules/routing/js/geosearch/routing-bkg-geosearch.js", () => {
             expect(createdUrl.searchParams.get("count")).to.be.equals("1");
             expect(createdUrl.searchParams.get("properties")).to.eql("text");
             expect(createdUrl.searchParams.get("distance")).to.eql("1000");
-        });
-    });
-
-    describe("getRoutingBkgGeosearchUrl", () => {
-        it("test params", async () => {
-            const search = "search",
-                createdUrl = await getRoutingBkgGeosearchUrl(search);
-
-            expect(createdUrl.origin).to.eql(service);
-            expect(createdUrl.searchParams.get("count")).to.be.equals("1000");
-            expect(createdUrl.searchParams.get("properties")).to.eql("text");
-            expect(createdUrl.searchParams.get("query")).to.eql("search");
-            expect(createdUrl.searchParams.get("bbox")).to.eql("10,20,30,40");
-        });
-        it("service url with backslash at start", async () => {
-            service = "/tmp/";
-            const search = "search",
-                createdUrl = await getRoutingBkgGeosearchUrl(search);
-
-            expect(createdUrl.origin).to.eql(global.window.location.origin);
-            expect(createdUrl.href).to.eql(global.window.location.origin + service + "?count=1000&properties=text&query=search&bbox=10%2C20%2C30%2C40");
-
-        });
-        it("createUrl should respect questionmark in serviceUrl", async () => {
-            const search = "search";
-            let createdUrl = null;
-
-            service = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map";
-            createdUrl = await getRoutingBkgGeosearchUrl(search);
-            expect(createdUrl.origin).to.eql("https://mapservice.regensburg.de");
-            expect(decodeURI(createdUrl)).to.eql(service + "&count=1000&properties=text&query=search&bbox=10%2C20%2C30%2C40");
-            expect(createdUrl.searchParams.get("count")).to.be.equals("1000");
-            expect(createdUrl.searchParams.get("properties")).to.eql("text");
-            expect(createdUrl.searchParams.get("query")).to.eql("search");
-            expect(createdUrl.searchParams.get("bbox")).to.eql("10,20,30,40");
         });
     });
 });

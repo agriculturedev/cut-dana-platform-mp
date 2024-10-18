@@ -54,6 +54,7 @@ export function handleLoginParameters () {
         return "user logged in: " + (Cookie.get("email") || "no email defined for user");
     }
 
+    addAuthenticationBearerInterceptors(Config.login);
     return false;
 }
 

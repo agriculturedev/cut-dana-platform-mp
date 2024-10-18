@@ -1,15 +1,20 @@
 import axios from "axios";
 import {RoutingGeosearchResult} from "../classes/routing-geosearch-result";
 import state from "./../../store/stateRouting";
-import store from "../../../../app-store";
+import store from "../../../../../app-store";
+
 /**
  * Requests POIs from text from BKG
  * @param {String} search text to search with
  * @returns {RoutingGeosearchResult[]} routingGeosearchResults
  */
 async function fetchRoutingBkgGeosearch (search) {
-    const url = await getRoutingBkgGeosearchUrl(search),
-        response = await axios.get(url, window.location.href);
+    const serviceUrl = store.getters.getRestServiceById(state.geosearch.serviceId).url,
+        checkConfiguredBboxValue = await checkConfiguredBbox(),
+        bBoxValue = await checkConfiguredBboxValue !== false ? `&bbox=${checkConfiguredBboxValue}` : "",
+        url = `${serviceUrl}?count=${state.geosearch.limit}&properties=text`,
+        parameter = `&query=${encodeURIComponent(search)}${bBoxValue}`,
+        response = await axios.get(url + parameter);
 
     if (response.status !== 200 && !response.data.success) {
         throw new Error({
@@ -22,38 +27,11 @@ async function fetchRoutingBkgGeosearch (search) {
 
 /**
  * Creates the url with the given params.
- * @param {String} search to search for
- * @returns {String} the url
- */
-async function getRoutingBkgGeosearchUrl (search) {
-    const serviceUrl = store.getters.restServiceById(state.geosearch.serviceId).url,
-        checkConfiguredBboxValue = await checkConfiguredBbox(),
-        bBoxValue = await checkConfiguredBboxValue !== false ? checkConfiguredBboxValue : false;
-    let url;
-
-    if (serviceUrl.startsWith("/")) {
-        url = new URL(serviceUrl, window.location.origin);
-    }
-    else {
-        url = new URL(serviceUrl);
-    }
-    url.searchParams.set("count", state.geosearch.limit);
-    url.searchParams.set("properties", "text");
-    url.searchParams.set("query", encodeURIComponent(search));
-    if (bBoxValue) {
-        url.searchParams.set("bbox", bBoxValue);
-    }
-
-    return url;
-}
-
-/**
- * Creates the url with the given params.
- * @param {Array<{Number, Number}>} coordinates to search at
+ * @param {[Number, Number]} coordinates to search at
  * @returns {String} the url
  */
 function getRoutingBkgGeosearchReverseUrl (coordinates) {
-    const serviceUrl = store.getters.restServiceById(state.geosearchReverse.serviceId).url,
+    const serviceUrl = store.getters.getRestServiceById(state.geosearchReverse.serviceId).url,
         url = new URL(serviceUrl);
 
     url.searchParams.set("lon", coordinates[0]);
@@ -62,12 +40,13 @@ function getRoutingBkgGeosearchReverseUrl (coordinates) {
     url.searchParams.set("properties", "text");
     url.searchParams.set("distance", state.geosearchReverse.distance);
     url.searchParams.set("filter", state.geosearchReverse.filter ? state.geosearchReverse.filter : "typ:ort");
+
     return url;
 }
 
 /**
  * Requests POI at coordinate from BKG
- * @param {Array<{Number, Number}>} coordinates to search at
+ * @param {[Number, Number]} coordinates to search at
  * @returns {RoutingGeosearchResult} routingGeosearchResult
  */
 async function fetchRoutingBkgGeosearchReverse (coordinates) {
@@ -86,7 +65,7 @@ async function fetchRoutingBkgGeosearchReverse (coordinates) {
  * Parses Response from Bkg to RoutingGeosearchResult
  * @param {Object} geosearchResult from BKG
  * @param {Object} [geosearchResult.geometry] geosearchResult geometry
- * @param {Array<{Number, Number}>} [geosearchResult.geometry.coordinates] geosearchResult geometry coordinates
+ * @param {[Number, Number]} [geosearchResult.geometry.coordinates] geosearchResult geometry coordinates
  * @param {Object} [geosearchResult.properties] geosearchResult properties
  * @param {String} [geosearchResult.properties.text] geosearchResult properties text
  * @returns {RoutingGeosearchResult} routingGeosearchResult
@@ -112,4 +91,4 @@ function checkConfiguredBbox () {
     return false;
 }
 
-export {checkConfiguredBbox, fetchRoutingBkgGeosearch, fetchRoutingBkgGeosearchReverse, getRoutingBkgGeosearchReverseUrl, getRoutingBkgGeosearchUrl};
+export {checkConfiguredBbox, fetchRoutingBkgGeosearch, fetchRoutingBkgGeosearchReverse, getRoutingBkgGeosearchReverseUrl};

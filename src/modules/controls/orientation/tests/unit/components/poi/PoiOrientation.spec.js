@@ -1,44 +1,71 @@
-import {createStore} from "vuex";
-import {config, shallowMount} from "@vue/test-utils";
+import Vuex from "vuex";
+import {config, createLocalVue, shallowMount} from "@vue/test-utils";
 import {expect} from "chai";
-import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList.js";
-import createStyle from "@masterportal/masterportalapi/src/vectorStyle/createStyle.js";
 import PoiOrientationComponent from "../../../../components/poi/PoiOrientation.vue";
+import LinestringStyle from "@masterportal/masterportalapi/src/vectorStyle/styles/styleLine";
+import PointStyle from "@masterportal/masterportalapi/src/vectorStyle/styles/point/stylePoint";
+import PolygonStyle from "@masterportal/masterportalapi/src/vectorStyle/styles/polygon/stylePolygon";
+import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList.js";
 import Feature from "ol/Feature.js";
+import {Circle} from "ol/geom.js";
 import sinon from "sinon";
 
-config.global.mocks.$t = key => key;
+const localVue = createLocalVue();
+
+localVue.use(Vuex);
+config.mocks.$t = key => key;
 
 describe("src/modules/controls/orientation/components/PoiOrientation.vue", () => {
+    const mockConfigJson = {
+            Portalconfig: {
+                menu: {
+                    "controls":
+                        {
+                            "orientation":
+                                {
+                                    "zoomMode": "once",
+                                    "poiDistances":
+                                        [
+                                            1000,
+                                            5000,
+                                            10000
+                                        ]
+                                }
+
+                        }
+                }
+            }
+        },
+
+        mockGetters = {
+            showPoi: () => true,
+            position: () => [565650.509295172, 5934218.137240716],
+            activeCategory: () => "1000"
+        };
+
     let store,
         propsData,
-        wrapper,
-        returnLegendByStyleIdSpy,
-        styleObj,
-        featureStyleObject;
+        wrapper;
 
     beforeEach(() => {
-        store = createStore({
-            namespaced: true,
+        store = new Vuex.Store({
+            namespaces: true,
             modules: {
-                Controls: {
+                controls: {
                     namespaced: true,
                     modules: {
-                        Orientation: {
+                        orientation: {
                             namespaced: true,
-                            getters: {
-                                activeCategory: sinon.stub(),
-                                position: sinon.stub()
-                            },
+                            getters: mockGetters,
                             mutations: {
-                                setActiveCategory: sinon.stub()
+                                setActiveCategory: () => sinon.stub()
                             }
                         }
+                    },
+                    state: {
+                        configJson: mockConfigJson
                     }
                 }
-            },
-            getters: {
-                visibleLayerConfigs: sinon.stub()
             }
         });
 
@@ -48,48 +75,44 @@ describe("src/modules/controls/orientation/components/PoiOrientation.vue", () =>
                 5000,
                 10000
             ],
-            getFeaturesInCircle: () => {
-                const feature = new Feature(),
-                    featuresAll = [];
+            getFeaturesInCircle: (distance, centerPosition) => {
+                const circle = new Circle(centerPosition, distance),
+                    circleExtent = circle.getExtent(),
+                    visibleWFSLayers = Radio.request("ModelList", "getModelsByAttributes", {isVisibleInMap: true, typ: "WFS"});
+                let featuresAll = [],
+                    features = [];
 
-                feature.setId("first");
-                feature.set("styleId", "styleId");
+                if (!Array.isArray(visibleWFSLayers) || !visibleWFSLayers.length) {
+                    return [];
+                }
+                visibleWFSLayers.forEach(layer => {
+                    if (layer.has("layerSource") === true) {
+                        features = layer.get("layerSource").getFeaturesInExtent(circleExtent);
+                        features.forEach(function (feat) {
+                            Object.assign(feat, {
+                                styleId: layer.get("styleId"),
+                                layerName: layer.get("name"),
+                                dist2Pos: this.getDistance(feat, centerPosition)
+                            });
+                        }, this);
+                        featuresAll = this.union(features, featuresAll, function (obj1, obj2) {
+                            return obj1 === obj2;
+                        });
+                    }
+                }, this);
 
-                featuresAll.push(feature);
                 return featuresAll;
             }
         };
-        styleObj = {
-            styleId: "styleId",
-            rules: [],
-            getImage: () => {
-                return {
-                    getSrc: () => "src"
-                };
-            }
-        };
-        featureStyleObject = {
-            styleId: "f_styleId",
-            rules: [],
-            attributes: {
-                type: "icon"
-            }
-        };
-        sinon.stub(styleList, "returnStyleObject").returns(styleObj);
-        sinon.stub(createStyle, "createStyle").returns(styleObj);
-        sinon.stub(createStyle, "getGeometryStyle").returns(featureStyleObject);
-        returnLegendByStyleIdSpy = sinon.spy(createStyle, "returnLegendByStyleId");
 
-        wrapper = shallowMount(PoiOrientationComponent,
-            {
-                global: {
-                    plugins: [store]
-                },
-                propsData: propsData
-            });
+        wrapper = shallowMount(PoiOrientationComponent, {
+            store,
+            propsData: propsData,
+            localVue
+        });
     });
 
-    afterEach(() => {
+    after(() => {
         sinon.restore();
     });
 
@@ -121,28 +144,51 @@ describe("src/modules/controls/orientation/components/PoiOrientation.vue", () =>
         });
     });
 
+    describe("SVG Functions", function () {
+        it("createPolygonGraphic should return an SVG", function () {
+            const style = new PolygonStyle();
 
-    describe("fillImagePath", function () {
-        it("should fill data 'imgPathByFeature' and return image on mount.", function () {
-            expect(Object.keys(wrapper.vm.imgPathByFeature).length).to.be.equals(1);
-            expect(Object.keys(wrapper.vm.imgPathByFeature)[0]).to.be.equals("first");
-            expect(wrapper.vm.imgPathByFeature.first).to.be.equals("src");
-            expect(returnLegendByStyleIdSpy.notCalled).to.be.true;
+            expect(wrapper.vm.createPolygonGraphic(style)).to.be.an("string").to.equal("<svg height='35' width='35'><polygon points='5,5 30,5 30,30 5,30' style='fill:#0ac864;fill-opacity:0.5;stroke:#000000;stroke-opacity:1;stroke-width:1;'/></svg>");
+        });
+        it("createLineSVG should return an SVG", function () {
+            const style = new LinestringStyle();
+
+            expect(wrapper.vm.createLineSVG(style)).to.be.an("string").to.equal("<svg height='35' width='35'><path d='M 05 30 L 30 05' stroke='#000000' stroke-opacity='1' stroke-width='5' fill='none'/></svg>");
+        });
+        it("createCircleSVG should return an SVG", function () {
+            const style = new PointStyle();
+
+            expect(wrapper.vm.createCircleSVG(style)).to.be.an("string").to.equal("<svg height='35' width='35'><circle cx='17.5' cy='17.5' r='15' stroke='#000000' stroke-opacity='1' stroke-width='2' fill='#0ac864' fill-opacity='0.5'/></svg>");
+        });
+    });
+
+    describe("getImgPath", () => {
+        const styleObject = {
+            styleId: "myStyle",
+            rules: [{
+                style: {
+                    type: "icon"
+                }
+            }]
+        };
+
+        beforeEach(() => {
+            sinon.stub(styleList, "returnStyleObject").returns(styleObject);
         });
 
-        it("should fill second entry of data 'imgPathByFeature' and call 'returnLegendByStyleId'.", function () {
-            const feature = new Feature();
+        it("should return an image path for an icon style", () => {
+            const feat = {
+                styleId: "123",
+                getGeometry: () => sinon.spy({
+                    getType: () => "Point",
+                    getCoordinates: () => [100, 100]
+                }),
+                getProperties: () => [],
+                get: () => sinon.stub(),
+                setStyle: sinon.stub()
+            };
 
-            feature.setId("id");
-            feature.set("styleId", "styleId");
-            featureStyleObject.attributes = {};
-            wrapper.vm.fillImagePath(feature);
-
-            expect(Object.keys(wrapper.vm.imgPathByFeature).length).to.be.equals(2);
-            expect(Object.keys(wrapper.vm.imgPathByFeature)[1]).to.be.equals("id");
-            expect(wrapper.vm.imgPathByFeature.id).not.to.be.equals("src");
-            expect(returnLegendByStyleIdSpy.calledOnce).to.be.true;
+            expect(wrapper.vm.getImgPath(feat)).to.equals("https://geodienste.hamburg.de/lgv-config/img/blank.png");
         });
-
     });
 });

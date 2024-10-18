@@ -52,7 +52,8 @@ function buildSinglePortal (allPortalPaths) {
 module.exports = function buildWebpack (answers) {
     const
         sourcePortalsFolder = path.resolve(rootPath, answers.portalPath),
-        cliExecCommand = "webpack --config devtools/webpack.prod.js";
+        excludeAddon = answers.excludeAddon ? answers.excludeAddon.trim() : "",
+        cliExecCommand = "cross-env EXCLUDE_ADDON=" + excludeAddon + " webpack --config devtools/webpack.prod.js";
 
     let allPortalPaths = [];
 

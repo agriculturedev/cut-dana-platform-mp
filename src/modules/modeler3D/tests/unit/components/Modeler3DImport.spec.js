@@ -1,15 +1,15 @@
-import {createStore} from "vuex";
+import Vuex from "vuex";
 import {expect} from "chai";
 import sinon from "sinon";
-import {mount, config} from "@vue/test-utils";
+import {mount, shallowMount, config, createLocalVue} from "@vue/test-utils";
 import Modeler3DImportComponent from "../../../components/Modeler3DImport.vue";
 import Modeler3DModule from "../../../store/indexModeler3D";
 import {JSDOM} from "jsdom";
 import {ColladaLoader} from "three/examples/jsm/loaders/ColladaLoader.js";
 import {OBJLoader} from "three/examples/jsm/loaders/OBJLoader.js";
-import {GLTFExporter} from "three/examples/jsm/exporters/GLTFExporter.js";
 
-const globalDocument = global.document,
+const localVue = createLocalVue(),
+    globalDocument = global.document,
     globalWindow = global.window,
     {window} = new JSDOM(),
     featureCollection = {
@@ -68,9 +68,11 @@ const globalDocument = global.document,
         ]
     };
 
-config.global.mocks.$t = key => key;
+localVue.use(Vuex);
 
-describe("src/modules/modeler3D/components/Modeler3DImport.vue", () => {
+config.mocks.$t = key => key;
+
+describe("src/modules/tools/modeler3D/components/Modeler3DImport.vue", () => {
     let store, wrapper, scene;
     const entities = {
             getById: () => ({position: {}}),
@@ -107,10 +109,10 @@ describe("src/modules/modeler3D/components/Modeler3DImport.vue", () => {
             }
         };
 
-        store = createStore({
+        store = new Vuex.Store({
+            namespaces: true,
             modules: {
-                namespaced: true,
-                Modules: {
+                Tools: {
                     namespaced: true,
                     modules: {
                         Modeler3D: Modeler3DModule
@@ -118,23 +120,23 @@ describe("src/modules/modeler3D/components/Modeler3DImport.vue", () => {
                 }
             }
         });
-
-        store.commit("Modules/Modeler3D/setIsLoading", false);
-        store.commit("Modules/Modeler3D/setDrawnModels", []);
-        store.commit("Modules/Modeler3D/setImportedModels", []);
+        store.commit("Tools/Modeler3D/setActive", true);
+        store.commit("Tools/Modeler3D/setIsLoading", false);
+        store.commit("Tools/Modeler3D/setDrawnModels", []);
+        store.commit("Tools/Modeler3D/setImportedModels", []);
     });
 
     afterEach(() => {
         sinon.restore();
-
+        if (wrapper) {
+            wrapper.destroy();
+        }
         global.document = globalDocument;
         global.window = globalWindow;
     });
 
     it("should find Tool component", () => {
-        wrapper = mount(Modeler3DImportComponent, {global: {
-            plugins: [store]
-        }});
+        wrapper = mount(Modeler3DImportComponent, {store, localVue});
         const toolModeler3DImportWrapper = wrapper.findAllComponents({name: "AccordionItem"}).at(1);
 
         expect(toolModeler3DImportWrapper.exists()).to.be.true;
@@ -143,30 +145,22 @@ describe("src/modules/modeler3D/components/Modeler3DImport.vue", () => {
         const fileContent = "dummy obj file content",
             fileName = "example.obj",
 
-            objLoaderStub = sinon.stub(OBJLoader.prototype, "parse").returns(fileContent),
-            gltfExporterStub = sinon.stub(GLTFExporter.prototype, "parse").returns(fileContent);
+            objLoaderStub = sinon.stub(OBJLoader.prototype, "parse").returns(fileContent);
 
-        wrapper = mount(Modeler3DImportComponent, {global: {
-            plugins: [store]
-        }});
+        wrapper = mount(Modeler3DImportComponent, {store, localVue});
         await wrapper.vm.handleObjFile(fileContent, fileName);
 
         expect(objLoaderStub.calledOnce).to.be.true;
-        expect(gltfExporterStub.calledOnce).to.be.true;
     });
     it("should handle DAE file correctly", async () => {
-        wrapper = mount(Modeler3DImportComponent, {global: {
-            plugins: [store]
-        }});
+        wrapper = mount(Modeler3DImportComponent, {store, localVue});
         const fileContent = "dummy dae file content",
             fileName = "example.dae",
 
-            colladaLoaderStub = sinon.stub(ColladaLoader.prototype, "parse").returns(fileContent),
-            gltfExporterStub = sinon.stub(GLTFExporter.prototype, "parse").returns(fileContent);
+            colladaLoaderStub = sinon.stub(ColladaLoader.prototype, "parse").returns(fileContent);
 
         await wrapper.vm.handleDaeFile(fileContent, fileName);
         expect(colladaLoaderStub.calledOnce).to.be.true;
-        expect(gltfExporterStub.calledOnce).to.be.true;
     });
     it("handles GeoJSON file correctly", () => {
         const fileContent = JSON.stringify(featureCollection),
@@ -191,19 +185,15 @@ describe("src/modules/modeler3D/components/Modeler3DImport.vue", () => {
             fromDegrees: sinon.stub().returns({x: 10, y: 20, z: 30})
         };
 
-        wrapper = mount(Modeler3DImportComponent, {global: {
-            plugins: [store]
-        }});
+        wrapper = shallowMount(Modeler3DImportComponent, {store, localVue});
         wrapper.vm.handleGeoJsonFile(fileContent);
 
         expect(entities.add.callCount).to.equal(featureCount);
-        expect(store.state.Modules.Modeler3D.drawnModels.length).to.equal(featureCount);
-        expect(store.state.Modules.Modeler3D.currentView).to.equal("modeler-draw");
+        expect(store.state.Tools.Modeler3D.drawnModels.length).to.equal(featureCount);
+        expect(store.state.Tools.Modeler3D.currentView).to.equal("draw");
     });
     it("displays the list of successfully imported models", async () => {
-        wrapper = mount(Modeler3DImportComponent, {global: {
-            plugins: [store]
-        }});
+        wrapper = mount(Modeler3DImportComponent, {store, localVue});
         let importedModelList = null;
         const importedModels = [
             {
@@ -218,7 +208,7 @@ describe("src/modules/modeler3D/components/Modeler3DImport.vue", () => {
             }
         ];
 
-        store.commit("Modules/Modeler3D/setImportedModels", importedModels);
+        store.commit("Tools/Modeler3D/setImportedModels", importedModels);
         await wrapper.vm.$nextTick();
 
         importedModelList = wrapper.find("#successfully-imported-models");

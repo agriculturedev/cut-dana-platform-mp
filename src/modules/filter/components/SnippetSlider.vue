@@ -685,7 +685,7 @@ export default {
             :id="'snippetSlider-' + snippetId"
             ref="inputNumber"
             v-model="input"
-            :aria-label="ariaLabelSlider"
+            :aria-label="SnippetSlider"
             class="input-single form-control"
             type="number"
             :min="currentSliderMin"
@@ -697,6 +697,7 @@ export default {
         <div class="slider-input-container">
             <input
                 v-model="slider"
+                :aria-label="Slider"
                 class="slider-single"
                 type="range"
                 :class="disabled ? 'disabled':''"

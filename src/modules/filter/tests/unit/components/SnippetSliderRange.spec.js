@@ -1,20 +1,28 @@
-import {config, shallowMount} from "@vue/test-utils";
+import Vuex from "vuex";
+import {config, shallowMount, createLocalVue} from "@vue/test-utils";
 import SnippetSliderRange from "../../../components/SnippetSliderRange.vue";
 import {expect} from "chai";
 import sinon from "sinon";
 
-config.global.mocks.$t = key => key;
+const localVue = createLocalVue();
 
-describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
+localVue.use(Vuex);
+
+config.mocks.$t = key => key;
+
+describe("src/module/tools/filter/components/SnippetSliderRange.vue", () => {
     let wrapper = null;
 
     afterEach(() => {
         sinon.restore();
+        if (typeof wrapper?.destroy === "function") {
+            wrapper.destroy();
+        }
     });
 
     describe("created", () => {
         it("should have correct default vars", () => {
-            wrapper = shallowMount(SnippetSliderRange, {});
+            wrapper = shallowMount(SnippetSliderRange, {localVue});
 
             expect(wrapper.vm.isInitializing).to.be.true;
             expect(wrapper.vm.isAdjusting).to.be.false;
@@ -30,7 +38,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
             ]);
         });
         it("should have correct default props", () => {
-            wrapper = shallowMount(SnippetSliderRange, {});
+            wrapper = shallowMount(SnippetSliderRange, {localVue});
 
             expect(wrapper.vm.adjustment).to.be.false;
             expect(wrapper.vm.api).to.be.null;
@@ -59,8 +67,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     },
                     spy = sinon.spy(api, "getMinMax");
 
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {api, attrName: "attrName"}});
-                await wrapper.vm.$nextTick();
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {api, attrName: "attrName"}});
                 await wrapper.vm.$nextTick();
                 expect(spy.calledOnce).to.be.true;
             });
@@ -70,21 +77,20 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     },
                     spy = sinon.spy(api, "getMinMax");
 
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {api, attrName: ["attrNameA", "attrNameB"]}});
-                await wrapper.vm.$nextTick();
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {api, attrName: ["attrNameA", "attrNameB"]}});
                 await wrapper.vm.$nextTick();
                 expect(spy.calledOnce).to.be.true;
             });
         });
         describe("template", () => {
             it("should render itself", () => {
-                wrapper = shallowMount(SnippetSliderRange, {});
+                wrapper = shallowMount(SnippetSliderRange, {localVue});
 
                 expect(wrapper.find("div").classes("snippetSliderRangeContainer")).to.be.true;
             });
             describe("titleWrapper", () => {
                 it("should not render a title wrapper if title and info are false", () => {
-                    wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                    wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                         attrName: "attrName",
                         title: false,
                         info: false
@@ -93,7 +99,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     expect(wrapper.find(".titleWrapper").exists()).to.be.false;
                 });
                 it("should render a title wrapper if title is false but info is set", () => {
-                    wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                    wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                         attrName: "attrName",
                         title: false,
                         info: true
@@ -102,7 +108,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     expect(wrapper.find(".titleWrapper").exists()).to.be.true;
                 });
                 it("should render a title wrapper if info is false but title is set", () => {
-                    wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                    wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                         attrName: "attrName",
                         title: "title",
                         info: false
@@ -111,7 +117,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     expect(wrapper.find(".titleWrapper").exists()).to.be.true;
                 });
                 it("should render the attrName as title if title is true", () => {
-                    wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                    wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                         attrName: "attrName",
                         title: true,
                         info: false
@@ -120,7 +126,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     expect(wrapper.find(".titleWrapper").find(".title").text()).to.equal("attrName");
                 });
                 it("should render the title as title if title is set", () => {
-                    wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                    wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                         attrName: "attrName",
                         title: "title",
                         info: false
@@ -129,7 +135,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     expect(wrapper.find(".titleWrapper").find(".title").text()).to.equal("title");
                 });
                 it("should render info if info is set", () => {
-                    wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                    wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                         attrName: "attrName",
                         title: false,
                         info: true
@@ -148,12 +154,10 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                             })
                         };
 
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             api,
                             attrName: "attrName"
                         }});
-                        await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
                         await wrapper.vm.$nextTick();
                         expect(wrapper.find(".inputWrapper").find(".from").find("input").attributes("min")).to.equal("8");
                         expect(wrapper.find(".inputWrapper").find(".from").find("input").attributes("max")).to.equal("90");
@@ -168,13 +172,11 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                             })
                         };
 
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             api,
                             attrName: "attrName",
                             value: [12, 80]
                         }});
-                        await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
                         await wrapper.vm.$nextTick();
                         expect(wrapper.find(".inputWrapper").find(".from").find("input").attributes("min")).to.equal("12");
                         expect(wrapper.find(".inputWrapper").find(".from").find("input").attributes("max")).to.equal("80");
@@ -191,12 +193,10 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                             })
                         };
 
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             api,
                             attrName: "attrName"
                         }});
-                        await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
                         await wrapper.vm.$nextTick();
                         expect(wrapper.find(".inputWrapper").find(".from").find("input").element.value).to.equal("8");
                         expect(wrapper.find(".inputWrapper").find(".until").find("input").element.value).to.equal("90");
@@ -209,13 +209,11 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                             })
                         };
 
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             api,
                             attrName: "attrName",
                             prechecked: [12, 80]
                         }});
-                        await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
                         await wrapper.vm.$nextTick();
                         expect(wrapper.find(".inputWrapper").find(".from").find("input").element.value).to.equal("12");
                         expect(wrapper.find(".inputWrapper").find(".until").find("input").element.value).to.equal("80");
@@ -225,15 +223,17 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
             describe("sliderWrapper", () => {
                 describe("disabling and enabling inputs", () => {
                     it("should add disabledClass to CSS classes if prop disabled is true", async () => {
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             disabled: true
                         }});
+
                         expect(wrapper.find(".measure").classes()).to.include("disabledClass");
                     });
                     it("should verify absence of disabledClass if prop disabled is false", async () => {
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             disabled: false
                         }});
+
                         expect(wrapper.find(".measure").classes()).to.not.include("disabledClass");
                     });
                 });
@@ -246,17 +246,15 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                             })
                         };
 
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             api,
                             attrName: "attrName"
                         }});
                         await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
-                        expect(wrapper.find(".sliderWrapper").find(".from").attributes("min")).to.equal("8");
-                        expect(wrapper.find(".sliderWrapper").find(".from").attributes("max")).to.equal("90");
-                        expect(wrapper.find(".sliderWrapper").find(".until").attributes("min")).to.equal("8");
-                        expect(wrapper.find(".sliderWrapper").find(".until").attributes("max")).to.equal("90");
+                        expect(wrapper.find(".sliderWrapper").find(".from").find("input").attributes("min")).to.equal("8");
+                        expect(wrapper.find(".sliderWrapper").find(".from").find("input").attributes("max")).to.equal("90");
+                        expect(wrapper.find(".sliderWrapper").find(".until").find("input").attributes("min")).to.equal("8");
+                        expect(wrapper.find(".sliderWrapper").find(".until").find("input").attributes("max")).to.equal("90");
                     });
                     it("should cap min and max value for slider if props value is given", async () => {
                         const api = {
@@ -266,18 +264,16 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                             })
                         };
 
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             api,
                             attrName: "attrName",
                             value: [12, 80]
                         }});
                         await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
-                        expect(wrapper.find(".sliderWrapper").find(".from").attributes("min")).to.equal("12");
-                        expect(wrapper.find(".sliderWrapper").find(".from").attributes("max")).to.equal("80");
-                        expect(wrapper.find(".sliderWrapper").find(".until").attributes("min")).to.equal("12");
-                        expect(wrapper.find(".sliderWrapper").find(".until").attributes("max")).to.equal("80");
+                        expect(wrapper.find(".sliderWrapper").find(".from").find("input").attributes("min")).to.equal("12");
+                        expect(wrapper.find(".sliderWrapper").find(".from").find("input").attributes("max")).to.equal("80");
+                        expect(wrapper.find(".sliderWrapper").find(".until").find("input").attributes("min")).to.equal("12");
+                        expect(wrapper.find(".sliderWrapper").find(".until").find("input").attributes("max")).to.equal("80");
                     });
                 });
                 describe("prechecked", () => {
@@ -289,15 +285,13 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                             })
                         };
 
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             api,
                             attrName: "attrName"
                         }});
                         await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
-                        expect(wrapper.find(".sliderWrapper").find(".from").element.value).to.equal("8");
-                        expect(wrapper.find(".sliderWrapper").find(".until").element.value).to.equal("90");
+                        expect(wrapper.find(".sliderWrapper").find(".from").find("input").element.value).to.equal("8");
+                        expect(wrapper.find(".sliderWrapper").find(".until").find("input").element.value).to.equal("90");
                     });
                     it("should set value to borders for slider given by prechecked", async () => {
                         const api = {
@@ -307,16 +301,14 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                             })
                         };
 
-                        wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                        wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                             api,
                             attrName: "attrName",
                             prechecked: [12, 80]
                         }});
                         await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
-                        await wrapper.vm.$nextTick();
-                        expect(wrapper.find(".sliderWrapper").find(".from").element.value).to.equal("12");
-                        expect(wrapper.find(".sliderWrapper").find(".until").element.value).to.equal("80");
+                        expect(wrapper.find(".sliderWrapper").find(".from").find("input").element.value).to.equal("12");
+                        expect(wrapper.find(".sliderWrapper").find(".until").find("input").element.value).to.equal("80");
                     });
                 });
             });
@@ -325,7 +317,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
     describe("methods", () => {
         describe("setCurrentSource", () => {
             it("should set the given value as current source", () => {
-                wrapper = shallowMount(SnippetSliderRange, {});
+                wrapper = shallowMount(SnippetSliderRange, {localVue});
 
                 wrapper.vm.setCurrentSource("test");
                 expect(wrapper.vm.isCurrentSource("test")).to.be.true;
@@ -333,13 +325,15 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
         });
         describe("getSliderSteps", () => {
             it("should return the steps the slider should have based on the given decimal places", () => {
-                wrapper = shallowMount(SnippetSliderRange, {});
+                wrapper = shallowMount(SnippetSliderRange, {localVue});
 
                 expect(wrapper.vm.getSliderSteps(-2)).to.equal(100);
                 expect(wrapper.vm.getSliderSteps(-1)).to.equal(10);
                 expect(wrapper.vm.getSliderSteps(0)).to.equal(1);
                 expect(wrapper.vm.getSliderSteps(1)).to.equal(0.1);
                 expect(wrapper.vm.getSliderSteps(2)).to.equal(0.01);
+
+                wrapper.destroy();
             });
         });
         describe("resetSnippet", () => {
@@ -351,12 +345,11 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     })
                 };
 
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     api,
                     attrName: "attrName",
                     prechecked: [12, 80]
                 }});
-                await wrapper.vm.$nextTick();
                 await wrapper.vm.$nextTick();
                 expect(wrapper.vm.sliderFrom).to.equal(12);
                 expect(wrapper.vm.sliderUntil).to.equal(80);
@@ -367,7 +360,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
         });
         describe("deleteCurrentRule", () => {
             it("should emit deleteRule with its snippetId", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     snippetId: 1
                 }});
 
@@ -379,7 +372,7 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
         });
         describe("emitCurrentRule", () => {
             it("should emit changeRule function with the expected values", async () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     snippetId: 1,
                     visible: false,
                     attrName: "attrName",
@@ -411,9 +404,24 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     })
                 };
 
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     api,
                     attrName: "attrName"
+                }});
+                expect(wrapper.vm.getMeasureWidth()).to.equal("100.0%");
+            });
+            it("should return 100% if value is set to min and max and decimal places is 1", () => {
+                const api = {
+                    getMinMax: (attrName, onsuccess) => onsuccess({
+                        min: 8,
+                        max: 90
+                    })
+                };
+
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
+                    api,
+                    attrName: "attrName",
+                    decimalPlaces: 1
                 }});
                 expect(wrapper.vm.getMeasureWidth()).to.equal("100.0%");
             });
@@ -425,14 +433,30 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     })
                 };
 
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     api,
                     attrName: "attrName",
                     prechecked: [12, 80]
                 }});
                 await wrapper.vm.$nextTick();
-                await wrapper.vm.$nextTick();
                 expect(wrapper.vm.getMeasureWidth()).to.equal("83.8%");
+            });
+            it("should return the correct width if value is set between min and max and decimal places is 1", async () => {
+                const api = {
+                    getMinMax: (attrName, onsuccess) => onsuccess({
+                        min: 0.4,
+                        max: 0.8
+                    })
+                };
+
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
+                    api,
+                    attrName: "attrName",
+                    prechecked: [0.6, 0.8],
+                    decimalPlaces: 2
+                }});
+                await wrapper.vm.$nextTick();
+                expect(wrapper.vm.getMeasureWidth()).to.equal("52.5%");
             });
         });
         describe("getMeasureLeft", () => {
@@ -444,9 +468,24 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     })
                 };
 
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     api,
                     attrName: "attrName"
+                }});
+                expect(wrapper.vm.getMeasureLeft()).to.equal("0.0%");
+            });
+            it("should return 0% if from value equals min and decimal places is 1", () => {
+                const api = {
+                    getMinMax: (attrName, onsuccess) => onsuccess({
+                        min: 8,
+                        max: 90
+                    })
+                };
+
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
+                    api,
+                    attrName: "attrName",
+                    decimalPlaces: 1
                 }});
                 expect(wrapper.vm.getMeasureLeft()).to.equal("0.0%");
             });
@@ -458,37 +497,53 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     })
                 };
 
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     api,
                     attrName: "attrName",
                     prechecked: [12, 80]
                 }});
                 await wrapper.vm.$nextTick();
-                await wrapper.vm.$nextTick();
                 expect(wrapper.vm.getMeasureLeft()).to.equal("4.6%");
+            });
+            it("should return correct percentage for left if from value is set and decimal places is 1", async () => {
+                const api = {
+                    getMinMax: (attrName, onsuccess) => onsuccess({
+                        min: 0.4,
+                        max: 0.8
+                    })
+                };
+
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
+                    api,
+                    attrName: "attrName",
+                    prechecked: [0.6, 0.8],
+                    decimalPlaces: 1
+                }});
+                await wrapper.vm.$nextTick();
+                expect(wrapper.vm.getMeasureLeft()).to.equal("47.5%");
             });
         });
         describe("isSelfSnippetId", () => {
             it("should return false if the given snippetId does not equal its snippetId", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     snippetId: 1
                 }});
                 expect(wrapper.vm.isSelfSnippetId(0)).to.be.false;
             });
             it("should return false if the given snippetId does not include its snippetId", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     snippetId: 1
                 }});
                 expect(wrapper.vm.isSelfSnippetId([0, 2, 3])).to.be.false;
             });
             it("should return true if the given snippetId equals its snippetId", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     snippetId: 1
                 }});
                 expect(wrapper.vm.isSelfSnippetId(1)).to.be.true;
             });
             it("should return false if the given snippetId includes its snippetId", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     snippetId: 1
                 }});
                 expect(wrapper.vm.isSelfSnippetId([0, 1, 2, 3])).to.be.true;
@@ -496,11 +551,11 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
         });
         describe("isPrecheckedValid", () => {
             it("should return false if prechecked is not valid", () => {
-                wrapper = shallowMount(SnippetSliderRange, {});
+                wrapper = shallowMount(SnippetSliderRange, {localVue});
                 expect(wrapper.vm.isPrecheckedValid()).to.be.false;
             });
             it("should return true if prechecked is valid", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     prechecked: [12, 90]
                 }});
                 expect(wrapper.vm.isPrecheckedValid()).to.be.true;
@@ -508,13 +563,13 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
         });
         describe("getOperator", () => {
             it("should return the default operator for sliderRange if any illegal operator is set", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     operator: "SOMETHING"
                 }});
                 expect(wrapper.vm.getOperator()).to.not.equal("SOMETHING");
             });
             it("should return the set operator if operator is part of the whitelist", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     operator: "BETWEEN"
                 }});
                 expect(wrapper.vm.getOperator()).to.equal("BETWEEN");
@@ -522,13 +577,13 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
         });
         describe("getAttrNameUntil", () => {
             it("should return the set attrName if it is a string", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     attrName: "attrName"
                 }});
                 expect(wrapper.vm.getAttrNameUntil()).to.equal("attrName");
             });
             it("should return second element of attrName if it is an array of two", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     attrName: ["attrNameA", "attrNameB"]
                 }});
                 expect(wrapper.vm.getAttrNameUntil()).to.equal("attrNameB");
@@ -536,13 +591,13 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
         });
         describe("getAttrNameFrom", () => {
             it("should return the set attrName if it is a string", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     attrName: "attrName"
                 }});
                 expect(wrapper.vm.getAttrNameFrom()).to.equal("attrName");
             });
             it("should return first element of attrName if it is an array of two", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     attrName: ["attrNameA", "attrNameB"]
                 }});
                 expect(wrapper.vm.getAttrNameFrom()).to.equal("attrNameA");
@@ -557,31 +612,30 @@ describe("src/modules/filter/components/SnippetSliderRange.vue", () => {
                     })
                 };
 
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     api,
                     attrName: "attrName",
                     prechecked: [12, 80]
                 }});
-                await wrapper.vm.$nextTick();
                 await wrapper.vm.$nextTick();
                 expect(wrapper.vm.getTagTitle()).to.equal("12 - 80");
             });
         });
         describe("getTitle", () => {
             it("should return the title if set title is a string", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     title: "title"
                 }});
                 expect(wrapper.vm.getTitle()).to.equal("title");
             });
             it("should return attrName if title is not set and attrName is a string", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     attrName: "attrName"
                 }});
                 expect(wrapper.vm.getTitle()).to.equal("attrName");
             });
             it("should return attrName for from if title is not set and attrName is an array of two", () => {
-                wrapper = shallowMount(SnippetSliderRange, {propsData: {
+                wrapper = shallowMount(SnippetSliderRange, {localVue, propsData: {
                     attrName: ["attrNameA", "attrNameB"]
                 }});
                 expect(wrapper.vm.getTitle()).to.equal("attrNameA");

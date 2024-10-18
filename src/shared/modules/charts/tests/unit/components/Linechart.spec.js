@@ -1,64 +1,55 @@
-import {config, shallowMount} from "@vue/test-utils";
+import Vuex from "vuex";
+import {shallowMount, createLocalVue} from "@vue/test-utils";
 import {expect} from "chai";
-import Chart from "chart.js/auto";
+import ChartJs from "chart.js/auto";
 import sinon from "sinon";
 import {nextTick} from "vue";
 import LinechartItem from "../../../components/LinechartItem.vue";
 
-config.global.mocks.$t = key => key;
+const localVue = createLocalVue();
 
-describe("src/shared/modules/charts/components/LinechartItem.vue", () => {
+localVue.use(Vuex);
+
+describe("src/share-components/charts/components/LinechartItem.vue", () => {
     let wrapper;
 
     beforeEach(() => {
         wrapper = shallowMount(LinechartItem, {
-            props: {
+            propsData: {
                 data: {
                     labels: [],
                     datasets: []
                 },
                 givenOptions: {}
-            }
+            },
+            localVue
         });
     });
 
     describe("mounted", () => {
-        it("should create an instance of ChartJS when mounted", () => {
-            nextTick(() => {
-                expect(wrapper.vm.chart).to.be.an.instanceof(Chart);
-            });
+        it("should create an instance of ChartJS when mounted", async () => {
+            await wrapper.vm.$nextTick();
+            expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
         });
-        it("should create a chart of type line when mounted", () => {
-            nextTick(() => {
-                expect(wrapper.vm.chart.config.type).to.equal("line");
-            });
+        it("should create a chart of type line when mounted", async () => {
+            await wrapper.vm.$nextTick();
+            expect(wrapper.vm.chart.config.type).to.equal("line");
         });
-        it("should create a canvas element in its component", () => {
+        it("should create a canvas element in its component", async () => {
+            await wrapper.vm.$nextTick();
             expect(wrapper.find("canvas").exists()).to.be.true;
         });
     });
     describe("resetChart", () => {
-        it("should destroy the former chart", () => {
+        it("should destroy the former chart and create a new one", async () => {
             const destroySpy = sinon.spy();
 
             nextTick(() => {
-                wrapper.vm.chart = new Chart(document.createElement("CANVAS"));
+                wrapper.vm.chart = new ChartJs(document.createElement("CANVAS"));
                 wrapper.vm.chart.destroy = destroySpy;
                 wrapper.vm.destroyChart();
 
                 expect(destroySpy.called).to.be.true;
-            });
-        });
-        it("should destroy the former chart and create a new one", () => {
-            let destroyCalled = false;
-
-            nextTick(() => {
-                wrapper.vm.chart.destroy = () => {
-                    destroyCalled = true;
-                };
-                wrapper.vm.resetChart({});
-
-                expect(destroyCalled).to.be.true;
             });
         });
     });

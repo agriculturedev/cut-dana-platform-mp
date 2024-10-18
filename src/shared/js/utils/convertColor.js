@@ -340,7 +340,7 @@ function convertToHexColor (color) {
 function convertToHexColorA (color) {
     const i = Math.round(color[3] * 100) / 100,
         alpha = Math.round(i * 255),
-        hex = (alpha + 0 * 10000).toString(16).substring(-2);
+        hex = (alpha + 0 * 10000).toString(16).substr(-2);
 
     return "#"
         + parseInt(color[0], 10).toString(16).padStart(2, "0")
@@ -397,95 +397,6 @@ function convertToRgbaString (color) {
         + String(color[1]) + ", "
         + String(color[2]) + ", "
         + String(color[3]) + ")";
-}
-
-// Functions to convert from Hex to HSL and vice versa
-// Hue is a degree on the color wheel from 0 to 360. 0 (or 360) is red, 120 is green, 240 is blue.
-// Saturation can be described as the intensity of a color. It is a percentage value from 0% to 100%.
-// The lightness of a color can be described as how much light you want to give the color, where 0% means no light (dark),
-// means medium 50% light (neither dark nor light), and 100% means full light.
-
-/**
- * Converts a hex color to HSL (Hue, Saturation, Lightness)
- * @param {String} hex the color in a hex string
- * @returns {Object} Object containing the hsl values
- */
-function convertHexToHSL (hex) {
-    const hexColor = isHexColorString(hex);
-
-    if (!hexColor) {
-        console.warn("The color to convert from hex to hsl is not a hex value");
-        return false;
-    }
-
-    /* eslint-disable one-var*/
-    const r = parseInt(hex.slice(1, 3), 16) / 255,
-        g = parseInt(hex.slice(3, 5), 16) / 255,
-        b = parseInt(hex.slice(5, 7), 16) / 255,
-        max = Math.max(r, g, b),
-        min = Math.min(r, g, b),
-        l = (max + min) / 2; // Calculate Lightness
-
-    let h, s;
-
-    if (max === min) {
-        h = s = 0; // achromatic
-    }
-    else {
-        const d = max - min;
-
-        // Calculate Saturation
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-
-        // Calculate Hue
-        /* eslint-disable default-case*/
-        switch (max) {
-            case r:
-                h = (g - b) / d + (g < b ? 6 : 0);
-                break;
-            case g:
-                h = (b - r) / d + 2;
-                break;
-            case b:
-                h = (r - g) / d + 4;
-                break;
-        }
-
-        h /= 6;
-    }
-
-    return {
-        h: h * 360, // Convert to degrees
-        s: s * 100, // Convert to percentage
-        l: l * 100 // Convert to percentage
-    };
-}
-
-/**
- * Converts HSL to hex
- * @param {Number} h hue value
- * @param {Number} s saturation value
- * @param {Number} l lightness value
- * @returns {String} hex string
- */
-function convertHslToHex (h, s, l) {
-
-    if (typeof h !== "number" || typeof s !== "number" || typeof l !== "number") {
-        return false;
-    }
-
-    const lightness = l / 100,
-        a = s * Math.min(lightness, 1 - lightness) / 100;
-
-    /* eslint-disable jsdoc/require-jsdoc*/
-    function f (n) {
-        const k = (n + h / 30) % 12,
-            color = lightness - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-
-        return Math.round(255 * color).toString(16).padStart(2, "0");
-    }
-
-    return `#${f(0)}${f(8)}${f(4)}`;
 }
 
 
@@ -668,7 +579,5 @@ export {
     convertToRgbaArrayString,
     convertToRgbString,
     convertToRgbaString,
-    getCssColorMap,
-    convertHexToHSL,
-    convertHslToHex
+    getCssColorMap
 };

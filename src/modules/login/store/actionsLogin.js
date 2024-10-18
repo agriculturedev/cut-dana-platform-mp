@@ -1,7 +1,22 @@
-import Cookie from "../js/utilsCookies";
-import OIDC from "../js/utilsOIDC";
+import {fetchFirstModuleConfig} from "../../../../utils/fetchFirstModuleConfig";
+import Cookie from "../utils/utilsCookies";
+import OIDC from "../utils/utilsOIDC";
+
+/**
+ * @const {String} configPath an array of possible config locations. First one found will be used
+ */
+const configPaths = [
+    "configJson.Portalconfig.login"
+];
 
 export default {
+    /**
+     * Sets the config-params of this tool into state.
+     * @param {Object} context the context Vue instance
+     * @returns {Boolean} false, if config does not contain the tool
+     */
+    initialize: context => fetchFirstModuleConfig(context, configPaths, "login"),
+
     /**
      * Returns authentication URL
      *
@@ -20,7 +35,7 @@ export default {
     },
 
     /**
-     * Removes all login information from the store and erases all corresponding cookies
+     * Removes all login information from the store, erases all corresponding cookies and revokes tokens.
      *
      * @param {Object} context the context Vue instance
      * @return {void}
@@ -28,8 +43,8 @@ export default {
     logout ({commit}) {
         const token = Cookie.get("token"),
             refreshToken = Cookie.get("refresh_token"),
-            oidcClientId = Config?.login?.oidcClientId,
-            oidcRevocationEndpoint = Config?.login?.oidcRevocationEndpoint;
+            oidcRevocationEndpoint = Config?.login?.oidcRevocationEndpoint,
+            oidcClientId = Config?.login?.oidcClientId;
 
         OIDC.eraseCookies();
 
@@ -65,6 +80,7 @@ export default {
         commit("setAccessToken", token);
         commit("setRefreshToken", refreshToken);
 
+        // check if token is expired
         if (OIDC.getTokenExpiry(token) < 1) {
             dispatch("logout");
             return false;
@@ -72,10 +88,12 @@ export default {
 
         OIDC.renewTokenIfNecessary(token, refreshToken, config);
 
+        // set logged into store
         loggedIn = Boolean(token);
 
         commit("setLoggedIn", loggedIn);
 
+        // set name and email into store
         commit("setScreenName", Cookie.get("name"));
         commit("setUsername", Cookie.get("username"));
         commit("setEmail", Cookie.get("email"));

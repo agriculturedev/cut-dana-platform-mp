@@ -1,20 +1,20 @@
 import axios from "axios";
-import store from "../../../../../../app-store";
+import store from "../../../../../../../app-store";
 import {expect} from "chai";
 import sinon from "sinon";
-import {RoutingGeosearchResult} from "../../../../js/classes/routing-geosearch-result";
-import {fetchRoutingLocationFinderGeosearch, getRoutingLocationFinderGeosearchUrl} from "../../../../js/geosearch/routing-locationFinder-geosearch";
+import {RoutingGeosearchResult} from "../../../../utils/classes/routing-geosearch-result";
+import {fetchRoutingLocationFinderGeosearch, getRoutingLocationFinderGeosearchUrl} from "../../../../utils/geosearch/routing-locationFinder-geosearch";
 
-describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js", () => {
+describe("src/modules/tools/routing/utils/geosearch/routing-locationFinder-geosearch.js", () => {
     let service;
 
     beforeEach(() => {
         service = "https://service";
         sinon.stub(i18next, "t").callsFake((...args) => args);
         store.getters = {
-            restServiceById: () => ({url: service})
+            getRestServiceById: () => ({url: service})
         };
-        store.state.Modules.Routing.geosearch = {
+        store.state.Tools.Routing.geosearch = {
             serviceId: {
                 url: "http://serviceId.url"
             },
@@ -35,7 +35,7 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
                         locs: [
                             {
                                 id: 1609,
-                                type: "StraÃŸenname",
+                                type: "Straßenname",
                                 name: "Im Alten Park",
                                 cx: 511114.73,
                                 cy: 5397800.69,
@@ -49,8 +49,8 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
                                 cy: 5404093.73,
                                 epsg: 25832,
                                 id: 2637,
-                                name: "ParkstraÃŸe",
-                                type: "StraÃŸenname",
+                                name: "Parkstraße",
+                                type: "Straßenname",
                                 xmax: 515719.04,
                                 xmin: 515435.23,
                                 ymax: 5404246.82,
@@ -73,7 +73,7 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
                 ),
                 new RoutingGeosearchResult(
                     [515643.21, 5404093.73],
-                    "ParkstraÃŸe",
+                    "Parkstraße",
                     "25832"
                 )
                 ];
@@ -100,7 +100,6 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
             }
         });
     });
-
     describe("getRoutingLocationFinderGeosearchUrl", () => {
         it("test params", () => {
             const search = "search",
@@ -112,6 +111,7 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
             expect(createdUrl.searchParams.get("properties")).to.eql("text");
             expect(createdUrl.searchParams.get("query")).to.eql(search);
         });
+
         it("test pathname", () => {
             service = "https://service/";
             const search = "search",
@@ -123,12 +123,14 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
             expect(createdUrl.searchParams.get("properties")).to.eql("text");
             expect(createdUrl.searchParams.get("query")).to.eql(search);
         });
+
         it("createUrl should respect questionmark in serviceUrl", () => {
             const search = "search";
             let createdUrl = null;
 
             service = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map";
             createdUrl = getRoutingLocationFinderGeosearchUrl(search);
+
             expect(createdUrl.origin).to.eql("https://mapservice.regensburg.de");
             expect(decodeURI(createdUrl)).to.eql(service + "%2FLookup&limit=1000&properties=text&query=search");
             expect(createdUrl.searchParams.get("limit")).to.eql("1000");

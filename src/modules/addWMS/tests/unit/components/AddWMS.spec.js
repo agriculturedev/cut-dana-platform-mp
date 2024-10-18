@@ -273,5 +273,45 @@ describe("src/modules/addWMS/components/AddWMS.vue", () => {
             expect(wrapper.vm.getUrl(serviceUrl).split("?").length - 1).to.equal(1);
             expect(wrapper.vm.getUrl(serviceUrl)).to.contain("request=GetCapabilities&service=WMS");
         });
+
+        it("should correctly parse md_id from MetadataURL and trigger addLayer with correct parameters", () => {
+            const object = {
+                    MetadataURL: [{
+                        OnlineResource: "https://mis.bkg.bund.de/csw?REQUEST=GetRecordById&SERVICE=CSW&VERSION=2.0.2&OUTPUTSCHEMA=http://www.isotc211.org/2005/gmd&elementSetName=full&id=9CA8DCBB-69F6-4954-8D50-18A7624222BA"
+                    }]
+                },
+                parentId = "external_100",
+                level = 1;
+
+            wrapper.vm.parseLayer(object, parentId, level);
+
+            expect(trigger.callCount).to.equals(1);
+            expect(trigger.firstCall.args[0]).to.equals("Parser");
+            expect(trigger.firstCall.args[1]).to.equals("addLayer");
+            expect(trigger.firstCall.args[4]).to.equals("external_100");
+            expect(trigger.firstCall.args[5]).to.equals(1);
+
+            expect(trigger.firstCall.lastArg.datasets[0].md_id).to.equals("9ca8dcbb-69f6-4954-8d50-18a7624222ba");
+        });
+
+        it("should not throw an Error if MetadataURL is without ID", () => {
+            const object = {
+                    MetadataURL: [{
+                        OnlineResource: "https://mis.bkg.bund.de/csw?REQUEST=GetRecordById&SERVICE=CSW&VERSION=2.0.2&OUTPUTSCHEMA=http://www.isotc211.org/2005/gmd&elementSetName=full"
+                    }]
+                },
+                parentId = "external_100",
+                level = 1;
+
+            wrapper.vm.parseLayer(object, parentId, level);
+
+            expect(trigger.callCount).to.equals(1);
+            expect(trigger.firstCall.args[0]).to.equals("Parser");
+            expect(trigger.firstCall.args[1]).to.equals("addLayer");
+            expect(trigger.firstCall.args[4]).to.equals("external_100");
+            expect(trigger.firstCall.args[5]).to.equals(1);
+
+            expect(trigger.firstCall.lastArg.datasets[0].md_id).to.equals(null);
+        });
     });
 });

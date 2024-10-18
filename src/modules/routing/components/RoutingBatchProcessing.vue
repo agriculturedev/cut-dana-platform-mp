@@ -135,6 +135,7 @@ export default {
                 <progress
                     class="col-8"
                     max="100"
+                    :aria-label="RoutingBatchProcessing"
                     :value="progress"
                 />
                 <span

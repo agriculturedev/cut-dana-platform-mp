@@ -1,53 +1,42 @@
 <script>
+import ToolTemplate from "../../ToolTemplate.vue";
+import {getComponent} from "../../../../utils/getComponent";
 import {mapActions, mapGetters, mapMutations} from "vuex";
 import getters from "../store/gettersFilter";
 import mutations from "../store/mutationsFilter";
 import LayerFilterSnippet from "./LayerFilterSnippet.vue";
 import MapHandler from "../utils/mapHandler.js";
-import FilterApi from "../js/interfaces/filter.api.js";
+import FilterApi from "../interfaces/filter.api.js";
 import {compileLayers} from "../utils/compileLayers.js";
 import openlayerFunctions from "../utils/openlayerFunctions.js";
 import FilterList from "./FilterList.vue";
-import isObject from "../../../shared/js/utils/isObject.js";
+import isObject from "../../../../utils/isObject.js";
 import GeometryFilter from "./GeometryFilter.vue";
 import {getFeaturesOfAdditionalGeometries} from "../utils/getFeaturesOfAdditionalGeometries.js";
 import rawLayerList from "@masterportal/masterportalapi/src/rawLayerList";
-import {getFeatureGET} from "../../../shared/js/api/wfs/getFeature";
+import {getFeatureGET} from "../../../../api/wfs/getFeature";
 import {WFS} from "ol/format.js";
 import UrlHandler from "../utils/urlHandler.js";
 import Cluster from "ol/source/Cluster";
-import layerCollection from "../../../core/layers/js/layerCollection";
-import {Toast} from "bootstrap";
-import IconButton from "../../../shared/modules/buttons/components/IconButton.vue";
-import {hasUnfixedRules} from "../utils/hasUnfixedRules.js";
 
-/**
- * Filter General
- * @module modules/FilterGeneral
- * @vue-data {Object} mapHandler - The MapHandler Object.
- * @vue-data {Array} layerConfigs - List of layer configurations.
- * @vue-data {Array} selectedLayerGroups - List of selected layer groups.
- * @vue-data {Array} preparedLayerGroups - List of prepared layer groups.
- * @vue-data {Array} flattenPreparedLayerGroups - List of prepared, flattened layer groups.
- * @vue-data {Object} layerLoaded - The loaded layer.
- * @vue-data {String} layerFilterSnippetPostKey - The layer filter snippet post key.
- */
 export default {
     name: "FilterGeneral",
     components: {
+        ToolTemplate,
         GeometryFilter,
         LayerFilterSnippet,
-        FilterList,
-        IconButton
+        FilterList
     },
     data () {
         return {
+            storePath: this.$store.state.Tools.Filter,
             mapHandler: new MapHandler({
                 getLayerByLayerId: openlayerFunctions.getLayerByLayerId,
                 showFeaturesByIds: openlayerFunctions.showFeaturesByIds,
+                createLayerIfNotExists: openlayerFunctions.createLayerIfNotExists,
                 zoomToFilteredFeatures: openlayerFunctions.zoomToFilteredFeatures,
                 zoomToExtent: openlayerFunctions.zoomToExtent,
-                changeLayerVisibility: openlayerFunctions.changeLayerVisibility,
+                addLayerByLayerId: openlayerFunctions.addLayerByLayerId,
                 setParserAttributeByLayerId: openlayerFunctions.setParserAttributeByLayerId,
                 getLayers: openlayerFunctions.getLayers
             }),
@@ -63,20 +52,7 @@ export default {
         };
     },
     computed: {
-        ...mapGetters("Modules/Filter", Object.keys(getters)),
-        ...mapGetters({appStoreUrlParams: "urlParams"}),
-
-        currentURL () {
-            const url = new URL(window.location.href);
-
-            url.searchParams.set("MENU", "{\""
-                + (this.menuSide === "mainMenu" ? "main" : "secondary")
-                + "\":{\"currentComponent\":\"filter\"}}"
-            );
-            url.searchParams.set(this.type.toUpperCase(), this.urlParams);
-            return url;
-        },
-
+        ...mapGetters("Tools/Filter", Object.keys(getters)),
         console: () => console,
         filters () {
             return this.layerConfigs.layers.filter(layer => {
@@ -85,6 +61,7 @@ export default {
         }
     },
     created () {
+        this.$on("close", this.close);
         getFeaturesOfAdditionalGeometries(this.geometrySelectorOptions.additionalGeometries).then(additionalGeometries => {
             if (!Array.isArray(additionalGeometries) || !additionalGeometries.length) {
                 return;
@@ -92,9 +69,21 @@ export default {
             this.setAdditionalGeometries({additionalGeometries});
         });
     },
-    mounted () {
+    async mounted () {
+        await this.convertConfig({
+            snippetInfos: openlayerFunctions.getSnippetInfos()
+        });
+
         this.layerConfigs = compileLayers(this.layerGroups, this.layers, FilterApi);
 
+        this.$nextTick(() => {
+            if (openlayerFunctions.isUiStyleTable()) {
+                if (typeof this.$el.querySelector === "function" && this.$el.querySelector("#tool-general-filter")) {
+                    openlayerFunctions.setFilterInTableMenu(this.$el.querySelector("#tool-general-filter"));
+                    this.$el.remove();
+                }
+            }
+        });
         if (Array.isArray(this.layerConfigs.groups) && this.layerConfigs.groups.length > 0) {
             this.layerConfigs.groups.forEach(layerGroup => {
                 if (isObject(layerGroup)) {
@@ -109,7 +98,6 @@ export default {
                 });
             }
         }
-
         if (Array.isArray(this.layerConfigs?.layers) && this.layerConfigs.layers.length > 0) {
             const selectedFilterIds = [];
 
@@ -122,22 +110,23 @@ export default {
                 this.setSelectedAccordions(this.transformLayerConfig(this.layerConfigs.layers, selectedFilterIds));
             }
         }
-        this.urlHandler.readFromUrlParams(this.appStoreUrlParams?.[this.type.toUpperCase()], this.layerConfigs, this.mapHandler, params => {
+        this.urlHandler.readFromUrlParams(this.$store.state.urlParams?.filter, this.layerConfigs, this.mapHandler, params => {
             this.handleStateForAlreadyActiveLayers(params);
             this.deserializeState({...params, setLateActive: true});
             this.addWatcherToWriteUrl();
         });
         this.addWatcherToWriteUrl();
     },
-    beforeUnmount () {
+    beforeDestroy () {
         if (this.mapMoveRegistered) {
             this.unregisterMapMoveListeners();
         }
     },
     methods: {
-        ...mapMutations("Modules/Filter", Object.keys(mutations)),
-        ...mapActions("Modules/Filter", [
+        ...mapMutations("Tools/Filter", Object.keys(mutations)),
+        ...mapActions("Tools/Filter", [
             "initialize",
+            "convertConfig",
             "updateRules",
             "deleteAllRules",
             "updateFilterHits",
@@ -145,7 +134,14 @@ export default {
             "setRulesArray"
         ]),
         ...mapActions("Maps", ["registerListener", "unregisterListener"]),
-        hasUnfixedRules,
+        close () {
+            this.setActive(false);
+            const model = getComponent(this.storePath.id);
+
+            if (model) {
+                model.set("isActive", false);
+            }
+        },
         /**
          * Handles the state for already activated layers by given params.
          * The given params are set for the matching layer if it is already active but has no features loaded yet.
@@ -161,30 +157,29 @@ export default {
                 || !Object.prototype.hasOwnProperty.call(params, "rulesOfFilters")) {
                 return;
             }
-            let selecetedAccordionsLen = Array.isArray(params?.selectedAccordions) ? params.selectedAccordions.length : 0;
+            let selecetedAccordeonsLen = Array.isArray(params?.selectedAccordions) ? params.selectedAccordions.length : 0;
 
-            while (selecetedAccordionsLen--) {
-                const accordion = params.selectedAccordions[selecetedAccordionsLen],
+            while (selecetedAccordeonsLen--) {
+                const accordion = params.selectedAccordions[selecetedAccordeonsLen],
                     rulesOfAccordeon = params.rulesOfFilters[accordion?.filterId];
                 let layerModel = null,
-                    layerConfig = null,
                     layerSource = null;
 
-                layerModel = layerCollection.getLayerById(accordion?.layerId);
-                layerConfig = openlayerFunctions.getLayerByLayerId(accordion?.layerId);
+                layerModel = openlayerFunctions.getLayerByLayerId(accordion?.layerId);
                 if (!layerModel) {
                     continue;
                 }
                 layerSource = layerModel.layer.getSource() instanceof Cluster ? layerModel.layer.getSource().getSource() : layerModel.layer.getSource();
+
                 if (!layerSource) {
                     continue;
                 }
-                if (layerConfig?.visibility && ((
+                if (layerModel.get("isSelected") && ((
                     typeof layerSource?.getFeatures === "function"
                     && layerSource.getFeatures().length === 0)
                     || (typeof layerModel?.getFeatures === "function"
                     && layerModel.getFeatures().length === 0))) {
-                    (layerConfig?.typ === "SensorThings" ? layerModel : layerSource).once("featuresloadend", async () => {
+                    (layerModel.get("typ") === "SensorThings" ? layerModel : layerSource).once("featuresloadend", async () => {
                         const rulesOfFiltersTmp = [...this.rulesOfFilters],
                             selectedAccordionsTmp = [...this.selectedAccordions];
 
@@ -192,8 +187,11 @@ export default {
                         selectedAccordionsTmp.push(accordion);
                         await this.setRulesArray({rulesOfFilters: rulesOfFiltersTmp});
                         this.setSelectedAccordions(selectedAccordionsTmp);
+                        if (!this.active) {
+                            this.setActive(true);
+                        }
                     });
-                    params.selectedAccordions.splice(selecetedAccordionsLen, 1);
+                    params.selectedAccordions.splice(selecetedAccordeonsLen, 1);
                     params.rulesOfFilters[accordion.filterId] = null;
                 }
             }
@@ -208,7 +206,7 @@ export default {
                 if (typeof this.alreadyWatching === "function") {
                     return;
                 }
-                this.alreadyWatching = this.$watch("$store.state.Modules.Filter", this.writeUrlParams, {
+                this.alreadyWatching = this.$watch("$store.state.Tools.Filter", this.writeUrlParams, {
                     deep: true
                 });
             }
@@ -231,6 +229,7 @@ export default {
                 }
             }
         },
+
         /**
          * Update selected layer group.
          * @param {Number} layerGroupIndex index of the layer group
@@ -262,9 +261,9 @@ export default {
             if (!this.multiLayerSelector) {
                 selectedFilterIds = this.selectedAccordions.some(accordion => accordion.filterId === filterId) ? [] : [filterId];
                 this.setSelectedAccordions(this.transformLayerConfig([...this.layerConfigs.layers, ...this.flattenPreparedLayerGroups], selectedFilterIds));
-
                 return;
             }
+
             this.preparedLayerGroups.forEach((layerGroup, groupIdx) => {
                 if (layerGroup.layers.some(layer => layer.filterId === filterId) && !this.selectedGroups.includes(groupIdx)) {
                     selectedGroups.push(groupIdx);
@@ -368,6 +367,17 @@ export default {
             return isObject(this.geometrySelectorOptions) && this.geometrySelectorOptions.visible !== false;
         },
         /**
+         * Sets the active state of the gfi based on the given param.
+         * @param {Boolean} active True to enable it, false to disable it
+         * @returns {void}
+         */
+        setGfiActive (active) {
+            if (typeof active !== "boolean") {
+                return;
+            }
+            this.$store.commit("Tools/Gfi/setActive", active);
+        },
+        /**
          * Resets the jumpToId state property.
          * @returns {void}
          */
@@ -384,7 +394,7 @@ export default {
             const params = this.urlHandler.getParamsFromState(newState, this.neededUrlParams),
                 generatedParams = JSON.stringify(params);
 
-            this.setUrlParams(generatedParams);
+            this.urlHandler.writeParamsToURL(generatedParams);
         },
         /**
          * Registering a map moveend, loadend and loadstart listener.
@@ -433,334 +443,259 @@ export default {
                 }
             });
         },
-
         /**
-         * Copies the url to the clipboard.
+         * Opens the link in a new window.
+         * @param {String} url the link url.
          * @returns {void}
          */
-        copyToClipboard () {
-            const toast = new Toast(this.$refs.copyToast);
-
-            toast.show();
-            navigator.clipboard.writeText(this.currentURL);
-        },
-
-        /**
-         * Resets the snippets and rules.
-         * @param {Number} id The filter id.
-         * @returns {void}
-         */
-        resetSnippetsAndRules (id) {
-            const layerFilterComp = this.$refs[`filter-${id}`];
-
-            if (Array.isArray(layerFilterComp) && typeof layerFilterComp[0]?.resetsSnippetsAndRules === "function") {
-                layerFilterComp[0].resetsSnippetsAndRules();
-            }
-            else if (typeof layerFilterComp?.resetsSnippetsAndRules === "function") {
-                layerFilterComp.resetsSnippetsAndRules();
-            }
+        openLink (url) {
+            window.open(url);
         }
     }
 };
 </script>
 
 <template lang="html">
-    <div
-        id="filter"
+    <ToolTemplate
+        :title="$t(name)"
+        icon="bi-funnel-fill"
+        :active="active"
+        :render-to-window="renderToWindow"
+        :resizable-window="resizableWindow"
+        :deactivate-gfi="deactivateGFI"
+        :initial-width="450"
     >
-        <GeometryFilter
-            v-if="isGeometrySelectorVisible()"
-            :circle-sides="geometrySelectorOptions.circleSides"
-            :default-buffer="geometrySelectorOptions.defaultBuffer"
-            :geometries="geometrySelectorOptions.geometries"
-            :additional-geometries="geometrySelectorOptions.additionalGeometries"
-            :invert-geometry="geometrySelectorOptions.invertGeometry"
-            :fill-color="geometrySelectorOptions.fillColor"
-            :stroke-color="geometrySelectorOptions.strokeColor"
-            :stroke-width="geometrySelectorOptions.strokeWidth"
-            :filter-geometry="filterGeometry"
-            :geometry-feature="geometryFeature"
-            :init-selected-geometry-index="geometrySelectorOptions.selectedGeometry"
-            @update-filter-geometry="updateFilterGeometry"
-            @update-geometry-feature="updateGeometryFeature"
-            @update-geometry-selector-options="updateGeometrySelectorOptions"
-        />
-        <div v-if="Array.isArray(layerGroups) && layerGroups.length && layerSelectorVisible">
+        <template #toolBody>
             <div
-                v-for="(layerGroup, key) in layerGroups"
-                :key="key"
-                class="layerGroupContainer"
+                v-if="active"
+                id="tool-general-filter"
             >
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <h2
-                            class="panel-title"
-                        >
-                            <a
-                                role="button"
-                                data-toggle="collapse"
-                                data-parent="#accordion"
-                                tabindex="0"
-                                @click="updateSelectedGroups(layerGroups.indexOf(layerGroup))"
-                                @keydown.enter="updateSelectedGroups(layerGroups.indexOf(layerGroup))"
-                            >
-                                {{ layerGroup.title ? layerGroup.title : key }}
-                                <span
-                                    v-if="!selectedGroups.includes(layerGroups.indexOf(layerGroup))"
-                                    class="bi bi-chevron-down float-end"
-                                />
-                                <span
-                                    v-else
-                                    class="bi bi-chevron-up float-end"
-                                />
-                            </a>
-                        </h2>
-                        <div
-                            role="tabpanel"
-                            :class="['accordion-collapse', 'collapse', selectedGroups.includes(layerGroups.indexOf(layerGroup)) ? 'show' : '']"
-                        >
-                            <FilterList
-                                v-if="Array.isArray(preparedLayerGroups) && preparedLayerGroups.length && layerSelectorVisible"
-                                class="layerSelector"
-                                :filters="preparedLayerGroups[layerGroups.indexOf(layerGroup)].layers"
-                                :selected-layers="selectedAccordions"
-                                :multi-layer-selector="multiLayerSelector"
-                                :jump-to-id="jumpToId"
-                                :rules-of-filters="rulesOfFilters"
-                                @delete-all-rules="(filterId) => resetSnippetsAndRules(filterId)"
-                                @reset-jump-to-id="resetJumpToId"
-                                @selected-accordions="updateSelectedAccordions"
-                                @set-layer-loaded="setLayerLoaded"
-                            >
-                                <template
-                                    #default="slotProps"
+                <div
+                    v-if="typeof questionLink === 'string' && questionLink !== ''"
+                    class="question"
+                >
+                    <button
+                        :title="questionLink"
+                        tabindex="0"
+                        @click="openLink(questionLink)"
+                        @keydown="openLink(questionLink)"
+                    >
+                        <i class="bi bi-question-circle-fill" />
+                    </button>
+                </div>
+                <GeometryFilter
+                    v-if="isGeometrySelectorVisible()"
+                    :circle-sides="geometrySelectorOptions.circleSides"
+                    :default-buffer="geometrySelectorOptions.defaultBuffer"
+                    :geometries="geometrySelectorOptions.geometries"
+                    :additional-geometries="geometrySelectorOptions.additionalGeometries"
+                    :invert-geometry="geometrySelectorOptions.invertGeometry"
+                    :fill-color="geometrySelectorOptions.fillColor"
+                    :stroke-color="geometrySelectorOptions.strokeColor"
+                    :stroke-width="geometrySelectorOptions.strokeWidth"
+                    :filter-geometry="filterGeometry"
+                    :geometry-feature="geometryFeature"
+                    :init-selected-geometry-index="geometrySelectorOptions.selectedGeometry"
+                    @updateFilterGeometry="updateFilterGeometry"
+                    @updateGeometryFeature="updateGeometryFeature"
+                    @updateGeometrySelectorOptions="updateGeometrySelectorOptions"
+                />
+                <div v-if="Array.isArray(layerGroups) && layerGroups.length && layerSelectorVisible">
+                    <div
+                        v-for="(layerGroup, key) in layerGroups"
+                        :key="key"
+                        class="layerGroupContainer"
+                    >
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <h2
+                                    class="panel-title"
                                 >
-                                    <div
-                                        :class="['accordion-collapse', 'collapse', isLayerFilterSelected(slotProps.layer.filterId) ? 'show' : '']"
-                                        role="tabpanel"
+                                    <a
+                                        role="button"
+                                        data-toggle="collapse"
+                                        data-parent="#accordion"
+                                        tabindex="0"
+                                        @click="updateSelectedGroups(layerGroups.indexOf(layerGroup))"
+                                        @keydown.enter="updateSelectedGroups(layerGroups.indexOf(layerGroup))"
                                     >
-                                        <LayerFilterSnippet
-                                            v-if="isLayerFilterSelected(slotProps.layer.filterId)"
-                                            :ref="'filter-' + slotProps.layer.filterId"
-                                            :key="slotProps.layer"
-                                            :api="slotProps.layer.api"
-                                            :is-layer-filter-selected="isLayerFilterSelected(slotProps.layer.filterId)"
-                                            :layer-config="slotProps.layer"
-                                            :layer-selector-visible="layerSelectorVisible"
-                                            :map-handler="mapHandler"
-                                            :min-scale="minScale"
-                                            :open-multiple-accordeons="multiLayerSelector"
-                                            :live-zoom-to-features="liveZoomToFeatures"
-                                            :filter-rules="rulesOfFilters[slotProps.layer.filterId]"
-                                            :filter-hits="filtersHits[slotProps.layer.filterId]"
-                                            :filter-geometry="filterGeometry"
-                                            :close-gfi="closeGfi"
-                                            @update-rules="updateRules"
-                                            @delete-all-rules="deleteAllRules"
-                                            @update-filter-hits="updateFilterHits"
-                                            @register-map-move-listener="addToMapMoveListeners"
+                                        {{ layerGroup.title ? layerGroup.title : key }}
+                                        <span
+                                            v-if="!selectedGroups.includes(layerGroups.indexOf(layerGroup))"
+                                            class="bi bi-chevron-down float-end"
                                         />
-                                    </div>
-                                </template>
-                            </FilterList>
+                                        <span
+                                            v-else
+                                            class="bi bi-chevron-up float-end"
+                                        />
+                                    </a>
+                                </h2>
+                                <div
+                                    role="tabpanel"
+                                    :class="['accordion-collapse', 'collapse', selectedGroups.includes(layerGroups.indexOf(layerGroup)) ? 'show' : '']"
+                                >
+                                    <FilterList
+                                        v-if="Array.isArray(preparedLayerGroups) && preparedLayerGroups.length && layerSelectorVisible"
+                                        class="layerSelector"
+                                        :filters="preparedLayerGroups[layerGroups.indexOf(layerGroup)].layers"
+                                        :selected-layers="selectedAccordions"
+                                        :multi-layer-selector="multiLayerSelector"
+                                        :jump-to-id="jumpToId"
+                                        @resetJumpToId="resetJumpToId"
+                                        @selectedaccordions="updateSelectedAccordions"
+                                        @setLayerLoaded="setLayerLoaded"
+                                    >
+                                        <template
+                                            #default="slotProps"
+                                        >
+                                            <div
+                                                :class="['accordion-collapse', 'collapse', isLayerFilterSelected(slotProps.layer.filterId) ? 'show' : '']"
+                                                role="tabpanel"
+                                            >
+                                                <LayerFilterSnippet
+                                                    v-if="isLayerFilterSelected(slotProps.layer.filterId)"
+                                                    :api="slotProps.layer.api"
+                                                    :is-layer-filter-selected="isLayerFilterSelected(slotProps.layer.filterId)"
+                                                    :layer-config="slotProps.layer"
+                                                    :layer-selector-visible="layerSelectorVisible"
+                                                    :map-handler="mapHandler"
+                                                    :min-scale="minScale"
+                                                    :open-multiple-accordeons="multiLayerSelector"
+                                                    :live-zoom-to-features="liveZoomToFeatures"
+                                                    :filter-rules="rulesOfFilters[slotProps.layer.filterId]"
+                                                    :filter-hits="filtersHits[slotProps.layer.filterId]"
+                                                    :filter-geometry="filterGeometry"
+                                                    @updateRules="updateRules"
+                                                    @deleteAllRules="deleteAllRules"
+                                                    @updateFilterHits="updateFilterHits"
+                                                    @registerMapMoveListener="addToMapMoveListeners"
+                                                />
+                                            </div>
+                                        </template>
+                                    </FilterList>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div v-else-if="(Array.isArray(layerConfigs.layers) && layerConfigs.layers.length) || (Array.isArray(layerConfigs.groups) && layerConfigs.groups.length)">
-            <div
-                v-for="(layerGroup, key) in layerGroups"
-                :key="key"
-            >
-                <div>
-                    <h2
-                        v-for="(layerConfig, indexLayer) in preparedLayerGroups[layerGroups.indexOf(layerGroup)].layers"
-                        :key="'layer-title' + key + indexLayer + layerFilterSnippetPostKey"
+                <div v-else-if="(Array.isArray(layerConfigs.layers) && layerConfigs.layers.length) || (Array.isArray(layerConfigs.groups) && layerConfigs.groups.length)">
+                    <div
+                        v-for="(layerGroup, key) in layerGroups"
+                        :key="key"
                     >
-                        <u class="text-break">{{ layerConfig.title }}</u>
+                        <template v-for="(layerConfig, indexLayer) in preparedLayerGroups[layerGroups.indexOf(layerGroup)].layers">
+                            <h2 :key="'layer-title' + key + indexLayer + layerFilterSnippetPostKey">
+                                <u>{{ layerConfig.title }}</u>
+                            </h2>
+                            <LayerFilterSnippet
+                                :key="'layer-' + key + indexLayer + layerFilterSnippetPostKey"
+                                :api="layerConfig.api"
+                                :is-layer-filter-selected="true"
+                                :layer-config="layerConfig"
+                                :layer-selector-visible="layerSelectorVisible"
+                                :map-handler="mapHandler"
+                                :min-scale="minScale"
+                                :open-multiple-accordeons="multiLayerSelector"
+                                :live-zoom-to-features="liveZoomToFeatures"
+                                :filter-rules="rulesOfFilters[layerConfig.filterId]"
+                                :filter-hits="filtersHits[layerConfig.filterId]"
+                                :filter-geometry="filterGeometry"
+                                @updateRules="updateRules"
+                                @deleteAllRules="deleteAllRules"
+                                @updateFilterHits="updateFilterHits"
+                                @registerMapMoveListener="addToMapMoveListeners"
+                            />
+                        </template>
+                    </div>
+                </div>
+                <FilterList
+                    v-if="(Array.isArray(layerConfigs.layers) && layerConfigs.layers.length) && layerSelectorVisible || (Array.isArray(layerConfigs.groups) && layerConfigs.groups.length) && layerSelectorVisible"
+                    class="layerSelector"
+                    :filters="filters"
+                    :selected-layers="selectedAccordions"
+                    :multi-layer-selector="multiLayerSelector"
+                    :jump-to-id="jumpToId"
+                    @resetJumpToId="resetJumpToId"
+                    @selectedaccordions="updateSelectedAccordions"
+                    @setLayerLoaded="setLayerLoaded"
+                >
+                    <template
+                        #default="slotProps"
+                    >
                         <div
-                            v-if="layerConfig.initialStartupReset && hasUnfixedRules(rulesOfFilters[layerConfig.filterId])"
-                            class="d-flex justify-content-end"
+                            :class="['accordion-collapse', 'collapse', isLayerFilterSelected(slotProps.layer.filterId) ? 'show' : '']"
+                            role="tabpanel"
                         >
-                            <IconButton
-                                icon="bi bi-arrow-counterclockwise bi-xs"
-                                :class-array="['custom-reset', 'btn-light']"
-                                :aria="$t('common:modules.filter.resetButton')"
-                                :title="$t('common:modules.filter.resetButton')"
-                                :interaction="() => resetSnippetsAndRules(layerConfig.filterId)"
+                            <LayerFilterSnippet
+                                v-if="isLayerFilterSelected(slotProps.layer.filterId)"
+                                :api="slotProps.layer.api"
+                                :is-layer-filter-selected="isLayerFilterSelected(slotProps.layer.filterId)"
+                                :layer-config="slotProps.layer"
+                                :layer-selector-visible="layerSelectorVisible"
+                                :map-handler="mapHandler"
+                                :min-scale="minScale"
+                                :open-multiple-accordeons="multiLayerSelector"
+                                :live-zoom-to-features="liveZoomToFeatures"
+                                :filter-rules="rulesOfFilters[slotProps.layer.filterId]"
+                                :filter-hits="filtersHits[slotProps.layer.filterId]"
+                                :filter-geometry="filterGeometry"
+                                @updateRules="updateRules"
+                                @deleteAllRules="deleteAllRules"
+                                @updateFilterHits="updateFilterHits"
+                                @registerMapMoveListener="addToMapMoveListeners"
                             />
                         </div>
-                    </h2>
-                    <LayerFilterSnippet
-                        v-for="(layerConfig, indexLayer) in preparedLayerGroups[layerGroups.indexOf(layerGroup)].layers"
-                        :key="'layer-' + key + indexLayer + layerFilterSnippetPostKey"
-                        :ref="'filter-' + layerConfig.filterId"
-                        :api="layerConfig.api"
-                        :is-layer-filter-selected="true"
-                        :layer-config="layerConfig"
-                        :layer-selector-visible="layerSelectorVisible"
-                        :map-handler="mapHandler"
-                        :min-scale="minScale"
-                        :open-multiple-accordeons="multiLayerSelector"
-                        :live-zoom-to-features="liveZoomToFeatures"
-                        :filter-rules="rulesOfFilters[layerConfig.filterId]"
-                        :filter-hits="filtersHits[layerConfig.filterId]"
-                        :filter-geometry="filterGeometry"
-                        :close-gfi="closeGfi"
-                        @update-rules="updateRules"
-                        @delete-all-rules="deleteAllRules"
-                        @update-filter-hits="updateFilterHits"
-                        @register-map-move-listener="addToMapMoveListeners"
-                    />
-                </div>
-            </div>
-        </div>
-        <FilterList
-            v-if="(Array.isArray(layerConfigs.layers) && layerConfigs.layers.length) && layerSelectorVisible || (Array.isArray(layerConfigs.groups) && layerConfigs.groups.length) && layerSelectorVisible"
-            class="layerSelector"
-            :filters="filters"
-            :selected-layers="selectedAccordions"
-            :multi-layer-selector="multiLayerSelector"
-            :jump-to-id="jumpToId"
-            :rules-of-filters="rulesOfFilters"
-            @delete-all-rules="(filterId) => resetSnippetsAndRules(filterId)"
-            @reset-jump-to-id="resetJumpToId"
-            @selected-accordions="updateSelectedAccordions"
-            @set-layer-loaded="setLayerLoaded"
-        >
-            <template
-                #default="slotProps"
-            >
-                <div
-                    :class="['accordion-collapse', 'collapse', isLayerFilterSelected(slotProps.layer.filterId) ? 'show' : '']"
-                    role="tabpanel"
-                >
-                    <LayerFilterSnippet
-                        v-if="isLayerFilterSelected(slotProps.layer.filterId) || layerLoaded[slotProps.layer.filterId]"
-                        :key="slotProps.layer"
-                        :ref="'filter-' + slotProps.layer.filterId"
-                        :api="slotProps.layer.api"
-                        :is-layer-filter-selected="isLayerFilterSelected"
-                        :layer-config="slotProps.layer"
-                        :layer-selector-visible="layerSelectorVisible"
-                        :map-handler="mapHandler"
-                        :min-scale="minScale"
-                        :open-multiple-accordeons="multiLayerSelector"
-                        :live-zoom-to-features="liveZoomToFeatures"
-                        :filter-rules="rulesOfFilters[slotProps.layer.filterId]"
-                        :filter-hits="filtersHits[slotProps.layer.filterId]"
-                        :filter-geometry="filterGeometry"
-                        :close-gfi="closeGfi"
-                        @update-rules="updateRules"
-                        @delete-all-rules="deleteAllRules"
-                        @update-filter-hits="updateFilterHits"
-                        @register-map-move-listener="addToMapMoveListeners"
-                    />
-                </div>
-            </template>
-        </FilterList>
-        <div v-else-if="(Array.isArray(layerConfigs.layers) && layerConfigs.layers.length) || (Array.isArray(layerConfigs.groups) && layerConfigs.groups.length)">
-            <div
-                v-for="(layerConfig, indexLayer) in filters"
-                :key="'layer-title' + indexLayer + layerFilterSnippetPostKey"
-            >
-                <h2 class="d-flex flex-row justify-content-between align-items-center">
-                    <u>{{ layerConfig.title }}</u>
-                    <div
-                        v-if="layerConfig.initialStartupReset && hasUnfixedRules(rulesOfFilters[layerConfig.filterId])"
-                        class="d-flex"
-                    >
-                        <IconButton
-                            icon="bi bi-arrow-counterclockwise bi-xs"
-                            :class-array="['custom-reset', 'btn-light']"
-                            :aria="$t('common:modules.filter.resetButton')"
-                            :title="$t('common:modules.filter.resetButton')"
-                            :interaction="() => resetSnippetsAndRules(layerConfig.filterId)"
+                    </template>
+                </FilterList>
+                <div v-else-if="(Array.isArray(layerConfigs.layers) && layerConfigs.layers.length) || (Array.isArray(layerConfigs.groups) && layerConfigs.groups.length)">
+                    <template v-for="(layerConfig, indexLayer) in filters">
+                        <h2 :key="'layer-title' + indexLayer + layerFilterSnippetPostKey">
+                            <u>{{ layerConfig.title }}</u>
+                        </h2>
+                        <LayerFilterSnippet
+                            :key="'layer-' + indexLayer + layerFilterSnippetPostKey"
+                            :api="layerConfig.api"
+                            :is-layer-filter-selected="true"
+                            :layer-config="layerConfig"
+                            :layer-selector-visible="layerSelectorVisible"
+                            :map-handler="mapHandler"
+                            :min-scale="minScale"
+                            :open-multiple-accordeons="multiLayerSelector"
+                            :live-zoom-to-features="liveZoomToFeatures"
+                            :filter-rules="rulesOfFilters[layerConfig.filterId]"
+                            :filter-hits="filtersHits[layerConfig.filterId]"
+                            :filter-geometry="filterGeometry"
+                            @updateRules="updateRules"
+                            @deleteAllRules="deleteAllRules"
+                            @updateFilterHits="updateFilterHits"
+                            @registerMapMoveListener="addToMapMoveListeners"
                         />
-                    </div>
-                </h2>
-                <LayerFilterSnippet
-                    :key="layerConfig"
-                    :ref="'filter-' + layerConfig.filterId"
-                    :api="layerConfig.api"
-                    :is-layer-filter-selected="true"
-                    :layer-config="layerConfig"
-                    :layer-selector-visible="layerSelectorVisible"
-                    :map-handler="mapHandler"
-                    :min-scale="minScale"
-                    :open-multiple-accordeons="multiLayerSelector"
-                    :live-zoom-to-features="liveZoomToFeatures"
-                    :filter-rules="rulesOfFilters[layerConfig.filterId]"
-                    :filter-hits="filtersHits[layerConfig.filterId]"
-                    :filter-geometry="filterGeometry"
-                    :close-gfi="closeGfi"
-                    @update-rules="updateRules"
-                    @delete-all-rules="deleteAllRules"
-                    @update-filter-hits="updateFilterHits"
-                    @register-map-move-listener="addToMapMoveListeners"
-                />
-            </div>
-        </div>
-        <div class="link-section">
-            <div class="toast-container p-3">
-                <div
-                    ref="copyToast"
-                    class="toast align-items-center"
-                    role="alert"
-                    aria-live="assertive"
-                    aria-atomic="true"
-                >
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            {{ $t("common:modules.shareView.linkCopied") }}
-                        </div>
-                        <button
-                            type="button"
-                            class="btn-close me-2 m-auto"
-                            data-bs-dismiss="toast"
-                            aria-label="Close"
-                        />
-                    </div>
+                    </template>
                 </div>
             </div>
-            <a
-                v-if="typeof linkText === 'string' && linkText !== ''"
-                :href="currentURL"
-                :title="$t('common:modules.filter.distributionMapLinkTextTitle')"
-                class="link-text"
-                @click.prevent="copyToClipboard"
-            >
-                <i
-                    class="bi-link"
-                    role="img"
-                />
-                {{ $t(linkText) }}
-            </a>
-        </div>
-    </div>
+        </template>
+    </ToolTemplate>
 </template>
 
 <style lang="scss" scoped>
-    @import "~mixins";
+    @import "~/css/mixins.scss";
     .layerGroupContainer {
         background-color: #f5f5f5;
         padding: 10px;
         margin-bottom: 10px;
         border: 1px solid #ddd;
     }
-    .link-section {
-        position: relative;
-        .toast-container {
-            min-width: 320px;
-            bottom: 10px;
-            .toast {
-                background: $primary;
-            }
-        }
-        .link-text {
-            i {
-                font-size: 14px;
+
+    .question {
+        text-align: right;
+        margin-bottom: 10px;
+        button {
+            color: $secondary_icon_button;
+            padding: 5px 5px 3px 5px;
+            font-size: larger;
+            &:hover {
+                background-color: $accent_hover;
+                color: #ffffff;
             }
         }
     }

@@ -1,51 +1,59 @@
-import axios from "axios";
-import crs from "@masterportal/masterportalapi/src/crs";
+import VectorTile from "../../vectorTile.js";
+import Collection from "ol/Collection";
+import {stylefunction} from "ol-mapbox-style";
 import {expect} from "chai";
 import sinon from "sinon";
-import Collection from "ol/Collection";
-import webgl from "../../../js/webglRenderer";
+import axios from "axios";
+import crs from "@masterportal/masterportalapi/src/crs";
+import store from "../../../../app-store";
+import webgl from "../../renderer/webgl";
 
-import Layer2dVectorTile from "../../../js/layer2dVectorTile";
-
-describe("src/core/js/layers/layer2dVectorTile.js", () => {
-    const attrs = {
-            epsg: "EPSG:3857",
-            extent: [902186.6748764697, 7054472.604709217, 1161598.3542590786, 7175683.411718197],
-            gfiAttributes: "showAll",
-            gfiTheme: "default",
-            id: "911",
-            name: "InsideJob",
-            origin: [-20037508.342787, 20037508.342787],
-            resolutions: [78271.51696401172, 305.7481131406708, 152.8740565703354, 76.4370282851677, 2.3886571339114906],
-            styleId: "999962",
-            tileSize: 512,
-            transparency: 0,
-            typ: "VectorTile",
-            url: "https://doesthisurlexist.de/vt/tiles/esri/Test_VT_3857/p12/tile/{z}/{y}/{x}.pbf",
-            vtStyles: [
-                {name: "Layer One", id: "l1"},
-                {name: "Layer Two", id: "l2"}
-            ]
-        },
-        vtStyles = [
+const vtStyles = [
+        {name: "Layer One", id: "l1"},
+        {name: "Layer Two", id: "l2"}
+    ],
+    vtStylesDefaultL2 = [
+        {name: "Layer One", id: "l1"},
+        {name: "Layer Two", id: "l2", defaultStyle: true}
+    ],
+    attrs = {
+        epsg: "EPSG:3857",
+        extent: [902186.6748764697, 7054472.604709217, 1161598.3542590786, 7175683.411718197],
+        gfiAttributes: "showAll",
+        gfiTheme: "default",
+        id: "911",
+        name: "InsideJob",
+        origin: [-20037508.342787, 20037508.342787],
+        resolutions: [78271.51696401172, 305.7481131406708, 152.8740565703354, 76.4370282851677, 2.3886571339114906],
+        isSelected: true,
+        styleId: "999962",
+        tileSize: 512,
+        transparency: 0,
+        typ: "VectorTile",
+        url: "https://doesthisurlexist.de/vt/tiles/esri/Test_VT_3857/p12/tile/{z}/{y}/{x}.pbf",
+        vtStyles: [
             {name: "Layer One", id: "l1"},
             {name: "Layer Two", id: "l2"}
-        ],
-        vtStylesDefaultL2 = [
-            {name: "Layer One", id: "l1"},
-            {name: "Layer Two", id: "l2", defaultStyle: true}
-        ];
-    let attributes,
-        error,
-        warn;
+        ]
+    },
+    // minimal VectorLayer config defined in services.json.md
+    requiredAttrs = {
+        gfiAttributes: "showAll",
+        gfiTheme: "default",
+        id: "911",
+        maxScale: "1000000",
+        minScale: "0",
+        name: "Foobar",
+        typ: "VectorTile",
+        url: "https://doesthisurlexist.de/vt/tiles/esri/Test_VT_3857/p12/tile/{z}/{y}/{x}.pbf"
+
+    };
+
+describe("core/modelList/layer/vectorTile", function () {
+    afterEach(sinon.restore);
 
     before(() => {
-        error = sinon.spy();
-        sinon.stub(console, "error").callsFake(error);
-        warn = sinon.spy();
-        sinon.stub(console, "warn").callsFake(warn);
         mapCollection.clear();
-
         const map = {
             id: "ol",
             mode: "2D",
@@ -54,11 +62,6 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             addLayer: () => sinon.stub(),
             getView: () => {
                 return {
-                    getProjection: () => {
-                        return {
-                            getCode: () => "EPSG:25832"
-                        };
-                    },
                     getResolutions: () => [2000, 1000]
                 };
             },
@@ -68,124 +71,32 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             on: () => sinon.stub()
         };
 
+        mapCollection.clear();
         mapCollection.addMap(map, "2D");
     });
 
-    beforeEach(() => {
-        attributes = {
-            id: "911",
-            maxScale: "1000000",
-            minScale: "0",
-            name: "Foobar",
-            typ: "VectorTile",
-            url: "https://doesthisurlexist.de/vt/tiles/esri/Test_VT_3857/p12/tile/{z}/{y}/{x}.pbf"
-        };
+    beforeEach(() => crs.registerProjections());
 
-        crs.registerProjections();
-    });
+    describe("vector tile layer config", function () {
 
-    after(() => {
-        sinon.restore();
-    });
+        it("should create a layer with minimal config", function () {
+            const mapStub = sinon.stub(store, "getters");
 
-    describe("createLayer", () => {
-        it("new Layer2dVectorTile should create an layer with no one warning", () => {
-            const vectorTileLayer = new Layer2dVectorTile({});
+            mapStub.value({"Maps/projection": {getCode: () => {
+                return "EPSG:25832";
+            }}});
 
-            expect(vectorTileLayer).not.to.be.undefined;
-            expect(warn.calledOnce).to.be.true;
-        });
-    });
-
-    describe("getRawLayerAttributes", () => {
-        let localAttributes;
-
-        beforeEach(() => {
-            localAttributes = {
-                id: "911",
-                maxScale: "1000000",
-                minScale: "0",
-                name: "Foobar",
-                typ: "VectorTile",
-                url: "https://doesthisurlexist.de/vt/tiles/esri/Test_VT_3857/p12/tile/{z}/{y}/{x}.pbf"
-            };
-        });
-
-        it("should return the raw layer attributes", () => {
-            const vectorTileLayer = new Layer2dVectorTile(localAttributes);
-
-            expect(vectorTileLayer.getRawLayerAttributes(localAttributes)).to.deep.equals({
-                id: "911",
-                maxScale: "1000000",
-                minScale: "0",
-                name: "Foobar",
-                typ: "VectorTile",
-                url: "https://doesthisurlexist.de/vt/tiles/esri/Test_VT_3857/p12/tile/{z}/{y}/{x}.pbf"
-            });
-        });
-    });
-
-    describe("getLayerParams", () => {
-        let localAttributes;
-
-        beforeEach(() => {
-            localAttributes = {
-                gfiAttributes: "The attributes",
-                transparency: 50,
-                zIndex: 10,
-                renderer: "canvas",
-                styleId: "styleId",
-                style: {},
-                excludeTypesFromParsing: true,
-                isPointLayer: false
-            };
-        });
-
-        it("should return the raw layer attributes", () => {
-            const vectorTileLayer = new Layer2dVectorTile(localAttributes);
-
-            expect(vectorTileLayer.getLayerParams(localAttributes)).to.deep.equals({
-                gfiAttributes: "The attributes",
-                opacity: 0.5,
-                zIndex: 10,
-                renderer: "canvas",
-                styleId: "styleId",
-                style: {},
-                excludeTypesFromParsing: true,
-                isPointLayer: false
-            });
-        });
-    });
-
-    describe("checkProjection", () => {
-        it("should print a warn, if mapProjection and servicesProjection are different", () => {
-            /**
-             * Makes a context.
-             * @returns {Object} The return object
-             */
-            function makeContext () {
-                return {
-                    get: () => "EPSG:25832"
-                };
-            }
-            const {checkProjection} = Layer2dVectorTile.prototype;
-
-            checkProjection.call(makeContext(), attrs);
-
-            expect(warn.called).to.be.true;
-        });
-    });
-
-    describe("vector tile layer config", () => {
-        it("should create a layer with minimal config", () => {
-            const vectorTileLayer = new Layer2dVectorTile(attributes),
-                layer = vectorTileLayer.getLayer(),
-                source = vectorTileLayer.getLayerSource();
+            // eslint-disable-next-line one-var
+            const vtLayer = new VectorTile(requiredAttrs),
+                layer = vtLayer.get("layer"),
+                source = layer.getSource();
 
 
-            expect(vectorTileLayer.get("id")).to.equal("911");
-            expect(vectorTileLayer.get("minScale")).to.equal("0");
-            expect(vectorTileLayer.get("maxScale")).to.equal("1000000");
+            expect(vtLayer.get("gfiAttributes")).to.equal("showAll");
+            expect(vtLayer.get("gfiTheme")).to.equal("default");
+            expect(vtLayer.get("id")).to.equal("911");
+            expect(vtLayer.get("minScale")).to.equal("0");
+            expect(vtLayer.get("maxScale")).to.equal("1000000");
 
             expect(layer.get("id")).to.equal("911");
             expect(layer.get("name")).to.equal("Foobar");
@@ -193,7 +104,14 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             expect(source.getUrls()[0]).to.equal("https://doesthisurlexist.de/vt/tiles/esri/Test_VT_3857/p12/tile/{z}/{y}/{x}.pbf");
         });
 
-        it("should apply in services.json.md defined defaults", () => {
+        it("should apply in services.json.md defined defaults", function () {
+            const mapStub = sinon.stub(store, "getters");
+
+            mapStub.value({"Maps/projection": {getCode: () => {
+                return "EPSG:25382";
+            }}});
+
+            // eslint-disable-next-line one-var
             const defaultValues = { // defaults defined in services.json.md
                     zDirection: 1,
                     epsg: "EPSG:25832", // default value from config.json.md/MapView. Should be the default CRS
@@ -222,15 +140,20 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
                     tileSize: 512,
                     layerAttribution: "nicht vorhanden",
                     transparency: 0,
+                    visibility: false,
                     useProxy: false
                 },
-                vectorTileLayer = new Layer2dVectorTile(attributes),
-                layer = vectorTileLayer.getLayer(),
+                vtLayer = new VectorTile(requiredAttrs),
+                layer = vtLayer.get("layer"),
                 source = layer.getSource(),
                 tileGrid = source.getTileGrid();
 
+
+            expect(vtLayer.get("useProxy")).to.be.false;
+            expect(vtLayer.get("layerAttribution")).to.be.undefined;
+
             expect(layer.getOpacity()).to.equal(1);
-            expect(layer.getVisible()).to.be.true;
+            expect(layer.getVisible()).to.be.false;
 
             expect(source.zDirection).to.equal(defaultValues.zDirection);
             expect(source.getProjection().getCode()).to.equal(defaultValues.epsg);
@@ -256,20 +179,28 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             expect(tileGrid.getTileSize()).to.deep.equal(new Array(2).fill(defaultValues.tileSize));
         });
 
-        it("should apply given attributes correct", () => {
-            const vectorTileLayer = new Layer2dVectorTile(attrs),
-                layer = vectorTileLayer.getLayer(),
+        it("should apply given attributes correct", function () {
+            const mapStub = sinon.stub(store, "getters");
+
+            mapStub.value({"Maps/projection": {getCode: () => {
+                return "EPSG:3857";
+            }}});
+
+            // eslint-disable-next-line one-var
+            const vtLayer = new VectorTile(attrs),
+                layer = vtLayer.get("layer"),
                 source = layer.getSource(),
                 tileGrid = source.getTileGrid();
 
-            expect(vectorTileLayer.get("layerAttribution")).to.be.undefined;
-            expect(vectorTileLayer.get("gfiAttributes")).to.equal(attrs.gfiAttributes);
-            expect(vectorTileLayer.get("gfiTheme")).to.equal(attrs.gfiTheme);
-            expect(vectorTileLayer.get("id")).to.equal(attrs.id);
-            expect(vectorTileLayer.get("name")).to.equal(attrs.name);
-            expect(vectorTileLayer.get("styleId")).to.equal(attrs.styleId);
-            expect(vectorTileLayer.get("selectedStyleID")).to.equal(attrs.styleId);
-            expect(vectorTileLayer.get("vtStyles")).to.deep.equal(attrs.vtStyles);
+            expect(vtLayer.get("useProxy")).to.be.false;
+            expect(vtLayer.get("layerAttribution")).to.be.undefined;
+            expect(vtLayer.get("gfiAttributes")).to.equal(attrs.gfiAttributes);
+            expect(vtLayer.get("gfiTheme")).to.equal(attrs.gfiTheme);
+            expect(vtLayer.get("id")).to.equal(attrs.id);
+            expect(vtLayer.get("name")).to.equal(attrs.name);
+            expect(vtLayer.get("styleId")).to.equal(attrs.styleId);
+            expect(vtLayer.get("selectedStyleID")).to.equal(attrs.styleId);
+            expect(vtLayer.get("vtStyles")).to.deep.equal(attrs.vtStyles);
 
             expect(layer.get("id")).to.equal(attrs.id);
             expect(layer.get("name")).to.equal(attrs.name);
@@ -301,9 +232,9 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
         });
     });
 
-    describe("isStyleValid", () => {
-        it("returns true only if required fields all exist", () => {
-            const {isStyleValid} = Layer2dVectorTile.prototype;
+    describe("isStyleValid", function () {
+        it("returns true only if required fields all exist", function () {
+            const {isStyleValid} = VectorTile.prototype;
 
             expect(isStyleValid(undefined)).to.be.false;
             expect(isStyleValid({})).to.be.false;
@@ -314,11 +245,8 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
         });
     });
 
-    describe("setStyleById", () => {
-        /**
-         * Makes a context.
-         * @returns {Object} The return object
-         */
+    describe("setStyleById", function () {
+        /* eslint-disable-next-line jsdoc/require-jsdoc */
         function makeContext () {
             return {
                 get: key => ({vtStyles})[key],
@@ -326,8 +254,8 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             };
         }
 
-        it("finds a style definition by id and uses setStyleByDefinition with it", () => {
-            const {setStyleById} = Layer2dVectorTile.prototype,
+        it("finds a style definition by id and uses setStyleByDefinition with it", function () {
+            const {setStyleById} = VectorTile.prototype,
                 context = makeContext(),
                 returnValue = setStyleById.call(context, "l2");
 
@@ -337,7 +265,7 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
         });
 
         it("returns rejecting Promise if key not found", function (done) {
-            const {setStyleById} = Layer2dVectorTile.prototype,
+            const {setStyleById} = VectorTile.prototype,
                 context = makeContext(),
                 returnValue = setStyleById.call(context, "l3");
             let caught = false;
@@ -357,16 +285,17 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
         });
     });
 
-    describe("setStyleByDefinition", () => {
-        /* in case there ever exists a global fetch during testing,
-         * it is swapped here - just in case ... */
+    describe("setStyleByDefinition", function () {
+    /* in case there ever exists a global fetch during testing,
+     * it is swapped here - just in case ... */
         let fetch = null;
 
-        beforeEach(() => {
+        beforeEach(function () {
             fetch = global.fetch;
         });
 
-        afterEach(() => {
+        afterEach(function () {
+            sinon.restore();
             global.fetch = fetch;
         });
 
@@ -381,14 +310,19 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             };
 
         /**
-         * @param {function} done mocha callback done
-         * @returns {Object} mock context for setStyleById
-         */
+     * @param {function} done mocha callback done
+     * @returns {object} mock context for setStyleById
+     */
         function makeContext (done) {
             return {
-                isStyleValid: Layer2dVectorTile.prototype.isStyleValid,
+                isStyleValid: VectorTile.prototype.isStyleValid,
                 get: key => ({layer: Symbol.for("layer")})[key],
                 set: sinon.spy((key, value) => {
+                    expect(stylefunction.calledOnce).to.be.true;
+                    expect(stylefunction.calledWith(
+                        Symbol.for("layer"), validStyle, undefined
+                    )).to.be.true;
+
                     expect(key).to.equal("selectedStyleID");
                     expect(value).to.equal("l0");
 
@@ -402,7 +336,7 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
                 json: () => new Promise(ir => ir(validStyle))
             })));
 
-            const {setStyleByDefinition} = Layer2dVectorTile.prototype,
+            const {setStyleByDefinition} = VectorTile.prototype,
                 context = makeContext(done);
 
             setStyleByDefinition.call(context, {id: "l0", url: "example.com/root.json"})
@@ -414,7 +348,7 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
                 json: () => new Promise(ir => ir(invalidStyle))
             })));
 
-            const {setStyleByDefinition} = Layer2dVectorTile.prototype,
+            const {setStyleByDefinition} = VectorTile.prototype,
                 context = makeContext(done);
 
             setStyleByDefinition
@@ -423,20 +357,20 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
         });
     });
 
-    describe("setConfiguredLayerStyle", () => {
-        /**
-         * @param {Object} params parameter object
-         * @param {?object} params.styleId style id from config.json
-         * @param {?string} params.givenVtStyles style set from services.json to use
-         * @param {function} params.done to be called finally
-         * @returns {Object} mock context for setStyleById
-         */
+    describe("setConfiguredLayerStyle", function () {
+    /**
+     * @param {object} params parameter object
+     * @param {?object} params.styleId style id from config.json
+     * @param {?string} params.givenVtStyles style set from services.json to use
+     * @param {function} params.done to be called finally
+     * @returns {object} mock context for setStyleById
+     */
         function makeContext ({styleId, givenVtStyles, done}) {
             return {
-                isStyleValid: Layer2dVectorTile.prototype.isStyleValid,
+                isStyleValid: VectorTile.prototype.isStyleValid,
                 get: key => ({
                     styleId,
-                    visibility: Symbol.for("visibility"),
+                    isSelected: Symbol.for("visibility"),
                     vtStyles: givenVtStyles
                 })[key],
                 set: sinon.spy(),
@@ -451,21 +385,21 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             };
         }
 
-        it("uses config.json style first", done => {
+        it("uses config.json style first", function (done) {
             const context = makeContext({styleId: "lConfigJson", givenVtStyles: vtStylesDefaultL2, done}),
                 {set} = context;
 
-            Layer2dVectorTile.prototype.setConfiguredLayerStyle.call(context);
+            VectorTile.prototype.setConfiguredLayerStyle.call(context);
 
             expect(set.calledOnce).to.be.true;
             expect(set.calledWith("selectedStyleID", "lConfigJson")).to.be.true;
         });
 
-        it("uses services.json default style second", done => {
+        it("uses services.json default style second", function (done) {
             const context = makeContext({givenVtStyles: vtStylesDefaultL2, done}),
                 {set, setStyleByDefinition} = context;
 
-            Layer2dVectorTile.prototype.setConfiguredLayerStyle.call(context);
+            VectorTile.prototype.setConfiguredLayerStyle.call(context);
 
             expect(set.calledOnce).to.be.true;
             expect(set.calledWith("selectedStyleID", "l2")).to.be.true;
@@ -473,11 +407,11 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             expect(setStyleByDefinition.calledWith(vtStylesDefaultL2[1])).to.be.true;
         });
 
-        it("uses services.json first style third", done => {
+        it("uses services.json first style third", function (done) {
             const context = makeContext({givenVtStyles: vtStyles, done}),
                 {set, setStyleByDefinition} = context;
 
-            Layer2dVectorTile.prototype.setConfiguredLayerStyle.call(context);
+            VectorTile.prototype.setConfiguredLayerStyle.call(context);
 
             expect(set.calledOnce).to.be.true;
             expect(set.calledWith("selectedStyleID", "l1")).to.be.true;
@@ -485,53 +419,56 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
             expect(setStyleByDefinition.calledWith(vtStyles[0])).to.be.true;
         });
 
-        it("does not apply any style else and warns in console", () => {
+        it("does not apply any style else and warns in console", function () {
             const context = makeContext({givenVtStyles: []}),
                 {set, setStyleById, setStyleByDefinition} = context;
 
-            Layer2dVectorTile.prototype.setConfiguredLayerStyle.call(context);
+            sinon.stub(console, "warn");
+
+            VectorTile.prototype.setConfiguredLayerStyle.call(context);
 
             expect(set.notCalled).to.be.true;
             expect(setStyleById.notCalled).to.be.true;
             expect(setStyleByDefinition.notCalled).to.be.true;
-            expect(warn.called).to.be.true;
+            expect(console.warn.calledOnce).to.be.true;
         });
     });
 
-    describe("addMpFonts", () => {
-        it("returns Masterportal italic font if style is italic", () => {
+    describe("addMpFonts", function () {
+
+        it("returns Masterportal italic font if style is italic", function () {
             const italicFont1 = "Font italic",
                 italicFont2 = "Font Italic",
                 italicFont3 = "Fontitalic",
-                returnedItalicFont1 = Layer2dVectorTile.prototype.addMpFonts(italicFont1),
-                returnedItalicFont2 = Layer2dVectorTile.prototype.addMpFonts(italicFont2),
-                returnedItalicFont3 = Layer2dVectorTile.prototype.addMpFonts(italicFont3);
+                returnedItalicFont1 = VectorTile.prototype.addMpFonts(italicFont1),
+                returnedItalicFont2 = VectorTile.prototype.addMpFonts(italicFont2),
+                returnedItalicFont3 = VectorTile.prototype.addMpFonts(italicFont3);
 
             expect(returnedItalicFont1).to.equal("MasterPortalFont Italic");
             expect(returnedItalicFont2).to.equal("MasterPortalFont Italic");
             expect(returnedItalicFont3).to.equal("MasterPortalFont Italic");
         });
 
-        it("returns Masterportal bold font if style is bold", () => {
+        it("returns Masterportal bold font if style is bold", function () {
             const boldFont1 = "Font bold",
                 boldFont2 = "Font Bold",
                 boldFont3 = "Fontbold",
-                returnedBoldFont1 = Layer2dVectorTile.prototype.addMpFonts(boldFont1),
-                returnedBoldFont2 = Layer2dVectorTile.prototype.addMpFonts(boldFont2),
-                returnedBoldFont3 = Layer2dVectorTile.prototype.addMpFonts(boldFont3);
+                returnedBoldFont1 = VectorTile.prototype.addMpFonts(boldFont1),
+                returnedBoldFont2 = VectorTile.prototype.addMpFonts(boldFont2),
+                returnedBoldFont3 = VectorTile.prototype.addMpFonts(boldFont3);
 
             expect(returnedBoldFont1).to.equal("MasterPortalFont Bold");
             expect(returnedBoldFont2).to.equal("MasterPortalFont Bold");
             expect(returnedBoldFont3).to.equal("MasterPortalFont Bold");
         });
 
-        it("returns Masterportal font if style is not bold or italic", () => {
+        it("returns Masterportal font if style is not bold or italic", function () {
             const Font1 = "Font",
                 Font2 = "Font Regular",
                 Font3 = "Font Extra",
-                returnedFont1 = Layer2dVectorTile.prototype.addMpFonts(Font1),
-                returnedFont2 = Layer2dVectorTile.prototype.addMpFonts(Font2),
-                returnedFont3 = Layer2dVectorTile.prototype.addMpFonts(Font3);
+                returnedFont1 = VectorTile.prototype.addMpFonts(Font1),
+                returnedFont2 = VectorTile.prototype.addMpFonts(Font2),
+                returnedFont3 = VectorTile.prototype.addMpFonts(Font3);
 
             expect(returnedFont1).to.equal("MasterPortalFont");
             expect(returnedFont2).to.equal("MasterPortalFont");
@@ -539,35 +476,19 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
         });
     });
 
-    describe("showFeaturesByIds", function () {
-        it("should do nothing if first param is not an array", () => {
-            let vtLayer = null,
-                tileLoadFunction = null,
-                source = null;
+    describe("fetchSpriteData", function () {
+        /** @returns {object} mock context for setStyleById */
+        function makeContext () {
+            return {
+                get: key => ({
+                    useProxy: false
+                })[key]
+            };
+        }
+        it("Creates a VectorTileLayer", async function () {
 
-            vtLayer = new Layer2dVectorTile(attrs);
-            source = vtLayer.getLayerSource();
-            tileLoadFunction = source.getTileLoadFunction();
-            vtLayer.showFeaturesByIds();
-            expect(source.getTileLoadFunction()).to.deep.equal(tileLoadFunction);
-        });
-        it("should set tileLoadFunction", () => {
-            let vtLayer = null,
-                tileLoadFunction = null,
-                source = null;
-
-            vtLayer = new Layer2dVectorTile(attrs);
-            source = vtLayer.getLayerSource();
-            tileLoadFunction = source.getTileLoadFunction();
-            expect(tileLoadFunction.name).to.be.equal("defaultLoadFunction");
-            vtLayer.showFeaturesByIds([]);
-            expect(source.getTileLoadFunction()).to.not.be.equal("defaultLoadFunction");
-        });
-    });
-
-    describe("fetchSpriteData", () => {
-        it("Creates a VectorTileLayer", async () => {
             const url = "https://testemich.de/vt/tiles/esri/Test_VT_3857/p12/resources/sprites/sprite.json",
+                context = makeContext(),
                 resp = {
                     config: {transitional: {}, transformRequest: Array(1), transformResponse: Array(1), timeout: 0},
                     data: {},
@@ -578,22 +499,87 @@ describe("src/core/js/layers/layer2dVectorTile.js", () => {
                 },
                 axiosMock = sinon.stub(axios, "get").resolves(Promise.resolve(resp));
 
-            await Layer2dVectorTile.prototype.fetchSpriteData.call(context, url);
+            await VectorTile.prototype.fetchSpriteData.call(context, url);
             expect(axiosMock.calledOnce).to.be.true;
+        });
+    });
+
+    describe("createLegendURL", function () {
+        /** @returns {object} mock context for setStyleById */
+        function makeContext () {
+            return {
+                setLegendURL: sinon.spy(() => Symbol.for("Promise"))
+            };
+        }
+        it("sets the legend URL", function () {
+            const context = makeContext();
+
+            VectorTile.prototype.createLegendURL.call(context);
+            expect(context.setLegendURL.calledOnce).to.be.true;
+        });
+    });
+
+    describe("showFeaturesByIds", function () {
+        it("should do nothing if first param is not an array", () => {
+            const mapStub = sinon.stub(store, "getters");
+            let vtLayer = null,
+                layer = null,
+                tileLoadFunction = null,
+                source = null;
+
+            mapStub.value({"Maps/projection": {getCode: () => {
+                return "EPSG:25832";
+            }}});
+
+            vtLayer = new VectorTile(attrs);
+            layer = vtLayer.get("layer");
+            source = layer.getSource();
+            tileLoadFunction = source.getTileLoadFunction();
+            vtLayer.showFeaturesByIds();
+            expect(source.getTileLoadFunction()).to.deep.equal(tileLoadFunction);
+            sinon.restore();
+        });
+        it("should set tileLoadFunction", () => {
+            const mapStub = sinon.stub(store, "getters");
+            let vtLayer = null,
+                layer = null,
+                tileLoadFunction = null,
+                source = null;
+
+            mapStub.value({"Maps/projection": {getCode: () => {
+                return "EPSG:25832";
+            }}});
+
+            vtLayer = new VectorTile(attrs);
+            layer = vtLayer.get("layer");
+            source = layer.getSource();
+            tileLoadFunction = source.getTileLoadFunction();
+            expect(tileLoadFunction.name).to.be.equal("defaultLoadFunction");
+            vtLayer.showFeaturesByIds([]);
+            expect(source.getTileLoadFunction()).to.not.be.equal("defaultLoadFunction");
+            sinon.restore();
         });
     });
     describe("Use WebGL renderer", () => {
         it("Should create the layer with WebGL methods, if renderer: \"webgl\" is set", function () {
-            const vectorLayer = new Layer2dVectorTile({...attributes, renderer: "webgl", isPointLayer: false}),
-                layer = vectorLayer.getLayer();
+            const mapStub = sinon.stub(store, "getters");
+            let vtLayer = null,
+                layer = null;
 
-            expect(vectorLayer.isDisposed).to.equal(webgl.isDisposed);
-            expect(vectorLayer.setIsSelected).to.equal(webgl.setIsSelected);
-            expect(vectorLayer.hideAllFeatures).to.equal(webgl.hideAllFeatures);
-            expect(vectorLayer.showAllFeatures).to.equal(webgl.showAllFeatures);
-            expect(vectorLayer.showFeaturesByIds).to.equal(webgl.showFeaturesByIds);
-            expect(vectorLayer.setStyle).to.equal(webgl.setStyle);
-            expect(vectorLayer.source).to.equal(layer.getSource());
+            mapStub.value({"Maps/projection": {getCode: () => {
+                return "EPSG:25832";
+            }}});
+            vtLayer = new VectorTile({...attrs, renderer: "webgl", isPointLayer: false});
+            layer = vtLayer.get("layer");
+
+            expect(vtLayer.isDisposed).to.equal(webgl.isDisposed);
+            expect(vtLayer.setIsSelected).to.equal(webgl.setIsSelected);
+            expect(vtLayer.hideAllFeatures).to.equal(webgl.hideAllFeatures);
+            expect(vtLayer.showAllFeatures).to.equal(webgl.showAllFeatures);
+            expect(vtLayer.showFeaturesByIds).to.equal(webgl.showFeaturesByIds);
+            expect(vtLayer.setStyle).to.equal(webgl.setStyle);
+            expect(vtLayer.styling).to.equal(webgl.setStyle);
+            expect(vtLayer.source).to.equal(layer.getSource());
             expect(layer.get("isPointLayer")).to.not.be.undefined;
         });
     });

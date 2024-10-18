@@ -182,7 +182,7 @@ function editFeaturesWithoutGUI ({dispatch}) {
  *
  * @param {Object} context actions context object.
  * @param {String} prmObject An Object which includes the parameters.
- * @param {String} prmObject.drawType Which feature type is meant to be drawn; ["Point", "LineString", "Polygon", "Circle"].
+ * @param {String} prmObject.drawType Which feature type is meant to be drawn; ["Point", "LineString", "Polygon", "Circle", "Square"].
  * @param {String} prmObject.color color of the feature, rgb-coded (default: "55, 126, 184").
  * @param {Number} prmObject.opacity opacity of the feature (default: 1.0).
  * @param {Integer} prmObject.maxFeatures Maximum number of Features allowed to be drawn (default: unlimited).
@@ -200,7 +200,7 @@ async function initializeWithoutGUI ({state, commit, dispatch, getters, rootStat
     commit("setFreeHand", false);
     commit("setWithoutGUI", true);
 
-    if (["Point", "LineString", "Polygon", "Circle"].indexOf(drawType) > -1) {
+    if (["Point", "LineString", "Polygon", "Circle", "Square"].indexOf(drawType) > -1) {
         const {styleSettings} = getters;
         let layerExists = false;
 
@@ -275,7 +275,7 @@ async function initializeWithoutGUI ({state, commit, dispatch, getters, rootStat
 }
 /**
  * Find the correct id for the translation of the given drawType.
- * If the drawType is not "Circle", "LineString", "Point" or "Polygon", simply "draw" is returned.
+ * If the drawType is not "Circle", "LineString", "Point", "Polygon" or "Square", simply "draw" is returned.
  *
  * @param {String} drawType Type of the draw interaction.
  * @returns {String} The translation key for the given draw interaction
@@ -290,6 +290,8 @@ function getDrawId (drawType) {
             return "drawSymbol";
         case "Polygon":
             return "drawArea";
+        case "Square":
+            return "drawSquare";
         default:
             return "draw";
     }

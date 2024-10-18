@@ -17,7 +17,7 @@ import isObject from "../../../../shared/js/utils/isObject";
  * @param {Function} onerror - A function(error) with error of type Error called in case of an error - if set no console output is triggert.
  * @returns {Promise<Object|String|undefined>} Promise object represents the GetFeature request.
  */
-function getFeatureGET (url, payload, onerror) {
+export function getFeatureGET (url, payload, onerror) {
     let error = null;
 
     if (typeof url !== "string") {
@@ -75,7 +75,7 @@ function getFeatureGET (url, payload, onerror) {
  * @see {@link https://openlayers.org/en/latest/apidoc/module-ol_format_WFS-WFS.html#writeGetFeature} For further information.
  * @returns {Promise<Object|String|undefined>} Promise object represents the GetFeature request.
  */
-function getFeaturePOST (url, payload, onerror) {
+export function getFeaturePOST (url, payload, onerror) {
     let error = null;
 
     if (typeof url !== "string") {
@@ -140,7 +140,7 @@ function handleWfsResponse (response, onerror) {
     return response.data;
 }
 
-module.exports = {
+export default {
     getFeatureGET,
     getFeaturePOST
 };

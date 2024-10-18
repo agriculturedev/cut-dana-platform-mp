@@ -1,20 +1,20 @@
 import axios from "axios";
-import store from "../../../../../../app-store";
+import store from "../../../../../../../app-store";
 import {expect} from "chai";
 import sinon from "sinon";
-import {RoutingGeosearchResult} from "../../../../js/classes/routing-geosearch-result";
-import {fetchRoutingElasticGeosearch} from "../../../../js/geosearch/routing-elastic-geosearch";
+import {RoutingGeosearchResult} from "../../../../utils/classes/routing-geosearch-result";
+import {fetchRoutingElasticGeosearch} from "../../../../utils/geosearch/routing-elastic-geosearch";
 
-describe("src/modules/routing/js/geosearch/routing-locationFinder-elastic.js", () => {
+describe("src/modules/tools/routing/utils/geosearch/routing-locationFinder-geosearch.js", () => {
     let service;
 
     beforeEach(() => {
         service = "https://service";
         sinon.stub(i18next, "t").callsFake((...args) => args);
         store.getters = {
-            restServiceById: () => ({url: service})
+            getRestServiceById: () => ({url: service})
         };
-        store.state.Modules.Routing.geosearch.epsg = "25832";
+        store.state.Tools.Routing.geosearch.epsg = "25832";
     });
 
     afterEach(() => {
@@ -41,10 +41,10 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-elastic.js", (
                                             coordinates: [648919.1061000004, 5482432.313200001]
                                         },
                                         properties: {
-                                            indexname: "StraÃŸe",
+                                            indexname: "Straße",
                                             sort: 2,
-                                            hitGlyphicon: "bi-signpost-2",
-                                            searchField: "Kieler StraÃŸe",
+                                            hitGlyphicon: "bi-signpost-2-fill",
+                                            searchField: "Kieler Straße",
                                             HAUSNUMMER: 0,
                                             PLZ: 90425,
                                             id: "f54e7912-221a-440a-a1d5-ac712c2f153d",
@@ -68,8 +68,8 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-elastic.js", (
                                         properties: {
                                             indexname: "Adresse",
                                             sort: 3,
-                                            hitGlyphicon: "bi-signpost-2",
-                                            searchField: "Kieler StraÃŸe 1",
+                                            hitGlyphicon: "bi-signpost-2-fill",
+                                            searchField: "Kieler Straße 1",
                                             HAUSNUMMER: 1,
                                             PLZ: 90425,
                                             id: "691f726f-693e-4a4d-8b22-61092df9da3a",
@@ -90,12 +90,12 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-elastic.js", (
                 ),
                 expectedResult = [new RoutingGeosearchResult(
                     [648919.1061000004, 5482432.313200001],
-                    "Kieler StraÃŸe",
+                    "Kieler Straße",
                     "25832"
                 ),
                 new RoutingGeosearchResult(
                     [648892.3567000004, 5482333.2038],
-                    "Kieler StraÃŸe 1",
+                    "Kieler Straße 1",
                     "25832"
                 )
                 ];

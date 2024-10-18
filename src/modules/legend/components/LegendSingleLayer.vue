@@ -1,37 +1,60 @@
 <script>
 import {mapGetters} from "vuex";
 
-/**
- * Legend Single Layer
- * @module modules/LegendSingleLayer
- * @vue-prop {Object} legendObj - The Legend.
- */
-
 export default {
     name: "LegendSingleLayer",
+    components: {},
     props: {
+        id: {
+            type: String && undefined,
+            required: false,
+            default: ""
+        },
         legendObj: {
             type: Object && undefined,
+            required: true
+        },
+        renderToId: {
+            type: String,
             required: true
         }
     },
     computed: {
-        ...mapGetters("Modules/Legend", ["sldVersion"])
+        ...mapGetters("Legend", ["sldVersion"])
+    },
+    watch: {
+        legendObj () {
+            this.$nextTick(() => {
+                const renderToElement = document.getElementById(this.renderToId);
+
+                if (this.renderToId !== "" && renderToElement !== null) {
+                    this.$el.style.display = "block";
+
+                    while (renderToElement.lastElementChild) {
+                        renderToElement.removeChild(renderToElement.lastElementChild);
+                    }
+
+                    renderToElement.appendChild(new DOMParser().parseFromString(this.$el.outerHTML, "text/html").firstChild);
+                    this.$el.style.display = "none";
+                }
+            });
+        }
     }
 };
 </script>
 
 <template>
     <div
-        class="layer-legend show"
+        :id="id"
+        class="card-body layer-legend collapse show"
     >
         <template
-            v-if="legendObj && Object.keys(legendObj).length > 0"
+            v-if="legendObj !== undefined"
         >
             <div
                 v-for="(legendPart, index) in legendObj.legend"
-                :key="index"
-                class="mt-2 layer-legend-container"
+                :key="JSON.stringify(legendPart) + '_' + index"
+                class="layer-legend-container"
             >
                 <!-- String -->
                 <template
@@ -64,10 +87,7 @@ export default {
                 <template
                     v-if="typeof legendPart === 'object'"
                 >
-                    <div
-                        v-if="Array.isArray(legendPart.graphic)"
-                        class="images-row"
-                    >
+                    <div v-if="Array.isArray(legendPart.graphic)">
                         <!--Legend as Image or SVG -->
                         <img
                             :alt="legendPart.name ? legendPart.name : legendObj.name"
@@ -82,12 +102,9 @@ export default {
                         <img
                             :alt="legendPart.name ? legendPart.name : legendObj.name"
                             :src="Array.isArray(legendPart.graphic) ? legendPart.graphic[0] : legendPart.graphic"
-                            class="second-image"
                         >
-                        <span
-                            class="ms-4 image-name"
-                        >
-                            {{ $t(legendPart.name) }}
+                        <span>
+                            {{ legendPart.name }}
                         </span>
                     </div>
                     <div v-else>
@@ -107,10 +124,8 @@ export default {
                         >
                             {{ $t("common:modules.legend.linkToPdf") }}
                         </a>
-                        <span
-                            class="ms-4"
-                        >
-                            {{ $t(legendPart.name) }}
+                        <span>
+                            {{ legendPart.name }}
                         </span>
                     </div>
                 </template>
@@ -119,9 +134,9 @@ export default {
         <template
             v-else
         >
-            <p class="mt-3">
-                {{ $t("common:modules.legend.noLegendForLayerInfo") }}
-            </p>
+            <span>
+                {{ $t("common:menu.legend.noLegendForLayerInfo") }}
+            </span>
         </template>
     </div>
 </template>
@@ -129,22 +144,25 @@ export default {
 <style lang="scss" scoped>
     @import "~variables";
 
+    .layer-legend {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        img {
+            &.left {
+                max-width: 50px;
+                padding: 5px 0;
+            }
+        }
+    }
+    .layer-legend-container {
+        position: relative;
+    }
+    .layer-legend.collapsing {
+        -webkit-transition: none;
+        transition: none;
+        display: none;
+    }
     .first-image {
-        grid-column: 1;
-        grid-row: 1;
-        z-index: 1;
-    }
-    .second-image {
-        grid-column: 1;
-        grid-row: 1;
-    }
-    .image-name {
-        grid-column: 2;
-        grid-row: 1;
-        display: flex;
-        align-items: center;
-    }
-    .images-row{
-        display: inline-grid;
+        position: absolute;
     }
 </style>

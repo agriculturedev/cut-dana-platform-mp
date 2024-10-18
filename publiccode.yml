@@ -7,8 +7,8 @@ categories:
   - geographic-information-systems
 description:
   de:
-    apiDocumentation: 'https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/README.md'
-    documentation: 'https://www.masterportal.org/dokumentation'
+    apiDocumentation: 'https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/README.md'
+    documentation: 'https://www.masterportal.org/dokumentation.html'
     features:
       - OGC-konform
       - Konfigurierbar
@@ -20,7 +20,7 @@ description:
     genericName: 'Masterportal '
     localisedName: Masterportal
     longDescription: |2
-       Das Masterportal ist ein flexibler Baukasten für Geoportale im Web. In Hamburg kommt das Masterportal immer dann zum Einsatz, wenn webbasierte Kartenanwendungen benötigt werden – als eigenständige Anwendung oder als Teil einer E-Government-Lösung. Auch in anderen Städten und Kreisen wird das [++Masterportal++] eingesetzt und in einer Kooperation von mehr als 30 Partnern aus der Verwaltung weiterentwickelt. Das Masterportal ist Open-Source-Software. Es ist unter der [++MIT-Lizenz++](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/License.txt) veröffentlicht.
+       Das Masterportal ist ein flexibler Baukasten für Geoportale im Web. In Hamburg kommt das Masterportal immer dann zum Einsatz, wenn webbasierte Kartenanwendungen benötigt werden – als eigenständige Anwendung oder als Teil einer E-Government-Lösung. Auch in anderen Städten und Kreisen wird das [++Masterportal++] eingesetzt und in einer Kooperation von mehr als 30 Partnern aus der Verwaltung weiterentwickelt. Das Masterportal ist Open-Source-Software. Es ist unter der [++MIT-Lizenz++](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev/License.txt) veröffentlicht.
     shortDescription: ' Das Masterportal ist ein flexibler Baukasten für Geoportale im Web.'
 developmentStatus: stable
 intendedAudience:
@@ -69,10 +69,10 @@ localisation:
     - ua
   localisationReady: true
 logo: |-
-  https://www.masterportal.org/fileadmin/_processed_/7/d/csm_news_masterportal_ce24f3cc3d.jpg
+  https://www.masterportal.org/files/cto_layout/themedesigner/uploads/LGV_Masterportal_logo_quer_rgb_RZ.png
 maintenance:
   contacts:
-    - name: Betrieb Webanwendungen
+    - name: Markus Besenfelder
       affiliation:  Freie und Hansestadt Hamburg, Landesbetrieb Geoinformation und Vermessung
   contractors:
     - name: Landesbetrieb Geoinformation und Vermessung
@@ -82,8 +82,8 @@ maintenance:
 name: Masterportal
 platforms:
   - web
-releaseDate: '2024-10-09'
-roadmap: 'https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/'
+releaseDate: '2024-10-02'
+roadmap: 'https://www.masterportal.org/features.html'
 softwareType: standalone/web
-softwareVersion: 3.3.1 (LTS)
+softwareVersion: 2.50.0
 url: 'https://bitbucket.org/geowerkstatt-hamburg/masterportal.git'

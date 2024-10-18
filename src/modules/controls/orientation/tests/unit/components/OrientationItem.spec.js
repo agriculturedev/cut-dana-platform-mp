@@ -1,94 +1,73 @@
-import {createStore} from "vuex";
-import {config, mount} from "@vue/test-utils";
+import Vuex from "vuex";
+import {config, createLocalVue, shallowMount} from "@vue/test-utils";
 import {expect} from "chai";
-import sinon from "sinon";
 import OrientationItemComponent from "../../../components/OrientationItem.vue";
-import layerCollection from "../../../../../../core/layers/js/layerCollection";
+import sinon from "sinon";
 
-config.global.mocks.$t = key => key;
+const localVue = createLocalVue();
+
+localVue.use(Vuex);
+config.mocks.$t = key => key;
 
 describe("src/modules/controls/orientation/components/OrientationItem.vue", () => {
+    const mockGetters = {
+            showPoiIcon: () => false,
+            position: () => null,
+            showPoiChoice: () => false,
+            showPoi: () => false
+        },
+        mockAlertingActions = {
+            addSingleAlert: sinon.stub()
+        };
+
     let store,
-        onlyFilteredFeatures = false;
-    const mockAlertingActions = {
-        addSingleAlert: sinon.stub()
-    };
+        wrapper;
 
     beforeEach(() => {
-        store = createStore({
-            namespaced: true,
+        store = new Vuex.Store({
+            namespaces: true,
             modules: {
-                Controls: {
+                controls: {
                     namespaced: true,
                     modules: {
-                        Orientation: {
+                        orientation: {
                             namespaced: true,
-                            getters: {
-                                geolocation: sinon.stub(),
-                                iconGeolocate: sinon.stub(),
-                                iconGeolocatePOI: sinon.stub(),
-                                poiDistances: () => [],
-                                poiMode: sinon.stub(),
-                                poiModeCurrentPositionEnabled: sinon.stub(),
-                                showPoi: sinon.stub(),
-                                showPoiChoice: sinon.stub(),
-                                showPoiIcon: sinon.stub(),
-                                zoomMode: sinon.stub(),
-                                onlyFilteredFeatures: () => onlyFilteredFeatures
-                            }
+                            getters: mockGetters
                         }
                     }
                 },
                 Alerting: {
                     namespaced: true,
                     actions: mockAlertingActions
-
                 }
-            },
-            getters: {
-                visibleLayerConfigs: sinon.stub()
             }
         });
-    });
 
+        wrapper = shallowMount(OrientationItemComponent, {
+            store,
+            localVue
+        });
+    });
     afterEach(() => {
         sinon.restore();
+        wrapper.destroy();
     });
 
     it("renders the Orientation component", () => {
-        const wrapper = mount(OrientationItemComponent, {
-            global: {
-                plugins: [store]
-            }});
-
         expect(wrapper.find(".orientationButtons").exists()).to.be.true;
         expect(wrapper.find("#geolocation_marker").exists()).to.be.true;
     });
 
     it("renders the Orientation button", () => {
-        const wrapper = mount(OrientationItemComponent, {
-            global: {
-                plugins: [store]
-            }});
-
         expect(wrapper.find("#geolocate").exists()).to.be.true;
     });
 
     it("will not render the Poi Orientation button", () => {
-        const wrapper = mount(OrientationItemComponent, {
-            global: {
-                plugins: [store]
-            }});
-
         expect(wrapper.find("#geolocatePOI").exists()).to.be.false;
     });
 
     it("will union the array", () => {
-        const wrapper = mount(OrientationItemComponent, {
-                global: {
-                    plugins: [store]
-                }}),
-            arr1 = [3, 3, 4],
+        const arr1 = [3, 3, 4],
             arr2 = [5, 6, 7],
             arr = [3, 4, 5, 6, 7];
 
@@ -99,9 +78,7 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
             distance = 100,
             features = [{
                 getStyle: () => {
-                    return {
-                        getImage: sinon.stub()
-                    };
+                    return {};
                 },
                 getGeometry: () => {
                     return {
@@ -130,7 +107,7 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
                     return features;
                 }
             },
-            wfsLayer = {
+            wfsLayer = [{
                 has: () => {
                     return true;
                 },
@@ -145,61 +122,38 @@ describe("src/modules/controls/orientation/components/OrientationItem.vue", () =
                         return "TestLayer";
                     }
                     return "";
-                },
-                getLayerSource: () => layerSource
-            },
-            layerConfigs = [
-                {
-                    id: "1",
-                    typ: "WFS",
-                    visibility: true
-                },
-                {
-                    id: "2",
-                    typ: "WFS",
-                    visibility: true
-                },
-                {
-                    id: "3",
-                    typ: "WFS",
-                    visibility: true
                 }
-            ];
+            }];
 
-        it("getVectorFeaturesInCircle returns all features", () => {
-            const wrapper = mount(OrientationItemComponent, {
-                global: {
-                    plugins: [store]
-                }});
-            let returnedFeatures = "";
-
-            sinon.stub(layerCollection, "getLayerById").returns(wfsLayer);
-            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(layerConfigs, distance, centerPosition);
-            expect(returnedFeatures.length).to.be.equals(2);
+        beforeEach(() => {
+            sinon.stub(Radio, "request").callsFake(() => {
+                return wfsLayer;
+            });
         });
-        it("getVectorFeaturesInCircle returns only filtered features", () => {
-            onlyFilteredFeatures = true;
-            const wrapper = mount(OrientationItemComponent, {
-                global: {
-                    plugins: [store]
-                }});
+
+        it("getVectorFeaturesInCircle returns only filtered features", async () => {
             let returnedFeatures = "";
 
-            sinon.stub(layerCollection, "getLayerById").returns(wfsLayer);
-            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(layerConfigs, distance, centerPosition);
+            await wrapper.setProps({
+                onlyFilteredFeatures: true
+            });
+            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(distance, centerPosition);
+
             expect(returnedFeatures.length).to.be.equals(1);
+        });
+        it("getVectorFeaturesInCircle returns all features", () => {
+            let returnedFeatures = "";
+
+            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(distance, centerPosition);
+
+            expect(returnedFeatures.length).to.be.equals(2);
         });
         it("getVectorFeaturesInCircle returns only features in extent", () => {
             let returnedFeatures = "";
-            const wrapper = mount(OrientationItemComponent, {
-                global: {
-                    plugins: [store]
-                }});
 
-            sinon.stub(layerCollection, "getLayerById").returns(wfsLayer);
-            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(layerConfigs, 15, centerPosition);
+            returnedFeatures = wrapper.vm.getVectorFeaturesInCircle(15, centerPosition);
+
             expect(returnedFeatures.length).to.be.equals(1);
         });
     });
-
 });

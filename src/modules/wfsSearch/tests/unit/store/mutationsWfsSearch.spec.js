@@ -24,6 +24,7 @@ describe("src/modules/wfsSearch/store/mutationsWfsSearch.js", () => {
                 }
             ];
         });
+        afterEach(sinon.restore);
 
         it("should add a value if it has not already been added as an option and addedOptions is not an array (yet)", () => {
             delete instances[currentInstanceIndex].addedOptions;

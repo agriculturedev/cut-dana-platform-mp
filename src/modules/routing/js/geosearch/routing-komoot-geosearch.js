@@ -1,7 +1,7 @@
 import axios from "axios";
 import {RoutingGeosearchResult} from "../classes/routing-geosearch-result";
 import state from "../../store/stateRouting";
-import store from "../../../../app-store";
+import store from "../../../../../app-store";
 import crs from "@masterportal/masterportalapi/src/crs";
 
 /**
@@ -11,8 +11,8 @@ import crs from "@masterportal/masterportalapi/src/crs";
  */
 async function fetchRoutingKomootGeosearch (search) {
     const map = mapCollection.getMap("2D"),
-        mapBboxLng = crs.transformFromMapProjection(map, "EPSG:4326", [store.getters["Maps/extent"][0], store.getters["Maps/extent"][1]]),
-        mapBboxLat = crs.transformFromMapProjection(map, "EPSG:4326", [store.getters["Maps/extent"][2], store.getters["Maps/extent"][3]]),
+        mapBboxLng = crs.transformFromMapProjection(map, "EPSG:4326", [store.getters["Maps/boundingBox"][0], store.getters["Maps/boundingBox"][1]]),
+        mapBboxLat = crs.transformFromMapProjection(map, "EPSG:4326", [store.getters["Maps/boundingBox"][2], store.getters["Maps/boundingBox"][3]]),
         mapBbox = mapBboxLng.concat(mapBboxLat),
         url = getRoutingKomootGeosearchUrl(mapBbox, search),
         response = await axios.get(url);
@@ -33,7 +33,7 @@ async function fetchRoutingKomootGeosearch (search) {
  * @returns {String} the url
  */
 function getRoutingKomootGeosearchUrl (mapBbox, search) {
-    const serviceUrl = store.getters.restServiceById(state.geosearch.serviceId).url,
+    const serviceUrl = store.getters.getRestServiceById(state.geosearch.serviceId).url,
         url = new URL(serviceUrl);
 
     url.searchParams.set("lang", "de");
@@ -47,7 +47,7 @@ function getRoutingKomootGeosearchUrl (mapBbox, search) {
 
 /**
  * Requests POI at coordinate from Komoot
- * @param {Array} coordinates to search at
+ * @param {[Number, Number]} coordinates to search at
  * @returns {RoutingGeosearchResult} routingGeosearchResult
  */
 async function fetchRoutingKomootGeosearchReverse (coordinates) {
@@ -70,7 +70,7 @@ async function fetchRoutingKomootGeosearchReverse (coordinates) {
  * @returns {String} the url
  */
 function getRoutingKomootGeosearchReverseUrl (coordinates) {
-    const serviceUrl = store.getters.restServiceById(state.geosearchReverse.serviceId).url,
+    const serviceUrl = store.getters.getRestServiceById(state.geosearchReverse.serviceId).url,
         url = new URL(serviceUrl);
 
     url.searchParams.set("lon", coordinates[0]);
@@ -83,7 +83,7 @@ function getRoutingKomootGeosearchReverseUrl (coordinates) {
  * Parses Response from Komoot to RoutingGeosearchResult
  * @param {Object} geosearchResult from Komoot
  * @param {Object} [geosearchResult.geometry] geosearchResult geometry
- * @param {Array} [geosearchResult.geometry.coordinates] geosearchResult geometry coordinates
+ * @param {[Number, Number]} [geosearchResult.geometry.coordinates] geosearchResult geometry coordinates
  * @param {Object} [geosearchResult.properties] geosearchResult properties
  * @param {String} [geosearchResult.properties.housenumber] geosearchResult properties housenumber
  * @param {String} [geosearchResult.properties.street] geosearchResult properties street

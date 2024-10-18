@@ -6,6 +6,12 @@ const inquirer = require("inquirer"),
             name: "portalPath",
             message: "Pfad zum Ordner mit Portalen ausgehend von \"[...]/masterportal/\":",
             default: "portal"
+        },
+        {
+            type: "input",
+            name: "excludeAddon",
+            message: "Name des Addons, das nicht ins bundle soll:",
+            default: ""
         }
     ];
 

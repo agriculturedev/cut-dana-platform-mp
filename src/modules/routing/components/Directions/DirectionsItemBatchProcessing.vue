@@ -1,16 +1,9 @@
 <script>
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import mutations from "../../store/directions/mutationsDirections";
 import RoutingBatchProcessing from "../RoutingBatchProcessing.vue";
-import {RoutingTaskHandler} from "../../js/classes/routing-task-handler";
+import {RoutingTaskHandler} from "../../utils/classes/routing-task-handler";
 
-
-/**
- * DirectionsItemBatchProcessing
- * @module modules/DirectionsItemBatchProcessing
- * @vue-prop {Object} settings - The settings.
- * @vue-data {Boolean} isProcessing - Shows if files are being processed.
- * @vue-data {Number} countFailed - The failed attempts fo get directions.
- */
 export default {
     name: "DirectionsItemBatchProcessing",
     components: {
@@ -30,12 +23,12 @@ export default {
         };
     },
     computed: {
-        ...mapGetters("Modules/Routing", ["taskHandler", "directionsSettings"])
+        ...mapGetters("Tools/Routing", ["taskHandler"])
     },
     methods: {
-        ...mapMutations("Modules/Routing/Directions", ["setIsLoadingDirections"]),
-        ...mapMutations("Modules/Routing", ["setTaskHandler"]),
-        ...mapActions("Modules/Routing/Directions", ["fetchDirections", "resetRoutingDirectionsResults"]),
+        ...mapMutations("Tools/Routing/Directions", Object.keys(mutations)),
+        ...mapMutations("Tools/Routing", ["setTaskHandler"]),
+        ...mapActions("Tools/Routing/Directions", ["fetchDirections", "resetRoutingDirectionsResults"]),
         ...mapActions("Alerting", ["addSingleAlert"]),
         /**
          * Called when files are added by the user to process
@@ -65,21 +58,19 @@ export default {
                         if (this.countFailed === this.serviceRequests) {
                             this.addSingleAlert({
                                 category: this.$t("common:modules.alerting.categories.error"),
-                                content: this.$t("common:modules.routing.directions.batchProcessing.errorAllFailed")
+                                content: this.$t("common:modules.tools.routing.directions.batchProcessing.errorAllFailed")
                             });
                         }
                         else if (this.countFailed !== 0) {
                             this.addSingleAlert({
-                                category: "error",
-                                title: this.$t("common:modules.alerting.categories.error"),
-                                content: this.$t("common:modules.routing.directions.batchProcessing.errorSomeFailed", {countFailed: this.coundFailed})
+                                category: this.$t("common:modules.alerting.categories.error"),
+                                content: this.$t("common:modules.tools.routing.directions.batchProcessing.errorSomeFailed", {countFailed: this.coundFailed})
                             });
                         }
                     }
                     catch (e) {
                         this.addSingleAlert({
-                            category: "error",
-                            title: this.$t("common:modules.alerting.categories.error"),
+                            category: this.$t("common:modules.alerting.categories.error"),
                             content: e.message
                         });
                     }
@@ -153,7 +144,7 @@ export default {
         parseCsv (filecontent) {
             return new Promise((resolve, reject) => {
                 if (typeof filecontent !== "string") {
-                    reject(new Error(this.$t("common:modules.routing.directions.batchProcessing.errorNoEntries")));
+                    reject(new Error(this.$t("common:modules.tools.routing.directions.batchProcessing.errorNoEntries")));
                     return;
                 }
                 const content = filecontent.replace(/[\r]/g, "").trim(),
@@ -162,11 +153,11 @@ export default {
                     tasks = [];
 
                 if (content.length === 0 || count === 0) {
-                    reject(new Error(this.$t("common:modules.routing.directions.batchProcessing.errorNoEntries")));
+                    reject(new Error(this.$t("common:modules.tools.routing.directions.batchProcessing.errorNoEntries")));
                     return;
                 }
-                if (this.settings.batchProcessing.limit && count > this.settings.batchProcessing.limit) {
-                    reject(new Error(this.$t("common:modules.routing.directions.batchProcessing.errorToManyEntriesInFile", {limit: this.settings.batchProcessing.limit})));
+                if (count > this.settings.batchProcessing.limit) {
+                    reject(new Error(this.$t("common:modules.tools.routing.directions.batchProcessing.errorToManyEntriesInFile", {limit: this.settings.batchProcessing.limit})));
                     return;
                 }
 
@@ -179,21 +170,20 @@ export default {
                     }
 
                     if (lineParts.length !== 5) {
-                        reject(new Error(this.$t("common:modules.routing.directions.batchProcessing.errorToManyEntriesInRow", {row: i})));
+                        reject(new Error(this.$t("common:modules.tools.routing.directions.batchProcessing.errorToManyEntriesInRow", {row: i})));
                         return;
                     }
 
                     if (!this.isNumber(Number(lineParts[1])) || !this.isNumber(Number(lineParts[2])) || !this.isNumber(Number(lineParts[3])) || !this.isNumber(Number(lineParts[4]))) {
-                        reject(new Error(this.$t("common:modules.routing.directions.batchProcessing.errorRowContainsEntriesNoNumber", {row: i})));
+                        reject(new Error(this.$t("common:modules.tools.routing.directions.batchProcessing.errorRowContainsEntriesNoNumber", {row: i})));
                         return;
                     }
 
                     tasks.push(() => this.parseLineParts(lineParts));
                 }
-
                 this.setTaskHandler(new RoutingTaskHandler(
                     tasks,
-                    this.settings.batchProcessing.maximumConcurrentRequests ? this.settings.batchProcessing.maximumConcurrentRequests : this.$store.getters["Modules/Routing/Directions/settings"].batchProcessing.maximumConcurrentRequests,
+                    this.settings.batchProcessing.maximumConcurrentRequests,
                     (allResults, newResult) => allResults.push(newResult),
                     (results) => resolve(results)
                 ));
@@ -212,13 +202,13 @@ export default {
                 endeLat = Number(lineParts[4]),
                 result = {
                     ID: id,
-                    [this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.xStart")]: startLon,
-                    [this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.yStart")]: startLat,
-                    [this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.xEnd")]: endeLon,
-                    [this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.yEnd")]: endeLat,
-                    [this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.time")]: null,
-                    [this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.distance")]: null,
-                    [this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.profile")]: this.settings.speedProfile
+                    [i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.xStart")]: startLon,
+                    [i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.yStart")]: startLat,
+                    [i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.xEnd")]: endeLon,
+                    [i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.yEnd")]: endeLat,
+                    [i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.time")]: null,
+                    [i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.distance")]: null,
+                    [i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.profile")]: this.settings.speedProfile
                 };
 
             try {
@@ -231,8 +221,8 @@ export default {
                     instructions: false
                 });
 
-                result[this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.distance")] = directionsResult.distance.toFixed(2);
-                result[this.$t("common:modules.routing.directions.batchProcessing.downloadHeader.time")] = (directionsResult.duration / 60).toFixed(2);
+                result[i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.distance")] = directionsResult.distance.toFixed(2);
+                result[i18next.t("common:modules.tools.routing.directions.batchProcessing.downloadHeader.time")] = (directionsResult.duration / 60).toFixed(2);
             }
             catch (error) {
                 this.countFailed = this.countFailed + 1;
@@ -256,9 +246,9 @@ export default {
         :settings="settings"
         :progress="taskHandler ? taskHandler.progress : 0"
         :is-processing="isProcessing"
-        :structure-text="$t('common:modules.routing.directions.batchProcessing.structure')"
+        :structure-text="$t('common:modules.tools.routing.directions.batchProcessing.structure')"
         example-text="1;8.12;50.67;9.12;51.67"
         @filesadded="addFiles($event)"
-        @cancel-process="taskHandler.cancelRun()"
+        @cancelProcess="taskHandler.cancelRun()"
     />
 </template>

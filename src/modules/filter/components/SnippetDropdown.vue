@@ -1,70 +1,16 @@
 <script>
-import {mapActions, mapGetters, mapMutations} from "vuex";
 import Multiselect from "vue-multiselect";
 import createStyle from "@masterportal/masterportalapi/src/vectorStyle/createStyle";
-import {translateKeyWithPlausibilityCheck} from "../../../shared/js/utils/translateKeyWithPlausibilityCheck.js";
+import {translateKeyWithPlausibilityCheck} from "../../../../utils/translateKeyWithPlausibilityCheck.js";
 import getIconListFromLegendModule from "../utils/getIconListFromLegend.js";
 import {getDefaultOperatorBySnippetType} from "../utils/getDefaultOperatorBySnippetType.js";
 import splitListWithDelimiter from "../utils/splitListWithDelimiter.js";
-import isObject from "../../../shared/js/utils/isObject";
+import isObject from "../../../../utils/isObject";
 import SnippetInfo from "./SnippetInfo.vue";
-import localeCompare from "../../../shared/js/utils/localeCompare";
+import localeCompare from "../../../../utils/localeCompare";
 import openlayerFunctions from "../utils/openlayerFunctions.js";
-import layerFactory from "../../../core/layers/js/layerFactory";
-import layerCollection from "../../../core/layers/js/layerCollection";
-import mutations from "../store/mutationsFilter";
+import {mapGetters} from "vuex";
 
-/**
-* Snippet Dropdown
-* @module modules/SnippetDropdown
-* @vue-prop {Object} api - The api.
-* @vue-prop {String} attrName - The title and aria label.
-* @vue-prop {Array} addSelectAll - (??).
-* @vue-prop {Array} adjustment - The changes made by other snippets that change settings in this snippet. E.g. one snippet changes to "Grundschulen" and other snippets change their min value as a result of the adjustment.
-* @vue-prop {Boolean} adjustOnlyFromParent - adjust only from parent snippet.
-* @vue-prop {Boolean} allowEmptySelection - allows to remove all selected values.
-* @vue-prop {Boolean} autoInit - Shows if automatic initilization is enabled.
-* @vue-prop {Array} localeCompareParams - (???).
-* @vue-prop {String} delimiter - (???).
-* @vue-prop {Boolean} disabled - Shows if snippet is disabled.
-* @vue-prop {String} display - Sets which dates should be displayed.
-* @vue-prop {Number} filterId - The filter's id.
-* @vue-prop {Boolean} hideSelected - Whether the selected item should be hidden in the dropdown list.
-* @vue-prop {Array} info - The information for the SnippetInfo.
-* @vue-prop {Boolean} isChild - Shows if element is child element.
-* @vue-prop {Boolean} isParent - Shows if element is parent element.
-* @vue-prop {Array} title - The label.
-* @vue-prop {String} layerId - The layer's id.
-* @vue-prop {Boolean} multiselect - Shows if multiselect is enabled.
-* @vue-prop {String} operator - (???).
-* @vue-prop {Number} optionsLimit - The limit for multiselect options.
-* @vue-prop {String} placeholder - The placeholder for the multiselect.
-* @vue-prop {String} prechecked - (???).
-* @vue-prop {Array} renderIcons - The icons to be rendered from the legend.
-* @vue-prop {Array} fixedRules - List of fixed rules.
-* @vue-prop {Number} snippetId - The snippet's id.
-* @vue-prop {Boolean} showAllValues - Shows if all values should be displayed.
-* @vue-prop {String} value - The value for a date.
-* @vue-prop {Boolean} visible - Shows if snippet is visible.
-*
-* @vue-data {Boolean} disable - Shows if snippet is disabled.
-* @vue-data {Boolean} isInitializing - Shows if snippet is initializing.
-* @vue-data {Boolean} isAdjusting - Shows if snippet is adjusting.
-* @vue-data {Array} dropdownValue - The list of values for the dropdown.
-* @vue-data {Array} dropdownSelected - The list of values selected.
-* @vue-data {Object} styleModel - The style model.
-* @vue-data {Array} legendsInfo - The list of information from the legend.
-* @vue-data {Object} iconList - The icons from the legend.
-* @vue-data {Boolean} allSelected - Shows if everything is selected.
-* @vue-data {String} translationKey - The translation key.
-* @vue-data {Array} operatorWhitelist - The operator white list.
-* @vue-data {String} source - The source for the input data.
-* @vue-data {Boolean} allValues - (???)
-*
-* @vue-event {Object} changeRule - Emits the current rule to whoever is listening.
-* @vue-event {Number} deleteRule - Emits the delete rule function to whoever is listening.
-* @vue-event {*} setSnippetPrechecked - Emits the setSnippetPrechecked event.
-*/
 export default {
     name: "SnippetDropdown",
     components: {
@@ -91,16 +37,6 @@ export default {
             type: [Object, Boolean],
             required: false,
             default: false
-        },
-        adjustOnlyFromParent: {
-            type: Boolean,
-            required: false,
-            default: false
-        },
-        allowEmptySelection: {
-            type: Boolean,
-            required: false,
-            default: true
         },
         autoInit: {
             type: Boolean,
@@ -141,11 +77,6 @@ export default {
             type: [String, Boolean],
             required: false,
             default: false
-        },
-        hideSelected: {
-            type: Boolean,
-            required: false,
-            default: true
         },
         info: {
             type: [String, Boolean],
@@ -235,7 +166,6 @@ export default {
             default: true
         }
     },
-    emits: ["changeRule", "deleteRule", "setSnippetPrechecked"],
     data () {
         return {
             disable: true,
@@ -256,19 +186,21 @@ export default {
             ],
             source: "",
             allValues: false,
-            noChangeCounter: 0
+            selectedValue: undefined,
+            isLoading: true
         };
     },
     computed: {
-        ...mapGetters("Modules/Filter", ["preventAdjust"]),
+        ...mapGetters("Tools/Filter", ["closeDropdownOnSelect"]),
+
         ariaLabelDropdown () {
-            return this.$t("common:modules.filter.ariaLabel.dropdown", {param: this.attrName});
+            return this.$t("modules.tools.filter.ariaLabel.dropdown", {param: this.attrName});
         },
         ariaLabelRadio () {
-            return this.$t("common:modules.filter.ariaLabel.radio", {param: this.attrName});
+            return this.$t("modules.tools.filter.ariaLabel.radio", {param: this.attrName});
         },
         ariaLabelCheckbox () {
-            return this.$t("common:modules.filter.ariaLabel.checkbox", {param: this.attrName});
+            return this.$t("modules.tools.filter.ariaLabel.checkbox", {param: this.attrName});
         },
         titleText () {
             if (this.title === true) {
@@ -280,10 +212,10 @@ export default {
             return "";
         },
         emptyList () {
-            return this.$t("common:modules.filter.dropdown.emptyList");
+            return this.$t("modules.tools.filter.dropdown.emptyList");
         },
         noElements () {
-            return this.$t("common:modules.filter.dropdown.noElements");
+            return this.$t("modules.tools.filter.dropdown.noElements");
         },
         dropdownValueComputed () {
             let dropdownValue = [];
@@ -319,7 +251,7 @@ export default {
             return dropdownValue;
         },
         selectAllTitle () {
-            return !this.allSelected ? this.$t("common:modules.filter.dropdown.selectAll") : this.$t("common:modules.filter.dropdown.deselectAll");
+            return !this.allSelected ? this.$t("modules.tools.filter.dropdown.selectAll") : this.$t("modules.tools.filter.dropdown.deselectAll");
         },
         securedOperator () {
             if (!this.operatorWhitelist.includes(this.operator)) {
@@ -329,57 +261,34 @@ export default {
         }
     },
     watch: {
-        dropdownSelected: {
-            handler (value, oldValue) {
-                const prechecked = this.getPrecheckedExistingInValue(this.prechecked, this.dropdownValue);
+        dropdownSelected (value) {
+            const prechecked = this.getPrecheckedExistingInValue(this.prechecked, this.dropdownValue);
 
-                if (
-                    !this.isAdjusting
-                    && (
-                        !this.isInitializing
-                        || this.isInitializing && (
-                            Array.isArray(prechecked)
-                            && prechecked.length
-                            || this.prechecked === "all"
-                        )
+            if (
+                !this.isAdjusting
+                && (
+                    !this.isInitializing
+                    || this.isInitializing && (
+                        Array.isArray(prechecked)
+                        && prechecked.length
+                        || this.prechecked === "all"
                     )
-                ) {
-                    if (typeof value === "string" && value || Array.isArray(value) && value.length) {
-                        if (value?.toString() === oldValue?.toString()) {
-                            this.noChangeCounter++;
-                        }
-                        else {
-                            this.noChangeCounter = 0;
-                        }
-                        if (this.isChild && this.noChangeCounter >= 2) {
-                            this.dropdownValue = value;
-                        }
-                        else {
-                            this.emitCurrentRule(value, this.isInitializing && this.allowEmptySelection);
-                        }
-                    }
-                    else if (Array.isArray(value) && !value.length && this.source !== "adjust") {
-                        this.deleteCurrentRule();
-                    }
-
-                    if (!this.isParent && !this.adjustOnlyFromParent) {
-                        this.setPreventAdjust(true);
-                    }
-                    else {
-                        this.setPreventAdjust(false);
-                    }
+                )
+            ) {
+                if (typeof value === "string" && value || Array.isArray(value) && value.length) {
+                    this.emitCurrentRule(value, this.isInitializing);
                 }
-                else if (this.adjustOnlyFromParent) {
-                    this.setPreventAdjust(false);
+                else if (Array.isArray(value) && !value.length && this.source !== "adjust") {
+                    this.deleteCurrentRule();
                 }
-                this.allSelected = this.dropdownValue.length !== 0 && Array.isArray(this.dropdownSelected) && this.dropdownValue.length === this.dropdownSelected.length;
-            },
-            deep: true
+            }
+            this.allSelected = this.dropdownValue.length !== 0 && Array.isArray(this.dropdownSelected) && this.dropdownValue.length === this.dropdownSelected.length;
         },
         adjustment (adjusting) {
-            if (!isObject(adjusting) || this.visible === false || this.isParent || (this.adjustOnlyFromParent && this.preventAdjust)) {
+            if (!isObject(adjusting) || this.visible === false || this.isParent) {
                 return;
             }
+
             this.$nextTick(() => {
                 if (adjusting?.start) {
                     if (this.snippetId !== adjusting.snippetId && (!Array.isArray(adjusting.snippetId) || !adjusting.snippetId.includes(this.snippetId))) {
@@ -426,104 +335,91 @@ export default {
             });
         },
         disabled (value) {
-            this.disable = typeof value === "boolean" ? value : true;
+            if (typeof this.selectedValue === "undefined") {
+                this.disable = typeof value === "boolean" ? value : true;
+            }
+            else {
+                this.disable = false;
+            }
+            this.isLoading = typeof value === "boolean" ? value : true;
         },
-        legendsInfo: {
-            handler (value) {
-                if (this.renderIcons === "fromLegend") {
-                    this.iconList = getIconListFromLegendModule.getIconListFromLegend(value, this.styleModel);
-                }
-            },
-            deep: true
+        legendsInfo (value) {
+            if (this.renderIcons === "fromLegend") {
+                this.iconList = getIconListFromLegendModule.getIconListFromLegend(value, this.styleModel);
+            }
         }
     },
     created () {
         this.delayedPrechecked = false;
     },
     mounted () {
-        this.$nextTick(() => {
-            this.initializeIcons();
-
-            if (!this.visible) {
-                this.dropdownValue = Array.isArray(this.prechecked) ? this.prechecked : [];
-                this.dropdownSelected = this.getInitialDropdownSelected(this.prechecked, this.dropdownValue, this.multiselect);
-                this.$nextTick(() => {
-                    this.isInitializing = false;
-                    this.disable = false;
-                    this.emitSnippetPrechecked();
-                });
-            }
-            else if (Array.isArray(this.value)) {
-                this.dropdownValue = this.value;
-                this.dropdownSelected = this.getInitialDropdownSelected(this.prechecked, this.dropdownValue, this.multiselect);
-                this.$nextTick(() => {
-                    this.isInitializing = false;
-                    this.disable = false;
-                    this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
-                });
-            }
-            else if (this.api && this.autoInit !== false) {
-                this.$nextTick(() => {
-                    this.api.getUniqueValues(this.attrName, list => {
+        this.initializeIcons();
+        if (!this.visible) {
+            this.dropdownValue = Array.isArray(this.prechecked) ? this.prechecked : [];
+            this.dropdownSelected = this.getInitialDropdownSelected(this.prechecked, this.dropdownValue, this.multiselect);
+            this.$nextTick(() => {
+                this.isInitializing = false;
+                this.disable = false;
+                this.isLoading = false;
+                this.emitSnippetPrechecked();
+            });
+        }
+        else if (Array.isArray(this.value)) {
+            this.dropdownValue = this.value;
+            this.dropdownSelected = this.getInitialDropdownSelected(this.prechecked, this.dropdownValue, this.multiselect);
+            this.$nextTick(() => {
+                this.isInitializing = false;
+                this.disable = false;
+                this.isLoading = false;
+                this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
+            });
+        }
+        else if (this.api && this.autoInit !== false) {
+            this.$nextTick(() => {
+                this.api.getUniqueValues(this.attrName, list => {
+                    this.$nextTick(() => {
+                        this.dropdownValue = this.splitListWithDelimiter(list, this.delimiter);
+                        this.dropdownSelected = this.getInitialDropdownSelected(this.prechecked, this.dropdownValue, this.multiselect);
                         this.$nextTick(() => {
-                            this.dropdownValue = this.splitListWithDelimiter(list, this.delimiter);
-                            this.dropdownSelected = this.getInitialDropdownSelected(this.prechecked, this.dropdownValue, this.multiselect);
-                            this.$nextTick(() => {
-                                this.isInitializing = false;
-                                this.disable = false;
-                                this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
-                                if (this.showAllValues && this.prechecked === "all") {
-                                    this.allValues = this.dropdownSelected;
-                                }
-                            });
+                            this.isInitializing = false;
+                            this.disable = false;
+                            this.isLoading = false;
+                            this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
+                            if (this.showAllValues && this.prechecked === "all") {
+                                this.allValues = this.dropdownSelected;
+                            }
                         });
-                    }, error => {
-                        this.disable = false;
-                        this.isInitializing = false;
-                        this.emitSnippetPrechecked();
-                        console.warn(error);
-                    }, {rules: this.fixedRules, filterId: this.filterId, commands: {
-                        filterGeometry: this.filterGeometry,
-                        geometryName: this.filterGeometryName
-                    }});
-                });
-            }
-            else {
-                this.dropdownValue = [];
-                this.dropdownSelected = [];
-                if (this.isChild && (Array.isArray(this.prechecked) && this.prechecked.length || this.prechecked === "all")) {
-                    this.delayedPrechecked = this.prechecked;
-                }
-                this.$nextTick(() => {
-                    this.isInitializing = false;
+                    });
+                }, error => {
                     this.disable = false;
-                    this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
-                });
+                    this.isLoading = false;
+                    this.isInitializing = false;
+                    this.emitSnippetPrechecked();
+                    console.warn(error);
+                }, {rules: this.fixedRules, filterId: this.filterId, commands: {
+                    filterGeometry: this.filterGeometry,
+                    geometryName: this.filterGeometryName
+                }});
+            });
+        }
+        else {
+            this.dropdownValue = [];
+            this.dropdownSelected = [];
+            if (this.isChild && (Array.isArray(this.prechecked) && this.prechecked.length || this.prechecked === "all")) {
+                this.delayedPrechecked = this.prechecked;
             }
-        });
+            this.$nextTick(() => {
+                this.isInitializing = false;
+                this.disable = false;
+                this.isLoading = false;
+                this.emitSnippetPrechecked(this.prechecked, this.snippetId, this.visible);
+            });
+        }
     },
     methods: {
-        ...mapMutations("Modules/Filter", Object.keys(mutations)),
-        ...mapActions("Maps", ["areLayerFeaturesLoaded", "addLayer"]),
         translateKeyWithPlausibilityCheck,
         splitListWithDelimiter,
 
-        /**
-         * Resets the values of this snippet.
-         * @param {Function} onsuccess the function to call on success
-         * @returns {void}
-         */
-        resetSnippet (onsuccess) {
-            this.isAdjusting = true;
-            this.setCurrentSource("init");
-            this.dropdownSelected = [];
-            this.$nextTick(() => {
-                if (typeof onsuccess === "function") {
-                    onsuccess();
-                }
-                this.isAdjusting = false;
-            });
-        },
         /**
          * Emits the setSnippetPrechecked event.
          * @param {String[]|String} prechecked The prechecked values.
@@ -583,23 +479,22 @@ export default {
          */
         initializeIcons () {
             if (this.renderIcons === "fromLegend") {
-                const layerConfig = openlayerFunctions.getLayerByLayerId(this.layerId);
+                const layer = openlayerFunctions.getLayerByLayerId(this.layerId),
+                    olLayer = layer.get("layer");
 
                 this.styleModel = getIconListFromLegendModule.getStyleModel(this.layerId);
-                if (!layerCollection.getLayerById(this.layerId) && ["WFS", "OAF", "GeoJSON"].includes(layerConfig.typ)) {
-                    const layer = layerFactory.createLayer(layerConfig);
-
+                if (!olLayer.getVisible() && ["WFS", "OAF", "GeoJSON"].includes(layer.get("typ"))) {
                     if (mapCollection.getMap("2D").getLayers().getArray().find(aLayer => aLayer.get("id") === this.layerId) === undefined) {
-                        this.addLayer(layer.getLayer());
-                    }
-                    else {
-                        layer.getLayer().setVisible(true);
-                    }
-                    this.areLayerFeaturesLoaded(this.layerId).then(() => {
-                        this.getLegendByStyleId(layer.get("styleId"), layer.getLayer(), () => {
-                            layer.getLayer().setVisible(false);
+                        mapCollection.getMap("2D").addLayer(olLayer);
+                        olLayer.setOpacity(0);
+                        olLayer.setVisible(true);
+                        olLayer.getSource().once("featuresloadend", () => {
+                            this.getLegendByStyleId(layer.get("styleId"), olLayer, () => {
+                                olLayer.setVisible(false);
+                                olLayer.setOpacity(1);
+                            });
                         });
-                    });
+                    }
                 }
                 else {
                     this.getLegendByStyleId(this.layerId);
@@ -708,6 +603,21 @@ export default {
             this.$emit("deleteRule", this.snippetId);
         },
         /**
+         * Resets the values of this snippet.
+         * @param {Function} onsuccess the function to call on success
+         * @returns {void}
+         */
+        resetSnippet (onsuccess) {
+            if (this.visible) {
+                this.dropdownSelected = [];
+            }
+            this.$nextTick(() => {
+                if (typeof onsuccess === "function") {
+                    onsuccess();
+                }
+            });
+        },
+        /**
          * Select all items
          * @returns {void}
          */
@@ -796,6 +706,15 @@ export default {
                 return;
             }
             this.source = source;
+        },
+
+        /**
+         * Sets the current selected value.
+         * @param {String|Array|Object} val The selected option.
+         * @returns {void}
+         */
+        onSelect (val) {
+            this.selectedValue = val;
         }
     }
 };
@@ -844,34 +763,18 @@ export default {
                     :show-labels="false"
                     open-direction="auto"
                     :options-limit="optionsLimit"
-                    :hide-selected="hideSelected"
-                    :allow-empty="allowEmptySelection"
-                    :close-on-select="true"
+                    :hide-selected="true"
+                    :close-on-select="typeof closeDropdownOnSelect === 'boolean' ? closeDropdownOnSelect: true"
                     :clear-on-select="false"
-                    :loading="disable"
+                    :loading="isLoading"
                     :group-select="multiselect && addSelectAll"
                     :group-values="(multiselect && addSelectAll) ? 'list' : ''"
                     :group-label="(multiselect && addSelectAll) ? 'selectAllTitle' : ''"
                     @remove="setCurrentSource('dropdown')"
+                    @select="onSelect"
                 >
-                    <template #caret>
-                        <div
-                            class="multiselect__select"
-                        >
-                            <i class="bi bi-chevron-down" />
-                        </div>
-                    </template>
-
-                    <template #noOptions>
-                        <span>
-                            {{ emptyList }}
-                        </span>
-                    </template>
-                    <template #noResult>
-                        <span>
-                            {{ noElements }}
-                        </span>
-                    </template>
+                    <span slot="noOptions">{{ emptyList }}</span>
+                    <span slot="noResult">{{ noElements }}</span>
                 </Multiselect>
             </div>
         </div>
@@ -959,7 +862,7 @@ export default {
     </div>
 </template>
 
-<style src="vue-multiselect/dist/vue-multiselect.css"></style>
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 
 <style lang="scss">
     @import "~variables";
@@ -972,7 +875,7 @@ export default {
         content: "";
         top: 50%;
         left: 50%;
-        margin: 0px 0 0 0px;
+        margin: -8px 0 0 -8px;
         width: 16px;
         height: 16px;
         border-radius: 100%;
@@ -980,22 +883,20 @@ export default {
         border-top-color: $dark_grey;
         box-shadow: 0 0 0 1px transparent;
     }
-    .filter-select-box-container .multiselect:focus-within {
-        border: 1px solid $form-check-input-checked-bg-color;
-    }
     .filter-select-box-container .multiselect .multiselect__option {
         display: block;
         min-height: 16px;
         line-height: 8px;
         text-decoration: none;
         text-transform: none;
+        vertical-align: middle;
         position: relative;
         cursor: pointer;
         white-space: nowrap;
         padding: 10px 12px;
     }
     .filter-select-box-container .multiselect .multiselect__option--highlight {
-        background: $secondary;
+        background: $light_blue;
         outline: none;
         color: $white;
     }
@@ -1006,11 +907,11 @@ export default {
         position: relative;
         display: inline-block;
         padding: 4px 26px 4px 10px;
-        border-radius: 10px;
-        margin-right: 15px;
+        border-radius: 5px;
+        margin-right: 10px;
         color: $white;
         line-height: 1;
-        background: $secondary;
+        background: $light_blue;
         margin-bottom: 5px;
         white-space: nowrap;
         overflow: hidden;
@@ -1020,6 +921,7 @@ export default {
     .filter-select-box-container .multiselect .multiselect__tags:focus-within {
         border-color: $light_blue;
         outline: 0;
+        box-shadow: inset 0 1px 1px rgb(0 0 0 / 8%), 0 0 8px rgb(102 175 233 / 60%);
     }
     .filter-select-box-container .multiselect .multiselect__option--highlight:after {
         content: attr(data-select);
@@ -1039,57 +941,42 @@ export default {
         display: inline-block;
         margin-bottom: 0;
         padding-top: 0;
+        font-size: $font_size_big;
     }
     .filter-select-box-container .multiselect .multiselect__tag-icon:focus, .multiselect__tag-icon:hover {
         background: $light_grey;
     }
     .filter-select-box-container .multiselect__select {
-        transform: none;
+        height: 34px;
+        line-height: 14px;
     }
     .filter-select-box-container .multiselect__select::before {
         top: 64%;
-        content: none;
-    }
-    .filter-select-box-container .multiselect__select i {
-        color: #000000;
-        font-size: $font_size_sm;
-        -webkit-text-stroke: 1px;
-        display: inline-block;
-        padding-top: 60%;
     }
     .filter-select-box-container .multiselect--active {
         color: $black;
         background-color: $white;
         border-color: $light_blue;
-        border-radius: 5px;
         outline: 0;
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075), 0 0 0 0.25rem rgba(13, 110, 253, 0.05);
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075), 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
     .filter-select-box-container .multiselect .multiselect__tags {
-        min-height: 40px;
+        min-height: 34px;
         font-size: $font-size-base;
-        line-height: 40px;
+        line-height: 1.428571429;
         color: $dark_grey;
         background-color: $white;
         background-image: none;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
+        border: 1px solid #ccc;
+        border-radius: 0;
         box-shadow: inset 0 1px 1px rgb(0 0 0 / 8%);
         -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
         transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
     }
-    .multiselect__option--selected {
-        font-family: $font_family_accent;
-        background-color: $primary;
-    }
-    .multiselect__input, .multiselect__single {
-        margin-bottom: 0px;
-        line-height: inherit;
-    }
 </style>
 
 <style lang="scss" scoped>
-    @import "~mixins";
+    @import "~/css/mixins.scss";
     @import "~variables";
     .snippetListContainer .check-box-label {
         margin: 0;

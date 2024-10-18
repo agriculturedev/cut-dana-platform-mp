@@ -1,5 +1,6 @@
 import {requestGfi} from "../api/wmsGetFeatureInfo";
 import {interpretLinebreaks} from "./interpretLinebreaks";
+import {GeoJSON} from "ol/format";
 
 /**
  * returns a list of wms features for the given url and mimeType
@@ -149,6 +150,7 @@ export function getJSONFeatures (layer, url) {
  * @returns {Object[]}  a list of object{getTheme, getTitle, getAttributesToShow, getProperties, getGfiUrl} or an emtpy array
  */
 export function handleJSONResponse (featureInfos, layer, url) {
+    const geojsonReader = new GeoJSON({dataProjection: mapCollection.getMap("2D")?.getView().getProjection(), featureProjection: featureInfos?.crs?.properties?.name});
     let result = [];
 
     if (typeof featureInfos === "object" && Array.isArray(featureInfos?.features)) {
@@ -156,7 +158,15 @@ export function handleJSONResponse (featureInfos, layer, url) {
             if (typeof feature === "object") {
                 feature.getProperties = () => interpretLinebreaks(feature.properties || {});
                 feature.getId = () => feature.id || "";
-                result.push(createGfiFeature(layer, url, feature));
+                try {
+                    result.push(createGfiFeature(layer, url, geojsonReader.readFeature(feature)));
+                }
+                catch (err) {
+                    result.push(createGfiFeature(layer, url, feature));
+                    if (typeof onerror === "function") {
+                        onerror(new Error("handleJSONResponse: JSON structure in WMS FeatureInfo can't be parsed."));
+                    }
+                }
             }
         });
     }

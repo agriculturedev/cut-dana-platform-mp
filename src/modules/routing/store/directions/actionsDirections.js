@@ -1,8 +1,7 @@
-import {RoutingWaypoint} from "../../js/classes/routing-waypoint";
-import {fetchRoutingOrsDirections} from "../../js/directions/routing-ors-directions";
+import {RoutingWaypoint} from "../../utils/classes/routing-waypoint";
+import {fetchRoutingOrsDirections} from "../../utils/directions/routing-ors-directions";
 import Feature from "ol/Feature";
 import LineString from "ol/geom/LineString";
-import {toRaw} from "vue";
 
 export default {
     /**
@@ -48,8 +47,7 @@ export default {
         }
         catch (err) {
             dispatch("Alerting/addSingleAlert", {
-                category: "error",
-                title: i18next.t("common:modules.alerting.categories.info"),
+                category: i18next.t("common:modules.alerting.categories.info"),
                 content: err.message
             }, {root: true});
         }
@@ -75,28 +73,27 @@ export default {
      * Needs to be extended if new services should be configurable.
      * @param {Object} context actions context object.
      * @param {Object} parameter with wgs84Coords as input and instructions for the external service
-     * @param {Array<{Number, Number}>} [parameter.wgs84Coords] coordinates in wgs84 projection
+     * @param {[Number, Number]} [parameter.wgs84Coords] coordinates in wgs84 projection
      * @param {Boolean} [parameter.instructions] should request with instructions
      * @returns {RoutingDirections} routingDirections
      */
-    async fetchDirections ({state, getters, dispatch, rootState}, {wgs84Coords, instructions}) {
-
-        const directionSettings = await rootState.Modules.Routing.directionsSettings,
+    async fetchDirections ({state, getters, dispatch}, {wgs84Coords, instructions}) {
+        const {settings} = state,
             {selectedAvoidSpeedProfileOptions} = getters,
             avoidPolygons = await dispatch("getAvoidPolygonsWgs84");
 
-        if (directionSettings.type === "ORS") {
+        if (settings.type === "ORS") {
             return fetchRoutingOrsDirections({
                 coordinates: wgs84Coords,
                 language: i18next.language,
                 transformCoordinatesToLocal: coordinates => dispatch(
-                    "Modules/Routing/transformCoordinatesWgs84ToLocalProjection",
+                    "Tools/Routing/transformCoordinatesWgs84ToLocalProjection",
                     coordinates,
                     {root: true}
                 ),
-                speedProfile: state.settings.speedProfile,
+                speedProfile: settings.speedProfile,
                 avoidSpeedProfileOptions: selectedAvoidSpeedProfileOptions,
-                preference: state.settings.preference,
+                preference: settings.preference,
                 avoidPolygons: avoidPolygons,
                 instructions: instructions
             });
@@ -143,7 +140,7 @@ export default {
      * @param {Object} params with the starting and ending index
      * @param {Number} [params.fromWaypointIndex] at which waypoint to start the highlight
      * @param {Number} [params.toWaypointIndex] at which waypoint to end the highlight
-     * @param {Array<{Number, Number}>} [params.coordsIndex] alternative to select the coordinate index directly
+     * @param {[Number, Number]} [params.coordsIndex] alternative to select the coordinate index directly
      * @returns {void}
      */
     async highlightRoute ({dispatch, state}, {fromWaypointIndex, toWaypointIndex, coordsIndex}) {
@@ -166,7 +163,7 @@ export default {
      * @param {Object} params with the starting and ending index
      * @param {Number} [params.fromWaypointIndex] at which waypoint to start the zoom
      * @param {Number} [params.toWaypointIndex] at which waypoint to end the zoom
-     * @param {Array<{Number, Number}>} [params.coordsIndex] alternative to select the coordinate index directly
+     * @param {[Number, Number]} [params.coordsIndex] alternative to select the coordinate index directly
      * @returns {void}
      */
     async zoomToRoute ({dispatch, state, rootState}, {fromWaypointIndex, toWaypointIndex, coordsIndex}) {
@@ -187,18 +184,15 @@ export default {
     /**
      * Retrieves the waypoint coordinates in wgs84 projection
      * @param {Object} context actions context object.
-     * @returns {Array<{Number, Number}>} wgs84 coordinates
+     * @returns {[Number, Number][]} wgs84 coordinates
      */
-    async getDirectionsCoordinatesWgs84 ({dispatch, getters}) {
-        const coordinates = [],
-            directionsCoordinates = getters.waypoints
-                .map(waypoint => waypoint.getCoordinates())
-                .filter(coords => coords.length === 2);
+    async getDirectionsCoordinatesWgs84 ({getters, dispatch}) {
+        const coordinates = [];
 
-        for (const coords of directionsCoordinates) {
+        for (const coords of getters.directionsCoordinates) {
             coordinates.push(
                 await dispatch(
-                    "Modules/Routing/transformCoordinatesLocalToWgs84Projection",
+                    "Tools/Routing/transformCoordinatesLocalToWgs84Projection",
                     coords,
                     {root: true}
                 )
@@ -227,7 +221,7 @@ export default {
                 for (const coordinate of coordinates) {
                     wgsCoordinates.push(
                         await dispatch(
-                            "Modules/Routing/transformCoordinatesLocalToWgs84Projection",
+                            "Tools/Routing/transformCoordinatesLocalToWgs84Projection",
                             coordinate,
                             {root: true}
                         )
@@ -268,37 +262,12 @@ export default {
             commit("setMapListenerAdded", true);
         }
 
-        dispatch("Maps/addLayer", toRaw(directionsRouteLayer), {root: true});
-        dispatch("Maps/addLayer", toRaw(directionsWaypointsLayer), {root: true});
-        dispatch("Maps/addLayer", toRaw(directionsAvoidLayer), {root: true});
+        dispatch("Maps/addLayerOnTop", directionsRouteLayer, {root: true});
+        dispatch("Maps/addLayerOnTop", directionsWaypointsLayer, {root: true});
+        dispatch("Maps/addLayerOnTop", directionsAvoidLayer, {root: true});
 
 
         dispatch("createInteractionFromMapInteractionMode");
-    },
-
-    /**
-     * Resets all waypoints, deletes external waypoints, removes coordinates from features,
-     * sets directions to null and clear avoid source.
-     * @param {Object} context the vuex context
-     * @param {Object} context.getters the getters
-     * @param {Object} context.commit the commit
-     * @param {Object} context.dispatch the dispatch
-     * @returns {void}
-     */
-    reset ({getters, commit, dispatch}) {
-        const {waypoints, directionsRouteSource, directionsAvoidSource} = getters;
-
-        if (waypoints.length > 0) {
-            for (let i = waypoints.length - 1; i >= 0; i--) {
-                dispatch("removeWaypoint", {index: waypoints[i].index});
-                if (waypoints[i] && waypoints[i].fromExtern === true) {
-                    waypoints.splice(i, 1);
-                }
-            }
-            directionsRouteSource.getFeatures().forEach(feature => feature.getGeometry().setCoordinates([]));
-            commit("setRoutingDirections", null);
-            directionsAvoidSource.clear();
-        }
     },
 
     /**
@@ -325,13 +294,15 @@ export default {
      * @param {Object} context actions context object.
      * @returns {void}
      */
-    async closeDirections ({state, dispatch}) {
+    async closeDirections ({rootState, state, dispatch}) {
         const {directionsWaypointsLayer, directionsRouteLayer, directionsAvoidLayer} = state,
-            map = await mapCollection.getMap("2D");
+            map = await mapCollection.getMap(rootState.Maps.mode);
 
-        map.removeLayer(toRaw(directionsRouteLayer));
-        map.removeLayer(toRaw(directionsWaypointsLayer));
-        map.removeLayer(toRaw(directionsAvoidLayer));
+        if (!state.keepRoutes) {
+            map.removeLayer(directionsRouteLayer);
+        }
+        map.removeLayer(directionsWaypointsLayer);
+        map.removeLayer(directionsAvoidLayer);
 
         dispatch("removeMapInteractions");
     },
@@ -344,32 +315,26 @@ export default {
     createDirectionsWaypointsModifyInteractionListener ({state, dispatch}) {
         const {directionsWaypointsModifyInteraction} = state;
 
-        let changedFeature, newCoordinates;
+        let changedFeature;
 
         directionsWaypointsModifyInteraction.on("modifystart", event => {
             event.features.getArray().forEach(feature => {
-                newCoordinates = event.features
-                    .getArray()[0]
-                    .getGeometry()
-                    .getCoordinates();
-
                 feature.getGeometry().once("change", () => {
                     changedFeature = feature;
                 });
             });
         });
 
-
         directionsWaypointsModifyInteraction.on("modifyend", async () => {
             const {waypoints} = state,
                 waypoint = waypoints[changedFeature.get("routingId")],
                 coordinates = await dispatch(
-                    "Modules/Routing/transformCoordinatesLocalToWgs84Projection",
+                    "Tools/Routing/transformCoordinatesLocalToWgs84Projection",
                     changedFeature.getGeometry().getCoordinates(),
                     {root: true}
                 ),
                 geoSearchResult = await dispatch(
-                    "Modules/Routing/fetchTextByCoordinates",
+                    "Tools/Routing/fetchTextByCoordinates",
                     {
                         coordinates
                     },
@@ -377,7 +342,7 @@ export default {
                 );
 
             waypoint.setDisplayName(
-                geoSearchResult ? geoSearchResult.getDisplayName() : newCoordinates
+                geoSearchResult ? geoSearchResult.getDisplayName() : null
             );
             dispatch("findDirections");
         });
@@ -467,12 +432,12 @@ export default {
                         index: nextIndex + 1
                     }),
                     wgs84Coordinates = await dispatch(
-                        "Modules/Routing/transformCoordinatesLocalToWgs84Projection",
+                        "Tools/Routing/transformCoordinatesLocalToWgs84Projection",
                         newCoordinate,
                         {root: true}
                     ),
                     geoSearchResult = await dispatch(
-                        "Modules/Routing/fetchTextByCoordinates",
+                        "Tools/Routing/fetchTextByCoordinates",
                         {
                             coordinates: wgs84Coordinates
                         },
@@ -496,7 +461,7 @@ export default {
      * @param {String} [payload.displayName] optional displayName for the waypoint
      * @returns {RoutingWaypoint} added waypoint
      */
-    addWaypoint ({state}, {index, feature, displayName, coordinates, fromExtern}) {
+    addWaypoint ({state}, {index, feature, displayName}) {
         let waypointIndex = index;
 
         if (typeof index !== "number") {
@@ -530,13 +495,6 @@ export default {
             displayName,
             source: state.directionsWaypointsSource
         });
-
-        if (fromExtern) {
-            waypoint.fromExtern = true;
-        }
-        if (coordinates) {
-            waypoint.setCoordinates(coordinates);
-        }
 
         state.waypoints.splice(waypointIndex, 0, waypoint);
         // Fix Index on Waypoints after new Waypoint
@@ -618,17 +576,11 @@ export default {
 
     /**
      * Initializes the waypoint array with the minimum waypoints (2) for start and end.
-     *
      * @param {Object} context actions context object.
      * @returns {void}
      */
     initWaypoints ({dispatch, state}) {
-        const externWayPoints = state.waypoints.filter(
-                (waypoint) => waypoint.fromExtern === true
-            ),
-            length = externWayPoints.length > 0 ? externWayPoints.length : state.waypoints.length;
-
-        for (let i = length; i < 2; i++) {
+        for (let i = state.waypoints.length; i < 2; i++) {
             dispatch("addWaypoint", {index: i});
         }
     },
@@ -641,12 +593,12 @@ export default {
      */
     async onDirectionsWaypointsDrawEnd ({dispatch}, event) {
         const coordinates = await dispatch(
-                "Modules/Routing/transformCoordinatesLocalToWgs84Projection",
+                "Tools/Routing/transformCoordinatesLocalToWgs84Projection",
                 event.feature.getGeometry().getCoordinates(),
                 {root: true}
             ),
             geoSearchResult = await dispatch(
-                "Modules/Routing/fetchTextByCoordinates",
+                "Tools/Routing/fetchTextByCoordinates",
                 {
                     coordinates
                 },
@@ -690,7 +642,7 @@ export default {
     /**
      * Creates a new draw interaction depending on state to either draw
      * lines or polygons. The method will first remove any prior draw
-     * interaction created by this module.
+     * interaction created by this tool.
      * @param {Object} context actions context object.
      * @returns {void}
      */

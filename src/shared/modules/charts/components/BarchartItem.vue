@@ -1,7 +1,7 @@
 <script>
 import ChartJs from "chart.js/auto";
-import deepAssign from "../../../js/utils/deepAssign.js";
-import thousandsSeparator from "../../../js/utils/thousandsSeparator.js";
+import deepAssign from "../../../utils/deepAssign.js";
+import thousandsSeparator from "../../../utils/thousandsSeparator";
 
 export default {
     name: "BarchartItem",
@@ -16,8 +16,8 @@ export default {
             default: null
         },
         /**
-         * the data for the piechart to hand over to chartJS data attribute
-         * @see https://www.chartjs.org/docs/latest/charts/doughnut.html
+         * the data for the barchart to hand over to chartJS data attribute
+         * @see https://www.chartjs.org/docs/latest/charts/bar.html
          */
         data: {
             type: Object,
@@ -31,6 +31,14 @@ export default {
                 plugins: {
                     legend: {
                         align: "start"
+                    },
+                    tooltips: {
+                        callbacks: {
+                        // use label callback to return the desired label
+                            label: (tooltipItem, data) => {
+                                return data.datasets[tooltipItem.datasetIndex].label + ": " + thousandsSeparator(tooltipItem.value);
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -41,14 +49,6 @@ export default {
                             callback: (value) => {
                                 return thousandsSeparator(value);
                             }
-                        }
-                    }
-                },
-                tooltips: {
-                    callbacks: {
-                    // use label callback to return the desired label
-                        label: (tooltipItem, data) => {
-                            return data.datasets[tooltipItem.datasetIndex].label + ": " + thousandsSeparator(tooltipItem.value);
                         }
                     }
                 }
@@ -63,6 +63,10 @@ export default {
     },
     mounted () {
         this.$nextTick(() => {
+            /**
+             * @see afterFit https://www.chartjs.org/docs/latest/axes/?h=afterfit
+             * @returns {void}  -
+             */
             this.resetChart(this.data);
         });
     },
@@ -83,12 +87,18 @@ export default {
                 };
 
             if (this.chart instanceof ChartJs) {
-                this.chart.destroy();
+                this.destroyChart();
             }
 
             this.chart = new ChartJs(ctx, config);
         },
-
+        /**
+         * destroys the old charts
+         * @returns {void}  -
+         */
+        destroyChart () {
+            this.chart.destroy();
+        },
         /**
          * replace default options with given options on hand deepAssign method and returns the options for chart js
          * @param {Object} defaultOptions an object with the default options following chartJS options (see https://www.chartjs.org/docs/latest/general/options.html)

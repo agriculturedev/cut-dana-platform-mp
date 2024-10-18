@@ -1,21 +1,19 @@
 <script>
-import {mapGetters, mapMutations, mapActions} from "vuex";
 import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList";
 import createStyle from "@masterportal/masterportalapi/src/vectorStyle/createStyle";
+import StylePolygon from "@masterportal/masterportalapi/src/vectorStyle/styles/polygon/stylePolygon";
+import {returnColor} from "@masterportal/masterportalapi/src/vectorStyle/lib/colorConvertions";
+import {mapGetters, mapMutations, mapActions} from "vuex";
+import getters from "../../store/gettersOrientation";
 import mutations from "../../store/mutationsOrientation";
-import {extractEventCoordinates} from "../../../../../shared/js/utils/extractEventCoordinates";
-import svgFactory from "../../../../../shared/js/utils/svgFactory";
+import {extractEventCoordinates} from "../../../../../../src/utils/extractEventCoordinates";
+import LoaderOverlay from "../../../../../utils/loaderOverlay";
+import "jquery-ui/ui/widgets/draggable";
 
-/**
- * Orientation control that allowsthe user to locate themselves on the map.
- * @module modules/controls/PoiOrientation
- * @vue-prop {Boolean | Array} poiDistances - The point of interest distances.
- * @vue-prop {Function} getFeaturesInCircle - Function to get Features within distance.
- * @vue-event {String} hide - Emits hide to hide the modal.
- */
 export default {
     name: "PoiOrientation",
     props: {
+        /** id of layer to show in mini-map */
         poiDistances: {
             type: [Boolean, Array],
             required: false,
@@ -27,51 +25,37 @@ export default {
             required: true
         }
     },
-    emits: ["hide"],
     data () {
         return {
-            poiFeatures: [],
-            imgPathByFeature: {}
+            poiFeatures: []
         };
     },
     computed: {
-        ...mapGetters("Controls/Orientation", ["activeCategory", "position"]),
-        ...mapGetters(["visibleLayerConfigs"])
+        ...mapGetters("controls/orientation", Object.keys(getters))
     },
     watch: {
-        visibleLayerConfigs: {
-            handler (newLayerConfigs, oldLayerConfigs) {
-                newLayerConfigs.forEach(newConfig => {
-                    if (!oldLayerConfigs.find(config => config.id === newConfig.id)) {
-                        this.$nextTick(() => {
-                            this.areLayerFeaturesLoaded(newConfig.id).then(() => {
-                                this.getFeatures(newLayerConfigs);
-                            });
-                        });
-                    }
-                });
-                oldLayerConfigs?.forEach(oldConfig => {
-                    if (!newLayerConfigs.find(config => config.id === oldConfig.id)) {
-                        this.getFeatures(newLayerConfigs);
-                    }
-                });
-            },
-            deep: true
+        position () {
+            this.getFeatures();
         }
     },
     mounted () {
+        LoaderOverlay.hide();
         this.show();
-        this.getFeatures(this.visibleLayerConfigs);
+        this.getFeatures();
         this.initActiveCategory();
         this.$nextTick(() => {
             if (this.$refs["close-icon"]) {
                 this.$refs["close-icon"].focus();
             }
+            $(".modal-dialog").draggable({
+                cursor: "move",
+                handle: ".modal-header"
+            });
         });
     },
     methods: {
-        ...mapMutations("Controls/Orientation", Object.keys(mutations)),
-        ...mapActions("Maps", ["areLayerFeaturesLoaded", "zoomToExtent", "unregisterListener"]),
+        ...mapMutations("controls/orientation", Object.keys(mutations)),
+        ...mapActions("Maps", ["zoomToExtent"]),
 
         /**
          * Callback when close icon has been clicked.
@@ -89,16 +73,12 @@ export default {
          * @returns {void}
          */
         show () {
-            const el = document.querySelector(".modal"),
-                backdrop = document.querySelector(".modal-backdrop");
+            const el = document.querySelector(".modal");
 
             if (el) {
                 el.style.display = "block";
                 el.classList.add("show");
                 el.classList.remove("fade");
-                backdrop.style.display = "block";
-                backdrop.classList.add("show");
-                backdrop.classList.remove("fade");
             }
         },
 
@@ -109,32 +89,36 @@ export default {
         hidePoi () {
             this.$emit("hide");
             this.poiFeatures = [];
-            document.querySelector("#geolocatePOI").classList.remove("toggleButtonPressed");
+            this.setPoiMode("currentPosition");
+            this.setCurrentPositionEnabled(true);
+            this.$emit("togglePoiControl", false);
+            this.$store.dispatch("MapMarker/removePointMarker");
         },
 
         /**
          * Getting the features within the distances
-         * @param {Array} layerConfigs visible layer configs
          * @returns {void}
          */
-        getFeatures (layerConfigs) {
+        getFeatures () {
             const poiDistances = this.poiDistances,
                 poiFeatures = [],
                 centerPosition = this.position;
             let featInCircle = [];
 
             poiDistances.forEach(distance => {
-                featInCircle = this.getFeaturesInCircle(layerConfigs, distance, centerPosition);
+                featInCircle = this.getFeaturesInCircle(distance, centerPosition);
+
                 featInCircle.sort((featureA, featureB) => featureA.dist2Pos - featureB.dist2Pos);
+
                 poiFeatures.push({
-                    category: distance,
-                    features: featInCircle
+                    "category": distance,
+                    "features": featInCircle
                 });
             });
 
             poiFeatures.forEach(category => {
                 category.features.forEach(feat => {
-                    this.fillImagePath(feat);
+                    feat.imgPath = this.getImgPath(feat);
                     feat.nearbyTitleText = this.getFeatureTitle(feat);
                 });
             });
@@ -164,7 +148,7 @@ export default {
         /**
          * Getting the feature title
          * @param  {ol/Feature} feature the vector feature
-         * @return {String[]} the nearbyTitle Text
+         * @return {string[]} the nearbyTitle Text
          */
         getFeatureTitle (feature) {
             if (!Array.isArray(feature.nearbyTitleText) || !feature.nearbyTitleText.length) {
@@ -178,6 +162,42 @@ export default {
 
             return feature.nearbyTitleText;
 
+        },
+
+        /**
+         * Getting the image path from feature
+         * @param  {ol/feature} feat Feature
+         * @return {string} imgPath the image path
+         */
+        getImgPath (feat) {
+            let imagePath = "";
+            const styleObject = styleList.returnStyleObject(feat.styleId);
+
+            if (styleObject) {
+                const featureStyleObject = createStyle.getGeometryStyle(feat, styleObject.rules, false, Config.wfsImgPath),
+                    featureStyle = createStyle.createStyle(styleObject, feat, false, Config.wfsImgPath);
+
+                if (featureStyleObject.attributes?.type === "icon") {
+                    imagePath = featureStyle.getImage()?.getSrc() ? featureStyle.getImage()?.getSrc() : "";
+                }
+
+                else {
+                    createStyle.returnLegendByStyleId(feat.styleId).then(layerLegends => {
+                        layerLegends.legendInformation.forEach(legendInfo => {
+                            if (legendInfo.geometryType === "Point" && legendInfo.styleObject.attributes.type === "circle" && legendInfo.label === feat.legendValue) {
+                                imagePath = this.createCircleSVG(legendInfo.styleObject);
+                            }
+                            else if (legendInfo.geometryType === "LineString" && legendInfo.label === feat.legendValue) {
+                                imagePath = this.createLineSVG(legendInfo.styleObject);
+                            }
+                            else if (legendInfo.geometryType === "Polygon" && legendInfo.label === feat.legendValue) {
+                                imagePath = this.createPolygonGraphic(legendInfo.styleObject);
+                            }
+                        });
+                    });
+                }
+            }
+            return imagePath;
         },
 
         /**
@@ -201,69 +221,124 @@ export default {
                 index = resolutions.indexOf(0.2645831904584105) === -1 ? resolutions.length : resolutions.indexOf(0.2645831904584105);
 
             this.zoomToExtent({extent: coordinate, options: {maxZoom: index}});
-            this.$store.dispatch("Maps/removePointMarker");
-            this.$emit("hide");
-            this.setPoiMode("currentPosition");
-            this.setCurrentPositionEnabled(true);
-            document.querySelector("#geolocatePOI").classList.remove("toggleButtonPressed");
+            this.hidePoi();
+        },
+
+        /**
+         * Creating the circle svg
+         * @param  {ol/style} style ol style
+         * @return {string} SVG
+         */
+        createCircleSVG (style) {
+            let svg = "";
+            const circleStrokeColor = returnColor(style.attributes.circleStrokeColor, "hex"),
+                circleStrokeOpacity = style.attributes.circleStrokeColor[3].toString() || 0,
+                circleStrokeWidth = style.attributes.circleStrokeWidth,
+                circleFillColor = returnColor(style.attributes.circleFillColor, "hex"),
+                circleFillOpacity = style.attributes.circleFillColor[3].toString() || 0;
+
+            svg += "<svg height='35' width='35'>";
+            svg += "<circle cx='17.5' cy='17.5' r='15' stroke='";
+            svg += circleStrokeColor;
+            svg += "' stroke-opacity='";
+            svg += circleStrokeOpacity;
+            svg += "' stroke-width='";
+            svg += circleStrokeWidth;
+            svg += "' fill='";
+            svg += circleFillColor;
+            svg += "' fill-opacity='";
+            svg += circleFillOpacity;
+            svg += "'/>";
+            svg += "</svg>";
+
+            return svg;
+        },
+
+        /**
+         * Creating the line svg
+         * @param  {ol/style} style ol style
+         * @return {string} SVG
+         */
+        createLineSVG (style) {
+            let svg = "";
+            const strokeColor = returnColor(style.attributes.lineStrokeColor, "hex"),
+                strokeWidth = parseInt(style.attributes.lineStrokeWidth, 10),
+                strokeOpacity = style.attributes.lineStrokeColor[3].toString() || 0;
+
+            svg += "<svg height='35' width='35'>";
+            svg += "<path d='M 05 30 L 30 05' stroke='";
+            svg += strokeColor;
+            svg += "' stroke-opacity='";
+            svg += strokeOpacity;
+            svg += "' stroke-width='";
+            svg += strokeWidth;
+            svg += "' fill='none'/>";
+            svg += "</svg>";
+
+            return svg;
+        },
+
+        /**
+         * Creating the polygon graphic
+         * @param  {ol/style} style ol style
+         * @return {string} SVG or data URL
+         */
+        createPolygonGraphic (style) {
+            let svg = "";
+            const fillColor = returnColor(style.attributes.polygonFillColor || "black", "hex"),
+                strokeColor = returnColor(style.attributes.polygonStrokeColor, "hex"),
+                strokeWidth = parseInt(style.attributes.polygonStrokeWidth, 10),
+                fillOpacity = style.attributes.polygonFillColor?.[3]?.toString() || 0,
+                strokeOpacity = style.attributes.polygonStrokeColor[3].toString() || 0,
+                fillHatch = style.attributes.polygonFillHatch;
+
+            if (fillHatch) {
+                return StylePolygon.prototype.getPolygonFillHatchLegendDataUrl(style);
+            }
+
+            svg += "<svg height='35' width='35'>";
+            svg += "<polygon points='5,5 30,5 30,30 5,30' style='fill:";
+            svg += fillColor;
+            svg += ";fill-opacity:";
+            svg += fillOpacity;
+            svg += ";stroke:";
+            svg += strokeColor;
+            svg += ";stroke-opacity:";
+            svg += strokeOpacity;
+            svg += ";stroke-width:";
+            svg += strokeWidth;
+            svg += ";'/>";
+            svg += "</svg>";
+
+            return svg;
         },
 
         /**
          * Changing default category
          * @param {Event} evt click event
-         * @return {String} SVG
+         * @return {string} SVG
          */
         changedCategory (evt) {
             const currentTabId = evt.target.getAttribute("aria-controls");
 
             this.setActiveCategory(parseFloat(currentTabId));
-        },
-
-        /**
-         * Getting the image path from feature and stores it in 'imgPathByFeature'.
-         * @param  {ol/feature} feat Feature
-         * @return {void}
-         */
-        fillImagePath (feat) {
-            const styleObject = styleList.returnStyleObject(feat.styleId);
-
-            this.imgPathByFeature[feat.getId()] = "";
-            if (styleObject) {
-                const featureStyleObject = createStyle.getGeometryStyle(feat, styleObject.rules, false, Config.wfsImgPath),
-                    featureStyle = createStyle.createStyle(styleObject, feat, false, Config.wfsImgPath);
-
-                if (featureStyleObject.attributes?.type === "icon") {
-                    this.imgPathByFeature[feat.getId()] = featureStyle.getImage()?.getSrc() ? featureStyle.getImage()?.getSrc() : "";
-                }
-
-                else {
-                    createStyle.returnLegendByStyleId(feat.styleId).then(layerLegends => {
-                        layerLegends.legendInformation.forEach(legendInfo => {
-                            if (legendInfo.geometryType === "Point" && legendInfo.styleObject.attributes.type === "circle" && legendInfo.label === feat.legendValue) {
-                                this.imgPathByFeature[feat.getId()] = svgFactory.createCircle(legendInfo.styleObject);
-                            }
-                            else if (legendInfo.geometryType === "LineString" && legendInfo.label === feat.legendValue) {
-                                this.imgPathByFeature[feat.getId()] = svgFactory.createLine(legendInfo.styleObject);
-                            }
-                            else if (legendInfo.geometryType === "Polygon" && legendInfo.label === feat.legendValue) {
-                                this.imgPathByFeature[feat.getId()] = svgFactory.createPolygon(legendInfo.styleObject);
-                            }
-                        });
-                    });
-                }
-            }
         }
     }
 };
 </script>
 
 <template>
-    <button
+    <div
         id="surrounding_vectorfeatures"
         class="modal fade in poi"
-        @keydown.esc="hidePoi"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="surrounding_vectorfeatures"
     >
-        <div class="modal-dialog">
+        <div
+            class="modal-dialog modal-dialog-centered"
+            role="document"
+        >
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">
@@ -282,7 +357,7 @@ export default {
                         <i class="bi-x-lg" />
                     </span>
                 </div>
-                <div>
+                <div class="modal-body">
                     <ul
                         class="nav nav-pills"
                         role="tablist"
@@ -295,7 +370,7 @@ export default {
                             <button
                                 class="nav-link"
                                 :class="feature.category === activeCategory ? 'active' : ''"
-                                :href="feature.category"
+                                :href="'#' + feature.category"
                                 :aria-controls="feature.category"
                                 data-bs-toggle="pill"
                                 @click="changedCategory"
@@ -318,7 +393,7 @@ export default {
                             :class="['tab-pane fade show', feature.category === activeCategory ? 'active' : '']"
                         >
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-striped table-hover">
                                     <tbody>
                                         <tr
                                             v-for="(feat, i) in feature.features"
@@ -326,12 +401,12 @@ export default {
                                             :key="'feat' + i"
                                             @click="zoomFeature"
                                         >
-                                            <td v-if="imgPathByFeature[feat.getId()].indexOf('</svg>') !== -1">
-                                                <span v-html="imgPathByFeature[feat.getId()]" />
+                                            <td v-if="feat.imgPath.indexOf('</svg>') !== -1">
+                                                <span v-html="feat.imgPath" />
                                             </td>
-                                            <td v-else-if="imgPathByFeature[feat.getId()].length > 0">
+                                            <td v-else-if="feat.imgPath.length > 0">
                                                 <img
-                                                    :src="imgPathByFeature[feat.getId()]"
+                                                    :src="feat.imgPath"
                                                     :alt="$t('common:modules.controls.orientation.imgAlt')"
                                                 >
                                             </td>
@@ -353,19 +428,14 @@ export default {
                 </div>
             </div>
         </div>
-        <button
+        <div
             class="modal-backdrop fade show"
-            @click="hidePoi"
         />
-        <!--
-            The previous element does not require a key interaction. It is not focusable,
-            has no semantic meaning, and other methods exist for keyboard users to leave
-            the backdropped modal dialog.
-        -->
-    </button>
+    </div>
 </template>
 
 <style lang="scss" scoped>
+    @import "~/css/mixins.scss";
     @import "~variables";
 
     #surrounding_vectorfeatures {
@@ -384,6 +454,7 @@ export default {
         .modal-header {
             padding: 0;
             border-bottom: 0;
+            cursor: move;
         }
         .modal-title {
             padding: 8px;
@@ -396,13 +467,20 @@ export default {
             float: right;
             padding: 12px;
             cursor: pointer;
+            &:focus {
+                @include primary_action_focus;
+            }
         }
         .modal-dialog {
             z-index: 1051;
+            left: 35%;
         }
         .tab-content{
             max-height: 78vH;
             overflow: auto;
+            &:focus {
+                @include primary_action_focus;
+            }
             tbody {
                 >tr {
                     >td {
@@ -424,4 +502,9 @@ export default {
             }
         }
     }
+    .modal-dialog {
+    position: fixed;
+    width: 100%;
+    }
+
 </style>

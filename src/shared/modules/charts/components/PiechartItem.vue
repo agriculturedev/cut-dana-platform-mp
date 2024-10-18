@@ -1,6 +1,6 @@
 <script>
 import ChartJs from "chart.js/auto";
-import deepAssign from "../../../js/utils/deepAssign.js";
+import deepAssign from "../../../utils/deepAssign.js";
 
 export default {
     name: "PiechartItem",
@@ -35,8 +35,10 @@ export default {
         return {
             defaultOptions: {
                 responsive: true,
-                legend: {
-                    align: "start"
+                plugins: {
+                    legend: {
+                        align: "start"
+                    }
                 }
             },
             chart: null
@@ -53,10 +55,6 @@ export default {
              * @see afterFit https://www.chartjs.org/docs/latest/axes/?h=afterfit
              * @returns {void}  -
              */
-            ChartJs.Legend.prototype.afterFit = function () {
-                this.height += 10;
-            };
-
             this.resetChart(this.data);
         });
     },
@@ -77,10 +75,17 @@ export default {
                 };
 
             if (this.chart instanceof ChartJs) {
-                this.chart.destroy();
+                this.destroyChart();
             }
 
             this.chart = new ChartJs(ctx, config);
+        },
+        /**
+         * destroys the old charts
+         * @returns {void}  -
+         */
+        destroyChart () {
+            this.chart.destroy();
         },
 
         /**
