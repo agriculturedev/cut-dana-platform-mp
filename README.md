@@ -226,7 +226,7 @@ Step 1:
 
 ```console
 cd cut-data-narrator\addons\dipasAddons\dataNarrator
-npm install
+npm install --legacy-peer-deps
 ```
 
 Install the `node_modules` required for the Masterportal:
