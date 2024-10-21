@@ -1,6 +1,6 @@
-import createStyleModule from "../../utils/style/createStyle";
-import circleCalculations from "../../utils/circleCalculations";
-import squareCalculations from "../../utils/squareCalculations";
+import createStyleModule from "../../js/style/createStyle";
+import circleCalculations from "../../js/circleCalculations";
+import main from "../../js/main";
 
 const errorBorder = "#E10019";
 
@@ -16,16 +16,10 @@ export function drawInteractionOnDrawEvent ({state, commit, dispatch}, drawInter
     // we need a clone of styleSettings each time a draw event is called, otherwise the copy will influence former drawn objects
     // using "{styleSettings} = getters," would lead to a copy not a clone - don't use getters for styleSettings here
     const styleSettings = JSON.parse(JSON.stringify(state[state.drawType.id + "Settings"])),
-        circleMethod = styleSettings.circleMethod,
-        squareMethod = styleSettings.squareMethod;
+        circleMethod = styleSettings.circleMethod;
 
-    commit("setAddFeatureListener", state.layer.getSource().once("addfeature", event => dispatch("handleDrawEvent", event)));
+    commit("setAddFeatureListener", main.getApp().config.globalProperties.$layer.getSource().once("addfeature", event => dispatch("handleDrawEvent", event)));
     if (state.currentInteraction === "draw" && circleMethod === "defined" && state.drawType.geometry === "Circle") {
-        const interaction = state["drawInteraction" + drawInteraction];
-
-        interaction.finishDrawing();
-    }
-    if (state.currentInteraction === "draw" && squareMethod === "defined" && state.drawType.geometry === "Square") {
         const interaction = state["drawInteraction" + drawInteraction];
 
         interaction.finishDrawing();
@@ -41,19 +35,16 @@ export function drawInteractionOnDrawEvent ({state, commit, dispatch}, drawInter
 export function handleDrawEvent ({state, commit, dispatch, rootState}, event) {
     const stateKey = state.drawType.id + "Settings",
         drawType = state.drawType,
-        layerSource = state.layer.getSource(),
-        // we need a clone of styleSettings each time a draw event is called, otherwise the copy will influence former drawn objects
-        // using "{styleSettings} = getters," would lead to a copy not a clone - don't use getters for styleSettings here
+        layerSource = main.getApp().config.globalProperties.$layer.getSource(),
         styleSettings = JSON.parse(JSON.stringify(state[stateKey])),
-        circleMethod = styleSettings.circleMethod,
-        squareMethod = styleSettings.squareMethod;
+        circleMethod = styleSettings.circleMethod;
 
-    event.feature.set("fromDrawTool", true);
+    event.feature.set("masterportal_attributes", Object.assign(event.feature.get("masterportal_attributes") ?? {}, {"fromDrawTool": true}));
     dispatch("updateUndoArray", {remove: false, feature: event.feature});
     if (circleMethod === "defined" && drawType.geometry === "Circle") {
         const innerRadius = !isNaN(styleSettings.circleRadius) ? parseFloat(styleSettings.circleRadius) : null,
             outerRadius = !isNaN(styleSettings.circleOuterRadius) ? parseFloat(styleSettings.circleOuterRadius) : null,
-            circleRadius = event.feature.get("isOuterCircle") ? outerRadius : innerRadius,
+            circleRadius = event.feature.get("masterportal_attributes").isOuterCircle ? outerRadius : innerRadius,
             circleCenter = event.feature.getGeometry().getCenter();
 
         if (innerRadius === null || innerRadius === 0) {
@@ -61,25 +52,53 @@ export function handleDrawEvent ({state, commit, dispatch, rootState}, event) {
 
             if (drawType.id === "drawDoubleCircle") {
                 if (outerRadius === null || outerRadius === 0) {
-                    dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.draw.undefinedTwoCircles"), {root: true});
+                    const alert = {
+                        category: "error",
+                        content: i18next.t("common:modules.draw_old.undefinedTwoCircles"),
+                        displayClass: "error",
+                        multipleAlert: true
+                    };
+
+                    dispatch("Alerting/addSingleAlert", alert, {root: true});
                     layerSource.removeFeature(event.feature);
                     state.outerBorderColor = errorBorder;
                 }
                 else {
-                    dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.draw.undefinedInnerCircle"), {root: true});
+                    const alert = {
+                        category: "error",
+                        content: i18next.t("common:modules.draw_old.undefinedInnerCircle"),
+                        displayClass: "error",
+                        multipleAlert: true
+                    };
+
+                    dispatch("Alerting/addSingleAlert", alert, {root: true});
                     layerSource.removeFeature(event.feature);
                     state.outerBorderColor = "";
                 }
             }
             else {
-                dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.draw.undefinedRadius"), {root: true});
+                const alert = {
+                    category: "error",
+                    content: i18next.t("common:modules.draw_old.undefinedRadius"),
+                    displayClass: "error",
+                    multipleAlert: true
+                };
+
+                dispatch("Alerting/addSingleAlert", alert, {root: true});
                 layerSource.removeFeature(event.feature);
             }
         }
         else {
             if (outerRadius === null || outerRadius === 0) {
                 if (drawType.id === "drawDoubleCircle") {
-                    dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.draw.undefinedOuterCircle"), {root: true});
+                    const alert = {
+                        category: "error",
+                        content: i18next.t("common:modules.draw_old.undefinedOuterCircle"),
+                        displayClass: "error",
+                        multipleAlert: true
+                    };
+
+                    dispatch("Alerting/addSingleAlert", alert, {root: true});
                     layerSource.removeFeature(event.feature);
                     state.outerBorderColor = errorBorder;
                 }
@@ -94,33 +113,12 @@ export function handleDrawEvent ({state, commit, dispatch, rootState}, event) {
             state.innerBorderColor = "";
         }
     }
-    else if (squareMethod === "defined" && drawType.geometry === "Square") {
-        const squareArea = !isNaN(styleSettings.squareArea) ? parseFloat(styleSettings.squareArea) : null;
 
-        if (squareArea === 0) {
-            dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.draw.undefinedSquareArea"), {root: true});
-            layerSource.removeFeature(event.feature);
-        }
-        else {
-            const feature = event.feature,
-                coordinates = feature.getGeometry().getCoordinates(),
-                minX = coordinates[0][0][0],
-                minY = coordinates[0][0][1],
-                maxX = coordinates[0][2][0],
-                maxY = coordinates[0][2][1],
-                centerX = (minX + maxX) / 2,
-                centerY = (minY + maxY) / 2,
-                centerCoordinate = [centerX, centerY];
-
-            squareCalculations.calculateSquare(feature, centerCoordinate, squareArea);
-        }
-    }
-
-    if (event.feature.get("isOuterCircle")) {
+    if (event.feature.get("masterportal_attributes").isOuterCircle) {
         styleSettings.colorContour = styleSettings.outerColorContour;
     }
-    event.feature.setStyle(featureStyle(styleSettings, event.feature.get("isOuterCircle")));
-    event.feature.set("invisibleStyle", createStyleModule.createStyle(event.feature.get("drawState"), styleSettings));
+    event.feature.setStyle(featureStyle(styleSettings, event.feature.get("masterportal_attributes").isOuterCircle));
+    event.feature.set("masterportal_attributes", Object.assign(event.feature.get("masterportal_attributes") ?? {}, {"invisibleStyle": createStyleModule.createStyle(event.feature.get("masterportal_attributes").drawState, styleSettings)}));
     commit("setZIndex", state.zIndex + 1);
 }
 
@@ -132,18 +130,18 @@ export function handleDrawEvent ({state, commit, dispatch, rootState}, event) {
  */
 export function featureStyle (styleSettings, isOuterCircle) {
     return (feature) => {
-        if (feature.get("isVisible")) {
+        if (feature.get("masterportal_attributes").isVisible) {
             let settings;
 
             // NOTICE: change settings for outerCircle, else outerColor is same as innerColor (BG-5394)
             // NOTICE: do this only for outerCircle to stay the old behaviour for all other stylings
             if (!isOuterCircle) {
-                settings = Object.assign({}, styleSettings, feature.get("drawState"));
+                settings = Object.assign({}, styleSettings, feature.get("masterportal_attributes").drawState);
             }
             else {
-                settings = Object.assign({}, feature.get("drawState"), styleSettings);
+                settings = Object.assign({}, feature.get("masterportal_attributes").drawState, styleSettings);
             }
-            return createStyleModule.createStyle(feature.get("drawState"), settings);
+            return createStyleModule.createStyle(feature.get("masterportal_attributes").drawState, settings);
         }
         return undefined;
     };

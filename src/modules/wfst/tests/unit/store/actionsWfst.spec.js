@@ -1,48 +1,45 @@
 import {expect} from "chai";
 import sinon from "sinon";
-import getLayerInformationModule from "../../../utils/getLayerInformation";
-import prepareFeaturePropertiesModule from "../../../utils/prepareFeatureProperties";
+import prepareFeaturePropertiesModule from "../../../js/prepareFeatureProperties";
 import actionsWfst from "../../../store/actionsWfst";
 import wfs from "@masterportal/masterportalapi/src/layer/wfs";
 import Feature from "ol/Feature";
 import Polygon from "ol/geom/Polygon";
-import loader from "../../../../../../utils/loaderOverlay";
+import layerCollection from "../../../../../core/layers/js/layerCollection";
 
-describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
+
+describe("src/modules/wfst/store/actionsWfst.js", () => {
     let commit,
+        map,
         dispatch,
         getters,
         rootGetters;
 
+    before(() => {
+        i18next.init({
+            lng: "cimode",
+            debug: false
+        });
+    });
+
     beforeEach(() => {
         commit = sinon.spy();
         dispatch = sinon.spy();
+        map = {
+            id: "ol",
+            mode: "2D",
+            getLayers: () => {
+                return {
+                    getArray: () => []
+                };
+            },
+            removeLayer: sinon.stub()
+        };
+        mapCollection.clear();
+        mapCollection.addMap(map, "2D");
     });
     afterEach(sinon.restore);
 
-    describe("clearInteractions", () => {
-        it("should remove all interactions as well as the draw layer", () => {
-            actionsWfst.clearInteractions({commit, dispatch});
-
-            expect(commit.calledOnce).to.be.true;
-            expect(commit.firstCall.args.length).to.equal(3);
-            expect(commit.firstCall.args[0]).to.equal("Maps/removeLayerFromMap");
-            expect(commit.firstCall.args[2]).to.eql({root: true});
-            expect(dispatch.callCount).to.equal(4);
-            expect(dispatch.firstCall.args.length).to.equal(3);
-            expect(dispatch.firstCall.args[0]).to.equal("Maps/removeInteraction");
-            expect(dispatch.firstCall.args[2]).to.eql({root: true});
-            expect(dispatch.secondCall.args.length).to.equal(3);
-            expect(dispatch.secondCall.args[0]).to.equal("Maps/removeInteraction");
-            expect(dispatch.secondCall.args[2]).to.eql({root: true});
-            expect(dispatch.thirdCall.args.length).to.equal(3);
-            expect(dispatch.thirdCall.args[0]).to.equal("Maps/removeInteraction");
-            expect(dispatch.thirdCall.args[2]).to.eql({root: true});
-            expect(dispatch.lastCall.args.length).to.equal(3);
-            expect(dispatch.lastCall.args[0]).to.equal("Maps/removeInteraction");
-            expect(dispatch.lastCall.args[2]).to.eql({root: true});
-        });
-    });
     describe("reset", () => {
         const featurePropertiesSymbol = Symbol("featureProperties");
         let setVisibleSpy;
@@ -84,16 +81,13 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
             expect(commit.firstCall.args[0]).to.equal("setFeatureProperties");
             expect(Array.isArray(commit.firstCall.args[1])).to.be.true;
             expect(commit.firstCall.args[1].length).to.equal(1);
-            expect(commit.firstCall.args[1][0]).to.eql({symbol: featurePropertiesSymbol, value: null, valid: null});
+            expect(commit.firstCall.args[1][0]).to.eql({symbol: featurePropertiesSymbol, value: null});
             expect(commit.secondCall.args.length).to.equal(2);
             expect(commit.secondCall.args[0]).to.equal("setSelectedInteraction");
             expect(commit.secondCall.args[1]).to.equal(null);
             expect(dispatch.calledOnce).to.be.true;
             expect(dispatch.firstCall.args.length).to.equal(1);
             expect(dispatch.firstCall.args[0]).to.equal("clearInteractions");
-            expect(setVisibleSpy.calledOnce).to.be.true;
-            expect(setVisibleSpy.firstCall.args.length).to.equal(1);
-            expect(setVisibleSpy.firstCall.args[0]).to.equal(true);
         });
     });
     describe("sendTransaction", () => {
@@ -132,9 +126,7 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
 
         let fakeSendTransaction,
             refreshSpy,
-            consoleSpy,
-            loaderHideSpy,
-            loaderShowSpy;
+            consoleSpy;
 
         beforeEach(() => {
             getters = {
@@ -144,17 +136,10 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
             };
             fakeSendTransaction = sinon.stub(wfs, "sendTransaction");
             refreshSpy = sinon.spy();
-            sinon.stub(Radio, "request").withArgs("ModelList", "getModelByAttributes", {id: layer.id}).returns({
-                layer: {
-                    getSource: () => ({refresh: refreshSpy})
-                }
-            });
+            layer.getLayerSource = () => ({refresh: refreshSpy});
+            sinon.stub(layerCollection, "getLayerById").returns(layer);
             consoleSpy = sinon.spy();
-            loaderHideSpy = sinon.spy();
-            loaderShowSpy = sinon.spy();
             sinon.stub(console, "error").callsFake(consoleSpy);
-            sinon.stub(loader, "show").callsFake(loaderShowSpy);
-            sinon.stub(loader, "hide").callsFake(loaderHideSpy);
         });
         afterEach(() => {
             sinon.restore();
@@ -168,14 +153,11 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
 
             expect(consoleSpy.notCalled).to.be.true;
 
-            expect(dispatch.calledOnce).to.be.true;
+            expect(dispatch.calledTwice).to.be.true;
             expect(dispatch.firstCall.args.length).to.equal(1);
             expect(dispatch.firstCall.args[0]).to.equal("reset");
-            expect(loaderShowSpy.calledOnce).to.be.true;
-            expect(loaderShowSpy.firstCall.args.length).to.equal(0);
-            expect(loaderHideSpy.calledOnce).to.be.true;
-            expect(loaderHideSpy.firstCall.args.length).to.equal(0);
-
+            expect(dispatch.secondCall.args.length).to.equal(3);
+            expect(dispatch.secondCall.args[0]).to.equal("Alerting/addSingleAlert");
         });
         it("should send a request to the api and it should return the updated feature", async () => {
             getters.selectedInteraction = "selectedUpdate";
@@ -188,13 +170,11 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
 
             expect(consoleSpy.notCalled).to.be.true;
 
-            expect(dispatch.calledOnce).to.be.true;
+            expect(dispatch.calledTwice).to.be.true;
             expect(dispatch.firstCall.args.length).to.equal(1);
             expect(dispatch.firstCall.args[0]).to.equal("reset");
-            expect(loaderShowSpy.calledOnce).to.be.true;
-            expect(loaderShowSpy.firstCall.args.length).to.equal(0);
-            expect(loaderHideSpy.calledOnce).to.be.true;
-            expect(loaderHideSpy.firstCall.args.length).to.equal(0);
+            expect(dispatch.secondCall.args.length).to.equal(3);
+            expect(dispatch.secondCall.args[0]).to.equal("Alerting/addSingleAlert");
         });
         it("should send an request to the api and show an alert with a success message for a delete transaction", async () => {
             getters.selectedInteraction = "delete";
@@ -207,32 +187,22 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
 
             expect(consoleSpy.notCalled).to.be.true;
 
-            expect(dispatch.calledOnce).to.be.true;
+            expect(dispatch.calledTwice).to.be.true;
             expect(dispatch.firstCall.args.length).to.equal(1);
             expect(dispatch.firstCall.args[0]).to.equal("reset");
-            expect(loaderShowSpy.calledOnce).to.be.true;
-            expect(loaderShowSpy.firstCall.args.length).to.equal(0);
-            expect(loaderHideSpy.calledOnce).to.be.true;
-            expect(loaderHideSpy.firstCall.args.length).to.equal(0);
+            expect(dispatch.secondCall.args.length).to.equal(3);
+            expect(dispatch.secondCall.args[0]).to.equal("Alerting/addSingleAlert");
         });
         it("should show an error message and return null if wfs.sendTransaction fails", async () => {
             const error = new Error("Transaction failed");
+            let response = null;
 
             fakeSendTransaction.throws(error);
-            // eslint-disable-next-line one-var
-            const response = await actionsWfst.sendTransaction({dispatch, getters, rootGetters}, feature);
+            response = await actionsWfst.sendTransaction({dispatch, getters, rootGetters}, feature);
 
             expect(fakeSendTransaction.calledOnce).to.be.true;
-
             expect(response).to.equal(null);
-
             expect(consoleSpy.notCalled).to.be.true;
-
-            expect(loaderShowSpy.calledOnce).to.be.true;
-            expect(loaderShowSpy.firstCall.args.length).to.equal(0);
-            expect(loaderHideSpy.calledOnce).to.be.true;
-            expect(loaderHideSpy.firstCall.args.length).to.equal(0);
-
             expect(dispatch.calledTwice).to.be.true;
             expect(dispatch.firstCall.args.length).to.equal(3);
             expect(dispatch.firstCall.args[0]).to.equal("Alerting/addSingleAlert");
@@ -247,88 +217,41 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
             expect(dispatch.secondCall.args[0]).to.equal("reset");
         });
     });
-    describe("setActive", () => {
-        const layerIds = ["id"],
-            layerInformation = [
-                {isSelected: false},
-                {isSelected: true}
-            ];
-
-        beforeEach(() => {
-            getters = {
-                layerIds,
-                layerInformation
-            };
-            sinon.stub(getLayerInformationModule, "getLayerInformation").returns(layerInformation);
-        });
-
-        it("should add the relevant values to the store and dispatch setFeatureProperties if active is true", () => {
-            actionsWfst.setActive({commit, dispatch, getters}, true);
-
-            expect(commit.calledThrice).to.be.true;
-            expect(commit.firstCall.args.length).to.equal(2);
-            expect(commit.firstCall.args[0]).to.equal("setActive");
-            expect(commit.firstCall.args[1]).to.equal(true);
-            expect(commit.secondCall.args.length).to.equal(2);
-            expect(commit.secondCall.args[0]).to.equal("setLayerInformation");
-            expect(commit.secondCall.args[1]).to.equal(layerInformation);
-            expect(commit.thirdCall.args.length).to.equal(2);
-            expect(commit.thirdCall.args[0]).to.equal("setCurrentLayerIndex");
-            expect(commit.thirdCall.args[1]).to.equal(1);
-            expect(dispatch.calledOnce).to.be.true;
-            expect(dispatch.firstCall.args.length).to.equal(1);
-            expect(dispatch.firstCall.args[0]).to.equal("setFeatureProperties");
-        });
-        it("should dispatch reset if active is false", () => {
-            actionsWfst.setActive({commit, dispatch, getters}, false);
-
-            expect(commit.calledOnce).to.be.true;
-            expect(commit.firstCall.args.length).to.equal(2);
-            expect(commit.firstCall.args[0]).to.equal("setActive");
-            expect(commit.firstCall.args[1]).to.equal(false);
-            expect(dispatch.calledOnce).to.be.true;
-            expect(dispatch.firstCall.args.length).to.equal(1);
-            expect(dispatch.firstCall.args[0]).to.equal("reset");
-        });
-    });
-    describe("updateFeatureProperty", () => {
-        const featurePropertiesSymbol = Symbol("featureProperties");
+    describe("setFeatureProperty", () => {
         let featureProperty;
 
         beforeEach(() => {
-            commit = sinon.spy();
-            dispatch = sinon.spy();
-            getters = {
-                featureProperties: featurePropertiesSymbol
-            };
             featureProperty = {
                 type: "number",
                 value: "3",
-                key: "specialKey",
-                valid: null,
-                required: null
+                key: "specialKey"
             };
         });
 
-        it("should commit the property if the type is not required", () => {
-
-            actionsWfst.updateFeatureProperty({commit, dispatch, getters}, featureProperty);
+        it("should commit the property if the type is fitting to the value", () => {
+            actionsWfst.setFeatureProperty({commit, dispatch}, featureProperty);
 
             expect(commit.calledOnce).to.be.true;
-            expect(dispatch.notCalled).to.be.true;
             expect(commit.firstCall.args.length).to.equal(2);
-
-            expect(commit.firstCall.args[1]).to.eql(featureProperty);
+            expect(commit.firstCall.args[0]).to.equal("setFeatureProperty");
+            expect(commit.firstCall.args[1]).to.eql({key: featureProperty.key, value: featureProperty.value});
+            expect(dispatch.notCalled).to.be.true;
         });
-        it("should dispatch a validation if featureProperty is required", () => {
-            featureProperty.required = true;
+        it("should dispatch an alert if the type is a number but the converted value is not", () => {
+            featureProperty.value = "noNumber";
 
-            actionsWfst.updateFeatureProperty({commit, dispatch, getters}, featureProperty);
+            actionsWfst.setFeatureProperty({commit, dispatch}, featureProperty);
 
             expect(commit.notCalled).to.be.true;
-            expect(dispatch.calledTwice).to.be.true;
-            expect(dispatch.firstCall.args[1]).to.eql(featureProperty);
-            expect(dispatch.secondCall.args[1]).to.eql(getters.featureProperties);
+            expect(dispatch.calledOnce).to.be.true;
+            expect(dispatch.firstCall.args.length).to.equal(3);
+            expect(dispatch.firstCall.args[0]).to.equal("Alerting/addSingleAlert");
+            expect(dispatch.firstCall.args[1]).to.eql({
+                category: "error",
+                content: "modules.wfst.error.onlyNumbersAllowed",
+                mustBeConfirmed: false
+            });
+            expect(dispatch.firstCall.args[2]).to.eql({root: true});
         });
     });
     describe("setFeatureProperties", () => {
@@ -345,7 +268,7 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
 
         it("should commit featureProperties on basis of the layer if a layer is selected that has a featurePrefix configured and is selected in the layer tree", async () => {
             getters.layerInformation[0].featurePrefix = "pre";
-            getters.layerInformation[0].isSelected = true;
+            getters.layerInformation[0].visibility = true;
 
             await actionsWfst.setFeatureProperties({commit, getters});
 
@@ -362,7 +285,7 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
             expect(commit.calledOnce).to.be.true;
             expect(commit.firstCall.args.length).to.equal(2);
             expect(commit.firstCall.args[0]).to.equal("setFeatureProperties");
-            expect(commit.firstCall.args[1]).to.equal("modules.tools.wfsTransaction.error.allLayersNotSelected");
+            expect(commit.firstCall.args[1]).to.equal("modules.wfst.error.allLayersNotSelected");
             expect(prepareFeaturePropertiesSpy.notCalled).to.be.true;
         });
         it("should commit an error message if the currently selected layer has no featurePrefix configured", async () => {
@@ -371,7 +294,7 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
             expect(commit.calledOnce).to.be.true;
             expect(commit.firstCall.args.length).to.equal(2);
             expect(commit.firstCall.args[0]).to.equal("setFeatureProperties");
-            expect(commit.firstCall.args[1]).to.equal("modules.tools.wfsTransaction.error.layerNotConfiguredCorrectly");
+            expect(commit.firstCall.args[1]).to.equal("modules.wfst.error.layerNotConfiguredCorrectly");
             expect(prepareFeaturePropertiesSpy.notCalled).to.be.true;
         });
         it("should commit an error message if the currently selected layer is not selected in the layer tree", async () => {
@@ -383,7 +306,7 @@ describe("src/modules/tools/wfst/store/actionsWfst.js", () => {
             expect(commit.calledOnce).to.be.true;
             expect(commit.firstCall.args.length).to.equal(2);
             expect(commit.firstCall.args[0]).to.equal("setFeatureProperties");
-            expect(commit.firstCall.args[1]).to.equal("modules.tools.wfsTransaction.error.layerNotSelected");
+            expect(commit.firstCall.args[1]).to.equal("modules.wfst.error.layerNotSelected");
             expect(prepareFeaturePropertiesSpy.notCalled).to.be.true;
         });
     });

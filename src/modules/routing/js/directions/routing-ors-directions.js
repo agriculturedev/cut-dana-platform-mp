@@ -1,6 +1,6 @@
 import axios from "axios";
 import state from "./../../store/stateRouting";
-import store from "../../../../../app-store";
+import store from "../../../../app-store";
 import {RoutingDirections} from "../classes/routing-directions";
 import {RoutingDirectionsStep} from "../classes/routing-directions-step";
 import {RoutingDirectionsSegment} from "../classes/routing-directions-segment";
@@ -14,14 +14,11 @@ import routingOrsAvoidOption from "../avoidoptions/routing-ors-avoidoptions";
  * @returns {String} translated service value
  */
 function routingOrsPreference (preference, speedProfile) {
-    const portalConfig = store.state.configJson.Portalconfig,
-        pathToRoutingConfig = portalConfig?.menu?.routing || portalConfig?.menu?.tools?.children?.routing,
-        preferenceConfigs = pathToRoutingConfig?.directionsSettings?.customPreferences;
+    const preferenceConfigs = store.getters["Modules/Routing/directionsSettings"]?.customPreferences;
 
     if (preferenceConfigs && preferenceConfigs[speedProfile]?.includes(preference)) {
         return preference.toLowerCase();
     }
-
     switch (preference) {
         case "RECOMMENDED": return "recommended";
         case "SHORTEST": return "shortest";
@@ -32,11 +29,11 @@ function routingOrsPreference (preference, speedProfile) {
 /**
  * Requests directions from ors service.
  * @param {Object} params parameter
- * @param {[Number, Number]} [params.coordinates] in wgs84 projection
+ * @param {Array<{Number, Number}>} [params.coordinates] in wgs84 projection
  * @param {String} [params.language] to request the instructions in local language.
  * @param {Function} [params.transformCoordinatesToLocal] function to transform result coordinates to local projection.
  * @param {String} [params.speedProfile] to request the directions with
- * @param {{id: String}[]} [params.avoidSpeedProfileOptions] options to avoid
+ * @param {Array<{id: String}>} [params.avoidSpeedProfileOptions] options to avoid
  * @param {String} [params.preference] to request the directions with
  * @param {Object} [params.avoidPolygons] areas to avoid when requesting directions
  * @param {Boolean} [params.instructions] if the instructions should be requested
@@ -52,10 +49,7 @@ async function fetchRoutingOrsDirections ({
     avoidPolygons,
     instructions
 }) {
-    const serviceUrl = store.getters.getRestServiceById(state.directionsSettings.serviceId).url,
-        url = `${serviceUrl}/v2/directions/${routingOrsSpeedProfile(speedProfile)}/geojson`,
-        submitCoordinates = coordinates;
-
+    const url = getRoutingDirectionsSettingsUrl(speedProfile);
     let result = null,
         feature = null,
         first = null,
@@ -66,13 +60,13 @@ async function fetchRoutingOrsDirections ({
 
     try {
         response = await axios.post(url, {
-            coordinates: submitCoordinates,
+            coordinates: coordinates,
             language: language,
             options: {
                 ...avoidSpeedProfileOptions.length > 0 && {avoid_features: avoidSpeedProfileOptions.map(o => routingOrsAvoidOption(o.id, speedProfile))},
                 avoid_polygons: avoidPolygons
             },
-            preference: await routingOrsPreference(preference, speedProfile),
+            preference: routingOrsPreference(preference, speedProfile),
             units: "m",
             geometry: true,
             instructions: instructions
@@ -80,14 +74,14 @@ async function fetchRoutingOrsDirections ({
     }
     catch (e) {
         if (e.response?.status === 404) {
-            throw new Error(i18next.t("common:modules.tools.routing.errors.noRouteFound"));
+            throw new Error(i18next.t("common:modules.routing.errors.noRouteFound"));
         }
-        if (e.response && e.response.data && e.response.data.error) {
+        if (e.response?.data?.error) {
             if (e.response.data.error.code === 2003) {
-                throw new Error(i18next.t("common:modules.tools.routing.errors.avoidAreaBig"));
+                throw new Error(i18next.t("common:modules.routing.errors.avoidAreaBig"));
             }
         }
-        throw new Error(i18next.t("common:modules.tools.routing.errors.errorRouteFetch"));
+        throw new Error(i18next.t("common:modules.routing.errors.errorRouteFetch"));
     }
 
     result = response.data;
@@ -140,4 +134,29 @@ async function fetchRoutingOrsDirections ({
     return direction;
 }
 
-export {fetchRoutingOrsDirections, routingOrsPreference};
+/**
+ * Creates the url with the given params.
+ * @param {String} speedProfile current speedProfile
+ * @returns {Object} the url
+ */
+function getRoutingDirectionsSettingsUrl (speedProfile) {
+    const path = `v2/directions/${routingOrsSpeedProfile(speedProfile)}/geojson`;
+    let serviceUrl = store.getters.restServiceById(state.directionsSettings.serviceId).url,
+        url;
+
+    if (serviceUrl.endsWith("/")) {
+        serviceUrl += path;
+    }
+    else {
+        serviceUrl = serviceUrl + "/" + path;
+    }
+    if (serviceUrl.startsWith("/")) {
+        url = new URL(serviceUrl, window.location.origin);
+    }
+    else {
+        url = new URL(serviceUrl);
+    }
+    return url;
+}
+
+export {fetchRoutingOrsDirections, getRoutingDirectionsSettingsUrl, routingOrsPreference};

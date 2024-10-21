@@ -1,16 +1,15 @@
+import {Vector as VectorLayer} from "ol/layer";
 import {Draw, Modify, Select, Translate} from "ol/interaction";
+import VectorSource from "ol/source/Vector";
 import {platformModifierKeyOnly, primaryAction} from "ol/events/condition";
-import addFeaturePropertiesToFeature from "../utils/addFeaturePropertiesToFeature";
-import getLayerInformationModule from "../utils/getLayerInformation";
-import prepareFeaturePropertiesModule from "../utils/prepareFeatureProperties";
-import {getComponent} from "../../../../utils/getComponent";
-import loader from "../../../../utils/loaderOverlay";
-import getProxyUrl from "../../../../utils/getProxyUrl";
+import addFeaturePropertiesToFeature from "../js/addFeaturePropertiesToFeature";
+import prepareFeaturePropertiesModule from "../js/prepareFeatureProperties";
+import {rawLayerList} from "@masterportal/masterportalapi/src";
+import layerCollection from "../../../core/layers/js/layerCollection";
 import wfs from "@masterportal/masterportalapi/src/layer/wfs";
-import {handleMultipolygon, buildMultipolygon, splitOuterFeatures} from "../utils/handleMultipolygon";
-import {nextTick} from "vue";
 
 let drawInteraction,
+    featureToDelete,
     drawLayer,
     modifyInteraction,
     modifyFeature,
@@ -19,17 +18,23 @@ let drawInteraction,
     translateInteraction;
 
 const actions = {
-    /**
-     * Clear all map interactions.
-     *
-     * @returns {void}
-     */
-    clearInteractions ({commit, dispatch}) {
-        dispatch("Maps/removeInteraction", drawInteraction, {root: true});
-        dispatch("Maps/removeInteraction", modifyInteraction, {root: true});
-        dispatch("Maps/removeInteraction", selectInteraction, {root: true});
-        dispatch("Maps/removeInteraction", translateInteraction, {root: true});
-        commit("Maps/removeLayerFromMap", drawLayer, {root: true});
+    clearInteractions ({dispatch}) {
+        const map = mapCollection.getMap("2D");
+
+        if (drawInteraction) {
+            dispatch("Maps/removeInteraction", drawInteraction, {root: true});
+        }
+        if (modifyInteraction) {
+            dispatch("Maps/removeInteraction", modifyInteraction, {root: true});
+        }
+        if (selectInteraction) {
+            dispatch("Maps/removeInteraction", selectInteraction, {root: true});
+        }
+        if (translateInteraction) {
+            dispatch("Maps/removeInteraction", translateInteraction, {root: true});
+        }
+        map.removeLayer(drawLayer);
+
         drawInteraction = undefined;
         modifyInteraction = undefined;
         selectInteraction?.getFeatures().clear();
@@ -41,25 +46,32 @@ const actions = {
      * Prepares everything so that the user can interact with features or draw features
      * to be able to send a transaction to the service.
      *
-     * @param {("LineString"|"Point"|"Polygon"|"MultiPolygon"|"delete"|"update")} interaction Identifier of the selected interaction.
+     * @param {("LineString"|"Point"|"Polygon"|"delete"|"update")} interaction Identifier of the selected interaction.
      * @returns {void}
      */
     async prepareInteraction ({commit, dispatch, getters, rootGetters}, interaction) {
         dispatch("clearInteractions");
-        const {currentLayerId, currentLayerIndex, layerInformation, featureProperties, toggleLayer} = getters,
-            // NOTE: As this is a rootGetter, the naming scheme is used like this.
-            // eslint-disable-next-line new-cap
-            sourceLayer = rootGetters["Maps/getLayerById"]({layerId: currentLayerId}),
-            shouldValidateForm = featureProperties.find(featProp => featProp.type !== "geometry" && featProp.required);
+        const {currentInteractionConfig, currentLayerId, currentLayerIndex, layerInformation, featureProperties, toggleLayer} = getters,
 
-        if (interaction === "LineString" || interaction === "Point" || interaction === "Polygon" || interaction === "MultiPolygon") {
+            sourceLayer = layerCollection.getLayerById(currentLayerId).layer;
+
+        if (interaction === "LineString" || interaction === "Point" || interaction === "Polygon") {
             commit("setSelectedInteraction", "insert");
-            drawLayer = await dispatch("Maps/addNewLayerIfNotExists", {layerName: "tool/wfsTransaction/vectorLayer"}, {root: true});
+            drawLayer = new VectorLayer({
+                id: "module/wfsTransaction/wfsTransaction/vectorLayer",
+                name: "module/wfsTransaction/wfsTransaction/vectorLayer",
+                source: new VectorSource(),
+                alwaysOnTop: true,
+                zIndex: 10
+            });
+
+            dispatch("Maps/addLayer", drawLayer, {root: true});
 
             const {style} = layerInformation[currentLayerIndex],
                 drawOptions = {
                     source: drawLayer.getSource(),
-                    type: interaction,
+                    type: (currentInteractionConfig[interaction].multi ? "Multi" : "") + interaction,
+                    stopClick: true,
                     geometryName: featureProperties.find(({type}) => type === "geometry")?.key
                 };
 
@@ -78,56 +90,41 @@ const actions = {
             drawLayer.setStyle(style);
 
             if (toggleLayer) {
-                sourceLayer.setVisible(false);
+                sourceLayer?.setVisible(false);
             }
 
-            drawInteraction.on("drawend", async () => {
-                if (interaction === "MultiPolygon") {
-                    await nextTick();
-                    const currentFeatures = await drawLayer?.getSource()?.getFeatures();
+            drawInteraction.on("drawend", (event) => {
+                sourceLayer.getSource().addFeature(event.feature);
+                drawLayer.getSource().clear();
+                const currentLayer = rawLayerList.getLayerWhere({id: currentLayerId}),
+                    mapScale = rootGetters["Maps/scale"];
 
-                    handleMultipolygon(currentFeatures, drawLayer);
-                }
-
-                if (getComponent(currentLayerId).get("isOutOfRange")) {
+                if ((currentLayer.minScale && mapScale < currentLayer.minScale) || (currentLayer.maxScale && mapScale > currentLayer.maxScale)) {
                     drawLayer.getSource().once("change", () => drawLayer.getSource().clear());
                     dispatch("Alerting/addSingleAlert", {
-                        category: "Info",
-                        displayClass: "info",
-                        content: i18next.t("common:modules.tools.wfsTransaction.error.geometryOutOfRange"),
+                        category: "error",
+                        content: i18next.t("common:modules.wfst.error.geometryOutOfRange"),
                         mustBeConfirmed: false
                     }, {root: true});
                     return;
                 }
-                if (interaction !== "MultiPolygon") {
-                    dispatch("Maps/removeInteraction", drawInteraction, {root: true});
-                }
+                dispatch("Maps/removeInteraction", drawInteraction, {root: true});
                 dispatch("Maps/addInteraction", modifyInteraction, {root: true});
                 dispatch("Maps/addInteraction", translateInteraction, {root: true});
             });
             dispatch("Maps/addInteraction", drawInteraction, {root: true});
-            if (shouldValidateForm) {
-                dispatch("validateForm", featureProperties);
-            }
         }
         else if (interaction === "update") {
             commit("setSelectedInteraction", "update");
             selectInteraction = new Select({
                 layers: [sourceLayer]
             });
-            selectInteraction.getFeatures().on("add", async (event) => {
+
+            selectInteraction.getFeatures().on("add", (event) => {
                 commit("setSelectedInteraction", "selectedUpdate");
-                event.element.setStyle(selectInteraction.getStyle());
+                modifyFeature = event.target.getArray()[0].clone();
 
-                if (event.element.getGeometry().getType() !== "MultiPolygon") {
-                    modifyFeature = event.target.getArray()[0].clone();
-                }
-                // ol sensibly cleans id off clones; keep id for saving
-                const id = event.target.getArray()[0].getId();
-
-                if (id) {
-                    modifyFeatureSaveId = id;
-                }
+                modifyFeatureSaveId = event.target.getArray()[0].getId();
                 modifyInteraction = new Modify({
                     features: event.target,
                     condition: e => primaryAction(e) && !platformModifierKeyOnly(e)
@@ -136,65 +133,15 @@ const actions = {
                     features: event.target,
                     condition: e => primaryAction(e) && platformModifierKeyOnly(e)
                 });
-                /**
-                 * Handle Multipolygon Creation and Editing inside the Edit Menu
-                 */
-                if (event.target.getArray()?.[0]?.get("geom")?.getType() !== "MultiPolygon") {
-                    dispatch("Maps/removeInteraction", selectInteraction, {root: true});
-                }
-                else {
-                    drawLayer = await dispatch("Maps/addNewLayerIfNotExists", {layerName: "tool/wfsTransaction/vectorLayer"}, {root: true});
-                    splitOuterFeatures([event.element], drawLayer);
-                    selectInteraction.getFeatures().clear();
-                    sourceLayer.setVisible(false);
-                    if (drawLayer.getSource().getFeatures().length > 0) {
-                        drawLayer.getSource().getFeatures().forEach(feature => {
-                            selectInteraction.getFeatures().push(feature);
-                        });
-                    }
-                    const drawOptions = {
-                            source: drawLayer.getSource(),
-                            type: "MultiPolygon",
-                            geometryName: featureProperties.find(({type}) => type === "geometry")?.key
-                        },
-                        editOptions = {
-                            layers: [drawLayer],
-                            condition: e => primaryAction(e) && platformModifierKeyOnly(e)
-                        },
-                        modifyOptions = {
-                            source: drawLayer.getSource(),
-                            condition: e => primaryAction(e) && !platformModifierKeyOnly(e)
-                        },
-                        style = selectInteraction.getStyle();
 
-                    drawLayer.setStyle(style);
-                    modifyInteraction = new Modify(modifyOptions);
-                    translateInteraction = new Translate(editOptions);
-                    drawInteraction = new Draw(drawOptions);
-                    drawInteraction.on("drawstart", () => {
-                        drawLayer.setStyle(layerInformation[currentLayerIndex].style);
-                    });
-                    drawInteraction.on("drawend", async () => {
-                        await nextTick();
-                        const features = await drawLayer.getSource().getFeatures();
-
-                        await nextTick();
-                        await handleMultipolygon(features, drawLayer);
-                        drawLayer.setStyle(style);
-                    });
-                    dispatch("Maps/addInteraction", drawInteraction, {root: true});
-                }
+                dispatch("Maps/removeInteraction", selectInteraction, {root: true});
                 dispatch("Maps/addInteraction", modifyInteraction, {root: true});
                 dispatch("Maps/addInteraction", translateInteraction, {root: true});
                 commit(
                     "setFeatureProperties",
                     featureProperties
-                        .map(property => ({...property, value: modifyFeature ? modifyFeature.get(property.key) : event.element.get(property.key), valid: true}))
+                        .map(property => ({...property, value: modifyFeature.get(property.key)}))
                 );
-                if (shouldValidateForm) {
-                    dispatch("validateForm", featureProperties);
-                    commit("setIsFormDisabled", false);
-                }
             });
             dispatch("Maps/addInteraction", selectInteraction, {root: true});
         }
@@ -204,30 +151,25 @@ const actions = {
                 layers: [sourceLayer]
             });
             selectInteraction.on("select", event => {
-                dispatch("ConfirmAction/addSingleAction", {
-                    actionConfirmedCallback: () => dispatch("sendTransaction", event.selected[0]),
-                    confirmCaption: i18next.t("common:modules.tools.wfsTransaction.deleteInteraction.confirm"),
-                    textContent: i18next.t("common:modules.tools.wfsTransaction.deleteInteraction.text"),
-                    headline: i18next.t("common:modules.tools.wfsTransaction.deleteInteraction.headline")
-                }, {root: true});
+                featureToDelete = event.selected[0];
+                commit("setShowConfirmModal", true);
                 dispatch("Maps/removeInteraction", selectInteraction, {root: true});
             });
             dispatch("Maps/addInteraction", selectInteraction, {root: true});
+            featureToDelete = null;
         }
     },
     /**
      * Resets all values from selected layer, all interaction, any modified feature.
      * @returns {void}
      */
-    reset ({commit, dispatch, getters, rootGetters}) {
-        // NOTE: As this is a rootGetter, the naming scheme is used like this.
-        // eslint-disable-next-line new-cap
-        const sourceLayer = rootGetters["Maps/getLayerById"]({layerId: getters.currentLayerId}),
+    reset ({commit, dispatch, getters}) {
+        const sourceLayer = layerCollection.getLayerById(getters.currentLayerId)?.layer,
             layerSelected = Array.isArray(getters.featureProperties);
 
         commit("setFeatureProperties",
             layerSelected
-                ? getters.featureProperties.map(property => ({...property, value: null, valid: null}))
+                ? getters.featureProperties.map(property => ({...property, value: null}))
                 : getters.featureProperties
         );
         commit("setSelectedInteraction", null);
@@ -252,23 +194,15 @@ const actions = {
      * @returns {void}
      */
     async save ({dispatch, getters}) {
-        let featureWithProperties = null,
-            multiPolygonGeometry;
-        const polygonFeature = modifyFeature ? modifyFeature : drawLayer.getSource().getFeatures()?.[0],
+        let featureWithProperties = null;
+        const feature = modifyFeature ? modifyFeature : drawLayer.getSource().getFeatures()[0],
             {currentLayerIndex, featureProperties, layerInformation, selectedInteraction, layerIds} = getters,
-            error = getters.savingErrorMessage(polygonFeature),
-            multiPolygonFeatures = modifyFeature
-                ? modifyFeature
-                : drawLayer?.getSource()?.getFeatures().filter(feature => feature.getGeometry().getType() === "MultiPolygon"),
+            error = getters.savingErrorMessage(feature),
             currentLayerId = layerIds[currentLayerIndex],
             geometryFeature = modifyFeature
-                ? Radio
-                    .request("ModelList", "getModelByAttributes", {id: currentLayerId})
-                    .layer
-                    .getSource()
-                    .getFeatures()
+                ? layerCollection.getLayerById(currentLayerId).getLayerSource().getFeatures()
                     .find((workFeature) => workFeature.getId() === modifyFeatureSaveId)
-                : polygonFeature;
+                : feature;
 
         if (error.length > 0) {
             dispatch("Alerting/addSingleAlert", {
@@ -280,22 +214,11 @@ const actions = {
             return;
         }
 
-        if (multiPolygonFeatures.length !== 0 && drawLayer) {
-            if (multiPolygonFeatures.length > 1) {
-                multiPolygonGeometry = buildMultipolygon(multiPolygonFeatures, drawLayer);
-                multiPolygonGeometry.setId(modifyFeatureSaveId);
-            }
-            else {
-                multiPolygonGeometry = multiPolygonFeatures[0];
-                multiPolygonGeometry.setId(modifyFeatureSaveId);
-            }
-        }
-
         featureWithProperties = await addFeaturePropertiesToFeature(
             {
-                id: polygonFeature.getId() || modifyFeatureSaveId,
-                geometryName: featureProperties.find(({type}) => type === "geometry")?.key,
-                geometry: multiPolygonFeatures && multiPolygonGeometry ? multiPolygonGeometry.getGeometry() : geometryFeature.getGeometry()
+                id: feature.getId() || modifyFeatureSaveId,
+                geometryName: feature.getGeometryName(),
+                geometry: geometryFeature.getGeometry()
             },
             featureProperties,
             selectedInteraction === "selectedUpdate",
@@ -317,14 +240,18 @@ const actions = {
      * @returns {Promise} Promise containing the feature to be added, updated or deleted if transaction was successful. If transaction fails it returns null
      */
     async sendTransaction ({dispatch, getters, rootGetters}, feature) {
-        const {currentLayerIndex, layerInformation, selectedInteraction, useProxy} = getters,
+        const {currentLayerIndex, layerInformation, selectedInteraction} = getters,
             layer = layerInformation[currentLayerIndex],
-            url = useProxy ? getProxyUrl(layer.url) : layer.url;
+            selectedFeature = feature && featureToDelete !== null ? feature : featureToDelete,
+            url = layer.url,
+            transactionMethod = ["LineString", "Point", "Polygon"].includes(selectedInteraction)
+                ? "insert"
+                : selectedInteraction,
+            messageKey = `success.${transactionMethod}`;
         let response;
 
-        loader.show();
         try {
-            response = await wfs.sendTransaction(rootGetters["Maps/projectionCode"], feature, url, layer, selectedInteraction);
+            response = await wfs.sendTransaction(rootGetters["Maps/projectionCode"], selectedFeature, url, layer, selectedInteraction);
         }
         catch (e) {
             await dispatch("Alerting/addSingleAlert", {
@@ -336,112 +263,57 @@ const actions = {
             response = null;
         }
         finally {
+            const transaction = i18next.t("common:modules.wfst.transaction." + messageKey);
+
             await dispatch("reset");
-            getComponent(layer.id).layer.getSource().refresh();
-            loader.hide();
+            layerCollection.getLayerById(layer.id).getLayerSource().refresh();
+            if (response !== null) {
+                dispatch("Alerting/addSingleAlert", {
+                    category: "success",
+                    content: i18next.t("common:modules.wfst.transaction.success.baseSuccess", {transaction: transaction})
+                }, {root: true});
+            }
         }
         return response;
     },
 
     /**
-     * Sets the active property of the state to the given value.
-     * Also starts processes if the tool is activated (active === true).
-     * @param {Object} context actions context object.
-     * @param {Boolean} active Value deciding whether the tool gets activated or deactivated.
-     * @returns {void}
-     */
-    setActive ({commit, dispatch, getters: {layerIds}}, active) {
-        commit("setActive", active);
-
-        if (active) {
-            const layerInformation = getLayerInformationModule.getLayerInformation(layerIds);
-
-            commit("setLayerInformation", layerInformation);
-            commit("setCurrentLayerIndex", layerInformation.findIndex(layer => layer.isSelected));
-            dispatch("setFeatureProperties");
-        }
-        else {
-            dispatch("reset");
-        }
-    },
-
-    /**
-     * Validates the user-input sets the error messages.
-     * @param {Object} property property that is validated based on it's type
-     * @returns {void}
-     */
-    validateInput ({commit}, property) {
-        if (property.type === "number") {
-            const isNotEmpty = property.value.length > 0,
-                hasNumbersOrPartialNumbers = !Number.isNaN(Number(property.value)),
-                isNumberValid = isNotEmpty && hasNumbersOrPartialNumbers;
-
-            commit("setFeatureProperty", {...property, valid: isNumberValid});
-        }
-        else if (property.type === "text") {
-            const hasTextAndNumberAndHasSpecials = (/^[A-Za-z0-9 [\]öäüÖÄÜß,/\\.-]*$/).test(property.value),
-                hasOnlyNumbers = (/^[0-9]*$/).test(property.value),
-                isTextValid = hasTextAndNumberAndHasSpecials && !hasOnlyNumbers;
-
-            commit("setFeatureProperty", {...property, valid: isTextValid});
-        }
-        else if (property.type === "date") {
-            const dateEpoch = Date.parse(property.value),
-                year2100 = 4133894400000,
-                isDateValid = year2100 > dateEpoch;
-
-            commit("setFeatureProperty", {...property, valid: isDateValid});
-        }
-    },
-
-    /**
-     * Validates whole form based on the list of received properties.
-     * @param {Object} featureProperties a list of properties
-     * @returns {void}
-     */
-    validateForm ({commit}, featureProperties) {
-        const isFormInvalid = featureProperties.find(f => f.type !== "geometry" && f.required && f.valid !== true);
-
-        commit("setIsFormDisabled", Boolean(isFormInvalid));
-    },
-
-    /**
-     * Sets actual feature property based on the user action on an input.
-     * @param {Object} feature of a feature with it's key, type and value
+     * Sets the feature property
      *
+     * @param {Object} payload property key, type, value
      * @returns {void}
      */
-    updateFeatureProperty ({dispatch, commit, getters: {featureProperties}}, feature) {
-        if (feature.required) {
-            dispatch("validateInput", feature);
-            dispatch("validateForm", featureProperties);
+    setFeatureProperty ({commit, dispatch}, {key, type, value}) {
+        if (type === "number" && !Number.isFinite(parseFloat(value))) {
+            dispatch("Alerting/addSingleAlert", {
+                category: "error",
+                content: i18next.t("common:modules.wfst.error.onlyNumbersAllowed"),
+                mustBeConfirmed: false
+            }, {root: true});
+            return;
         }
-        else {
-            commit("setFeatureProperty", {...feature, key: feature.key, value: feature.value});
-        }
+        commit("setFeatureProperty", {key, value});
     },
-
     /**
      * Sets all feature properties based on actual layer
-     *
      * @returns {void}
      */
-    async setFeatureProperties ({commit, getters: {currentLayerIndex, layerInformation, useProxy}}) {
+    async setFeatureProperties ({commit, getters: {currentLayerIndex, layerInformation}}) {
         if (currentLayerIndex === -1) {
-            commit("setFeatureProperties", i18next.t("common:modules.tools.wfsTransaction.error.allLayersNotSelected"));
+            commit("setFeatureProperties", i18next.t("common:modules.wfst.error.allLayersNotSelected"));
             return;
         }
         const layer = layerInformation[currentLayerIndex];
 
         if (!Object.prototype.hasOwnProperty.call(layer, "featurePrefix")) {
-            commit("setFeatureProperties", i18next.t("common:modules.tools.wfsTransaction.error.layerNotConfiguredCorrectly"));
+            commit("setFeatureProperties", i18next.t("common:modules.wfst.error.layerNotConfiguredCorrectly"));
             return;
         }
-        if (!layer.isSelected) {
-            commit("setFeatureProperties", i18next.t("common:modules.tools.wfsTransaction.error.layerNotSelected"));
+        if (!layer.visibility) {
+            commit("setFeatureProperties", i18next.t("common:modules.wfst.error.layerNotSelected"));
             return;
         }
-        commit("setFeatureProperties", await prepareFeaturePropertiesModule.prepareFeatureProperties(layer, useProxy));
+        commit("setFeatureProperties", await prepareFeaturePropertiesModule.prepareFeatureProperties(layer));
     }
 };
 

@@ -8,7 +8,6 @@ import axios from "axios";
  * @return {void}
  */
 function addInterceptor (token, interceptorUrlRegex) {
-    // Request interceptors for API calls
     axios.interceptors.request.use(
         config => {
             const configUrl = typeof config.url === "object" ? config.url.origin : config.url;
@@ -36,17 +35,17 @@ function addInterceptor (token, interceptorUrlRegex) {
 
     const {fetch: originalFetch} = window;
 
-    window.fetch = async (resource, originalConfig) => {
-        let config = originalConfig;
+    window.fetch = async (resource, options = null) => {
+        let newOptions = options || {};
 
         if (interceptorUrlRegex && resource?.match(interceptorUrlRegex)) {
-            config = {
-                ...originalConfig,
-                headers: {"Authorization": `Bearer ${token}`}
+            newOptions = {
+                ...newOptions,
+                credentials: "include"
             };
         }
 
-        return originalFetch(resource, config);
+        return originalFetch(resource, newOptions);
     };
 
 }

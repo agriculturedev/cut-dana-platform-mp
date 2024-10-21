@@ -1,7 +1,7 @@
 import axios from "axios";
 import {RoutingGeosearchResult} from "../classes/routing-geosearch-result";
 import state from "../../store/stateRouting";
-import store from "../../../../../app-store";
+import store from "../../../../app-store";
 
 /**
  * Requests POIs from text from Elastic
@@ -59,7 +59,7 @@ async function fetchRoutingElasticGeosearch (search) {
  * @returns {String} the url
  */
 function getRoutingElasticUrl (payload) {
-    const serviceUrl = store.getters.getRestServiceById(state.geosearch.serviceId).url,
+    const serviceUrl = store.getters.restServiceById(state.geosearch.serviceId).url,
         url = new URL(serviceUrl);
 
     url.searchParams.set("source_content_type", "application/json");
@@ -71,7 +71,7 @@ function getRoutingElasticUrl (payload) {
  * Parses Response from Elastic to RoutingGeosearchResult
  * @param {Object} geosearchResult from Elastic
  * @param {Object} [geosearchResult._source.geometry] geosearchResult geometry
- * @param {[Number, Number]} [geosearchResult._source.geometry.coordinates] geosearchResult geometry coordinates
+ * @param {Array} [geosearchResult._source.geometry.coordinates] geosearchResult geometry coordinates
  * @param {Object} [geosearchResult._source.properties] geosearchResult properties
  * @param {String} [geosearchResult._source.properties.searchField] geosearchResult properties searchField
  * @param {String} [geosearchResult.epsg] geosearchResult epsg

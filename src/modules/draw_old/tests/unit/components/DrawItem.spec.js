@@ -10,7 +10,6 @@ config.global.mocks.$t = key => key;
 config.global.mocks.$i18n = {
     i18next: {
         exists: sinon.stub(),
-        t: sinon.stub(),
         options: {
             isEnabled: () => sinon.stub(),
             getLanguages: () => sinon.stub()
@@ -81,22 +80,6 @@ describe("src/modules/draw/components/DrawItem.vue", () => {
         mapCollection.addMap(map, "2D");
     });
 
-    /**
-     * Mounts the DrawItemComponent with specified draw type, geometry, and style settings for testing.
-     *
-     * @param {string} drawType - The draw type identifier ('drawArea', 'drawSquare', 'drawLine').
-     * @param {string} geometry - The geometry type ('Area', 'Square', 'Line').
-     * @param {Object} styleSettingsData - The style settings data to set for testing.
-     * @returns {Wrapper} - The mounted wrapper for the DrawItemComponent.
-     */
-    function mountComponent (drawType, geometry, styleSettingsData) {
-        const mountedWrapper = shallowMount(DrawItemComponent, {store, localVue, data: componentData});
-
-        store.commit("Tools/Draw/setDrawType", {id: drawType, geometry: geometry});
-        mountedWrapper.setData({styleSettings: styleSettingsData});
-        return mountedWrapper;
-    }
-
     it("sets focus to first input control", async () => {
         const elem = document.createElement("div");
 
@@ -133,63 +116,6 @@ describe("src/modules/draw/components/DrawItem.vue", () => {
             expect(wrapper.find("#tool-draw-deleteAllInteraction").element.disabled).to.be.true;
         });
 
-    });
-
-    it("should render circle and circleUnit if drawType.id is drawCircle", async () => {
-        wrapper = mountComponent("drawCircle", "Circle", {});
-        await wrapper.vm.$nextTick();
-        expect(wrapper.find("#tool-draw-circleRadius").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-circleMethod").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-circleUnit").exists()).to.be.true;
-    });
-
-    it("should render area and areaUnit if drawType.id is drawArea", async () => {
-        wrapper = mountComponent("drawArea", "Area", {});
-        await wrapper.vm.$nextTick();
-        expect(wrapper.find("#tool-draw-area").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-areaUnit").exists()).to.be.true;
-    });
-
-    it("should render squareArea, squareSideLength and squareUnit if drawType.id is drawSquare", async () => {
-        wrapper = mountComponent("drawSquare", "Square", {});
-        await wrapper.vm.$nextTick();
-        expect(wrapper.find("#tool-draw-squareMethod").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-squareArea").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-squareSideLength").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-squareUnit").exists()).to.be.true;
-    });
-
-    it("should render lineLength and lineUnit if drawType.id is drawLine", async () => {
-        wrapper = mountComponent("drawLine", "Line", {});
-        await wrapper.vm.$nextTick();
-        expect(wrapper.find("#tool-draw-lineLength").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-lineUnit").exists()).to.be.true;
-    });
-
-    it("should render lineLength and lineUnit if drawType.id is drawLine", async () => {
-        wrapper = mountComponent("drawLine", "Line", {});
-        await wrapper.vm.$nextTick();
-        expect(wrapper.find("#tool-draw-lineLength").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-lineUnit").exists()).to.be.true;
-        expect(wrapper.find("#tool-draw-opacityContour").exists()).to.be.true;
-    });
-
-    it("sets area in kilometers if unit is 'km'", () => {
-        wrapper = mountComponent("drawArea", "Area", {unit: "km"});
-        wrapper.vm.areaComputed = 6.8;
-        expect(wrapper.vm.styleSettings.area).to.equal(6800);
-    });
-
-    it("sets line length in kilometers if unit is 'km'", () => {
-        wrapper = mountComponent("drawLine", "Line", {unit: "km"});
-        wrapper.vm.lineLengthComputed = 6.5;
-        expect(wrapper.vm.styleSettings.length).to.equal(6500);
-    });
-
-    it("sets square area in kilometers if unit is 'km'", () => {
-        wrapper = mountComponent("drawSquare", "Square", {unit: "km"});
-        wrapper.vm.squareAreaComputed = 6.5;
-        expect(wrapper.vm.styleSettings.squareArea).to.equal(6500);
     });
 
     describe("addSymbolsByLayerModels", () => {

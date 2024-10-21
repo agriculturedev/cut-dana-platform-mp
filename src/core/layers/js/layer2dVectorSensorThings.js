@@ -1,43 +1,39 @@
-import Layer from "./layer";
-import LoaderOverlay from "../../utils/loaderOverlay";
+import {buffer, containsExtent} from "ol/extent";
+import Cluster from "ol/source/Cluster";
+import {Circle as CircleStyle, Fill, Stroke, Style} from "ol/style.js";
+import {unByKey} from "ol/Observable";
+import crs from "@masterportal/masterportalapi/src/crs";
 import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList";
 import createStyle from "@masterportal/masterportalapi/src/vectorStyle/createStyle";
-import * as bridge from "./RadioBridge";
-import Cluster from "ol/source/Cluster";
+import {GeoJSON} from "ol/format";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import dayjsTimezone from "dayjs/plugin/timezone";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-import {buffer, containsExtent} from "ol/extent";
-import {GeoJSON} from "ol/format";
-import changeTimeZone from "../../utils/changeTimeZone";
-import getProxyUrl from "../../utils/getProxyUrl";
-import isObject from "../../utils/isObject";
-import {SensorThingsMqtt} from "../../utils/sensorThingsMqtt";
-import {SensorThingsHttp} from "../../utils/sensorThingsHttp";
-import crs from "@masterportal/masterportalapi/src/crs";
-import store from "../../app-store";
-import dayjs from "dayjs";
-import dayjsTimezone from "dayjs/plugin/timezone";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import uniqueId from "../../utils/uniqueId";
-import {unByKey} from "ol/Observable";
-import {Circle as CircleStyle, Fill, Stroke, Style} from "ol/style.js";
+import Layer2dVector from "./layer2dVector";
+import changeTimeZone from "../../../shared/js/utils/changeTimeZone";
+import {uniqueId} from "../../../shared/js/utils/uniqueId.js";
+import isObject from "../../../shared/js/utils/isObject";
+import {SensorThingsHttp} from "../../../shared/js/api/sensorThingsHttp";
+import {SensorThingsMqtt} from "../../../shared/js/api/sensorThingsMqtt";
+import store from "../../../app-store";
 
 dayjs.extend(dayjsTimezone);
 dayjs.extend(localizedFormat);
 
 /**
- * Creates a layer for the SensorThings API.
- * @param {Object} attrs attributes of the layer
+ * Creates a 2d vector sensorThings (SensorThings API) layer.
+ * @name Layer2dVectorSensorThings
+ * @constructs
+ * @extends Layer2dVector
+ * @param {Object} attributes The attributes of the layer configuration.
  * @returns {void}
  */
-export default function STALayer (attrs) {
-    const defaults = {
-        supported: ["2D", "3D"],
+export default function Layer2dVectorSensorThings (attributes) {
+    const defaultAttributes = {
         epsg: "EPSG:4326",
         showSettings: true,
-        isSecured: false,
-        altitudeMode: "clampToGround",
-        useProxy: false,
         sourceUpdated: false,
         subscriptionTopics: {},
         mqttClient: null,
@@ -51,6 +47,7 @@ export default function STALayer (attrs) {
         mqttRh: 2,
         mqttQos: 2,
         mqttOptions: {},
+        moveLayerRevisible: false,
         datastreamAttributes: [
             "@iot.id",
             "@iot.selfLink",
@@ -74,16 +71,10 @@ export default function STALayer (attrs) {
         ]
     };
 
-    this.onceEvents = {
-        "featuresloadend": []
-    };
-    this.mqttClient = null;
-    this.options = {};
-
-    this.createLayer(Object.assign(defaults, attrs));
-    Layer.call(this, Object.assign(defaults, attrs), this.layer, !attrs.isChildLayer);
-    this.initStyle(attrs);
-    this.styleRules = [];
+    this.attributes = Object.assign(defaultAttributes, attributes);
+    this.styleRule = [];
+    Layer2dVector.call(this, this.attributes);
+    this.initializeSensorThings();
 
     this.intervallRequest = null;
     this.keepUpdating = false;
@@ -98,81 +89,63 @@ export default function STALayer (attrs) {
     require("dayjs/locale/de.js");
     dayjs.locale("de");
     this.registerInteractionMapScaleListeners();
+    this.prepareFeaturesFor3D(this.layer?.getSource().getFeatures());
 }
-// Link prototypes and add prototype methods, means STALayer uses all methods and properties of Layer
-STALayer.prototype = Object.create(Layer.prototype);
+
+Layer2dVectorSensorThings.prototype = Object.create(Layer2dVector.prototype);
 
 /**
- * Creates a layer for SensorThings.
+ * Creates a layer of type SensorThings-API.
  * Sets all needed attributes at the layer and the layer source.
- * @param {Object} attrs params of the raw layer
+ * @param {Object} attributes The attributes of the layer configuration.
  * @returns {void}
  */
-STALayer.prototype.createLayer = function (attrs) {
-    let initialLoading = true;
-    const rawLayerAttributes = {
-            id: attrs.id,
-            url: attrs.url,
-            clusterDistance: attrs.clusterDistance,
-            featureNS: attrs.featureNS,
-            featureType: attrs.featureType,
-            version: attrs.version
-        },
-        layerParams = {
-            name: attrs.name,
-            typ: attrs.typ,
-            gfiAttributes: attrs.gfiAttributes,
-            gfiTheme: attrs.gfiTheme,
-            hitTolerance: attrs.hitTolerance,
-            altitudeMode: attrs.altitudeMode,
-            alwaysOnTop: attrs.alwaysOnTop,
-            layerSequence: attrs.layerSequence
-        },
-        options = {
-            clusterGeometryFunction: (feature) => {
-                if (feature.get("hideInClustering") === true) {
-                    return null;
-                }
-                return feature.getGeometry();
-            },
-            featuresFilter: this.getFeaturesFilterFunction(attrs),
-            beforeLoading: () => {
-                if (this.get("isSelected") || attrs.isSelected) {
-                    LoaderOverlay.show();
-                }
-            },
-            afterLoading: features => {
-                if (!initialLoading) {
-                    return;
-                }
-                initialLoading = false;
-                this.featuresLoaded(attrs.id, features);
-                if (this.get("isSelected") || attrs.isSelected) {
-                    LoaderOverlay.hide();
-                }
-                while (this.onceEvents.featuresloadend.length) {
-                    this.onceEvents.featuresloadend.shift()();
-                }
-            },
-            onLoadingError: error => {
-                store.dispatch("Alerting/addSingleAlert", i18next.t("modules.core.modelList.layer.sensor.httpOnError", {name: this.get("name")}));
-                console.warn("masterportal SensorThingsAPI loading error:", error);
-            }
-        };
+Layer2dVectorSensorThings.prototype.createLayer = function (attributes) {
+    const rawLayerAttributes = this.getRawLayerAttributes(attributes),
+        layerParams = this.getLayerParams(attributes),
+        options = this.getOptions(attributes);
 
-    this.layer = this.createVectorLayer(rawLayerAttributes, {layerParams, options});
-    this.options = options;
+    this.setLayer(this.createVectorLayer(rawLayerAttributes, {layerParams, options}));
 };
 
 /**
- * Creates a complete ol/Layer from rawLayer containing all required children.
+ * Gets raw layer attributes from attributes.
+ * @param {Object} attributes The attributes of the layer configuration.
+ * @returns {Object} The raw layer attributes.
+ */
+Layer2dVectorSensorThings.prototype.getRawLayerAttributes = function (attributes) {
+    return {
+        clusterDistance: attributes.clusterDistance,
+        id: attributes.id,
+        url: attributes.url,
+        version: attributes.version
+    };
+};
+
+/**
+ * Gets additional options.
+ * @param {Object} attributes The attributes of the layer configuration.
+ * @returns {Object} The options.
+ */
+Layer2dVectorSensorThings.prototype.getOptions = function (attributes) {
+    const options = {
+        clusterGeometryFunction: this.clusterGeometryFunction,
+        featuresFilter: (features) => this.featuresFilter(attributes, features),
+        onLoadingError: this.onLoadingError
+    };
+
+    return options;
+};
+
+/**
+ * Creates a complete ol/Layer from rawLayer.
  * @param {Object} rawLayer layer specification as in services.json
  * @param {Object} [optionalParams] optional params
  * @param {Object} [optionalParams.layerParams] additional layer params
  * @param {Object} [optionalParams.options] additional options
  * @returns {ol/Layer} layer that can be added to map
  */
-STALayer.prototype.createVectorLayer = function (rawLayer = {}, {layerParams = {}, options = {}} = {}) {
+Layer2dVectorSensorThings.prototype.createVectorLayer = function (rawLayer = {}, {layerParams = {}, options = {}} = {}) {
     const source = new VectorSource(),
         layer = new VectorLayer(Object.assign({
             source: rawLayer.clusterDistance ? new Cluster({
@@ -183,10 +156,7 @@ STALayer.prototype.createVectorLayer = function (rawLayer = {}, {layerParams = {
             id: rawLayer.id
         }, layerParams));
 
-    if (options.style) {
-        layer.setStyle(options.style);
-    }
-    else if (rawLayer.style) {
+    if (rawLayer.style) {
         layer.setStyle(rawLayer.style);
     }
 
@@ -194,31 +164,45 @@ STALayer.prototype.createVectorLayer = function (rawLayer = {}, {layerParams = {
 };
 
 /**
- * Returns a function to filter features.
- * @param {Object} attrs params of the raw layer
- * @returns {Function} a function to filter features
+ * Sets values to the ol layer.
+ * @param {Object} values The new values.
+ * @returns {void}
  */
-STALayer.prototype.getFeaturesFilterFunction = function (attrs) {
-    return function (features) {
-        let filteredFeatures = features.filter(feature => feature.getGeometry() !== undefined);
+Layer2dVectorSensorThings.prototype.updateLayerValues = function (values) {
+    const state = this.getStateOfSTALayer(values.visibility, this.get("isSubscribed"));
 
-        if (attrs.bboxGeometry) {
-            filteredFeatures = filteredFeatures.filter((feature) => attrs.bboxGeometry.intersectsExtent(feature.getGeometry().getExtent()));
-        }
-        return filteredFeatures;
-    };
+    this.getLayer()?.setOpacity((100 - values.transparency) / 100);
+    this.getLayer()?.setVisible(values.visibility);
+    this.getLayer()?.setZIndex(values.zIndex);
+
+    if (state === true) {
+        this.startSubscription(this.getLayerSource().getFeatures());
+    }
+    else if (state === false) {
+        this.stopSubscription();
+    }
 };
 
 /**
- * Returns the property names.
- * @param {Object} attrs params of the raw layer
- * @returns {String} the property names as comma separated string
+ * Creates the legend.
+ * @returns {void}
  */
-STALayer.prototype.getPropertyname = function (attrs) {
-    if (Array.isArray(attrs?.propertyNames)) {
-        return attrs.propertyNames.join(",");
+Layer2dVectorSensorThings.prototype.createLegend = async function () {
+    const styleObject = styleList.returnStyleObject(this.attributes.styleId);
+    let legend = this.inspectLegendUrl();
+
+    if (!Array.isArray(legend)) {
+        if (styleObject && legend === true) {
+            const legendInfos = await createStyle.returnLegendByStyleId(styleObject.styleId);
+
+            legend = legendInfos.legendInformation;
+        }
+        else if (typeof legend === "string") {
+            legend = [legend];
+        }
     }
-    return "";
+
+    return legend;
 };
 
 /**
@@ -226,16 +210,14 @@ STALayer.prototype.getPropertyname = function (attrs) {
  * @param {Object} attrs attributes of the raw layer
  * @returns {void}
  */
-STALayer.prototype.initStyle = function (attrs) {
+Layer2dVectorSensorThings.prototype.initStyle = function (attrs) {
     if (store.getters.styleListLoaded) {
         this.createStyle(attrs);
-        this.createLegend(attrs);
     }
     else {
         store.watch((state, getters) => getters.styleListLoaded, value => {
             if (value) {
                 this.createStyle(attrs);
-                this.createLegend(attrs);
             }
         });
     }
@@ -246,7 +228,7 @@ STALayer.prototype.initStyle = function (attrs) {
  * @param {Object} attrs  attributes of the raw layer
  * @returns {void}
  */
-STALayer.prototype.createStyle = function (attrs) {
+Layer2dVectorSensorThings.prototype.createStyle = function (attrs) {
     const styleObject = styleList.returnStyleObject(attrs?.styleId);
     let styleFunction = null;
 
@@ -257,183 +239,40 @@ STALayer.prototype.createStyle = function (attrs) {
                 isClusterFeature = typeof feat.get("features") === "function" || typeof feat.get("features") === "object" && Boolean(feat.get("features").length > 1),
                 style = createStyle.createStyle(styleObject, feat, isClusterFeature, Config.wfsImgPath),
                 styleElement = Array.isArray(style) ? style[0] : style,
-                zoomLevel = store.getters["Maps/getView"].getZoomForResolution(resolution) + 1,
-                zoomLevelCount = store.getters["Maps/getView"].getResolutions().length;
+                mapView = mapCollection.getMapView("2D"),
+                zoomLevel = mapView.getZoomForResolution(resolution) + 1,
+                zoomLevelCount = mapView.getResolutions().length;
 
             if (styleElement?.getImage() !== null && attrs.scaleStyleByZoom) {
                 styleElement.getImage().setScale(styleElement.getImage().getScale() * zoomLevel / zoomLevelCount);
             }
             return style;
         };
-        this.set("style", styleFunction);
-        this.layer?.setStyle(styleFunction);
+        this.setStyle(styleFunction);
     }
     else {
-        this.set("style", null);
+        this.setStyle(null);
         console.warn(i18next.t("common:core.layers.errorHandling.wrongStyleId", {styleId: attrs?.styleId}));
     }
-};
-
-/**
- * Returns the style function of this layer to be called with feature.
- * @returns {Object} the style function
- */
-STALayer.prototype.getStyleFunction = function () {
-    return this.get("style");
-};
-/**
-
-
-/**
- * Updates the layers source by calling refresh at source. Depending on attribute 'sourceUpdated'.
- * @returns {void}
- */
-STALayer.prototype.updateSource = function () {
-    if (this.get("sourceUpdated") === false) {
-        this.set("sourceUpdated", true);
-        this.layer.getSource().refresh();
-    }
-};
-
-/**
- * Creates the legend.
- * @returns {void}
- */
-STALayer.prototype.createLegend = function () {
-    const styleObject = styleList.returnStyleObject(this.attributes.styleId);
-    let legend = this.get("legend");
-
-    /**
-     * @deprecated in 3.0.0
-     */
-    if (this.get("legendURL") === "ignore") {
-        legend = false;
-    }
-    else if (this.get("legendURL")) {
-        legend = this.get("legendURL");
-    }
-
-    if (Array.isArray(legend)) {
-        this.set("legend", legend);
-    }
-    else if (styleObject && legend === true) {
-        createStyle.returnLegendByStyleId(styleObject.styleId).then(legendInfos => {
-            this.setLegend(legendInfos.legendInformation);
-        });
-    }
-    else if (typeof legend === "string") {
-        this.set("legend", [legend]);
-    }
-};
-
-/**
- * Hides all features by setting style=null for all features.
- * @returns {void}
- */
-STALayer.prototype.hideAllFeatures = function () {
-    const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
-        features = layerSource.getFeatures();
-
-    layerSource.clear();
-    features.forEach((feature) => {
-        feature.set("hideInClustering", true);
-        feature.setStyle(() => null);
-    });
-    layerSource.addFeatures(features);
-};
-
-/**
- * Shows all features by setting their style.
- * @returns {void}
- */
-STALayer.prototype.showAllFeatures = function () {
-    const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
-        collection = layerSource.getFeatures();
-
-    collection.forEach((feature) => {
-        const style = this.getStyleAsFunction(this.get("style"));
-
-        feature.setStyle(style(feature));
-    });
-};
-
-/**
- * Only shows features that match the given ids.
- * @param {String[]} featureIdList List of feature ids.
- * @returns {void}
- */
-STALayer.prototype.showFeaturesByIds = function (featureIdList) {
-    const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
-        allLayerFeatures = layerSource.getFeatures(),
-        featuresToShow = featureIdList.map(id => layerSource.getFeatureById(id));
-
-    this.hideAllFeatures();
-    featuresToShow.forEach(feature => {
-        const style = this.getStyleAsFunction(this.get("style"));
-
-        if (feature && feature !== null) {
-            feature.set("hideInClustering", false);
-            feature.setStyle(style(feature));
-        }
-    });
-
-    layerSource.addFeatures(allLayerFeatures);
-    bridge.resetVectorLayerFeatures(this.get("id"), allLayerFeatures);
-};
-
-/**
- * Returns the style as a function.
- * @param {Function|Object} style ol style object or style function.
- * @returns {Function} style as function.
- */
-STALayer.prototype.getStyleAsFunction = function (style) {
-    if (typeof style === "function") {
-        return style;
-    }
-    return function () {
-        return style;
-    };
-};
-/**
- * Sets Style for layer.
- * @returns {void}
- */
-STALayer.prototype.styling = function () {
-    this.layer.setStyle(this.getStyleAsFunction(this.get("style")));
 };
 
 /**
  * Creates features and initializes connections.
  * @returns {void}
  * */
-STALayer.prototype.initializeSensorThings = function () {
-    /**
-     * @deprecated in the next major-release!
-     * useProxy
-     * getProxyUrl()
-     */
-    const url = this.get("useProxy") ? getProxyUrl(this.get("url")) : this.get("url");
-
+Layer2dVectorSensorThings.prototype.initializeSensorThings = function () {
     try {
-        this.createMqttConnectionToSensorThings(url, this.get("mqttOptions"), this.get("timezone"), this.get("showNoDataValue"), this.get("noDataValue"));
+        this.createMqttConnectionToSensorThings(this.get("url"), this.get("mqttOptions"), this.get("timezone"), this.get("showNoDataValue"), this.get("noDataValue"));
     }
     catch (err) {
         console.error("Connecting to mqtt-broker failed. Won't receive live updates. Reason:", err);
     }
+    this.toggleSubscriptionsOnMapChanges();
 
-    if (typeof this.options.beforeLoading === "function") {
-        this.options.beforeLoading();
-    }
+    store.watch((_, getters) => getters.visibleSubjectDataLayerConfigs, layerConfigs => {
+        this.toggleSubscriptionsOnMapChanges(layerConfigs);
+    }, {deep: true});
 
-    bridge.listenToLayerVisibility(this, () => {
-        this.toggleSubscriptionsOnMapChanges();
-    });
-    bridge.listenToIsOutOfRange(this, () => {
-        this.toggleSubscriptionsOnMapChanges();
-    });
-    if (this.get("isVisibleInMap")) {
-        this.toggleSubscriptionsOnMapChanges();
-    }
     if (store.getters["Maps/scale"] > this.get("maxScaleForHistoricalFeatures")) {
         this.showHistoricalFeatures = false;
     }
@@ -448,12 +287,13 @@ STALayer.prototype.initializeSensorThings = function () {
  * @param {String} noDataValue The value to use for "nodata".
  * @returns {void}
  */
-STALayer.prototype.createMqttConnectionToSensorThings = function (url, mqttOptions, timezone, showNoDataValue, noDataValue) {
+Layer2dVectorSensorThings.prototype.createMqttConnectionToSensorThings = function (url, mqttOptions, timezone, showNoDataValue, noDataValue) {
     if (typeof url !== "string" || !url) {
         return;
     }
+
     const mqttHost = this.getMqttHostFromUrl(url, error => {
-            console.warn(error);
+            console.error(error);
         }),
         options = Object.assign({
             browserBufferSize: 65536,
@@ -469,7 +309,7 @@ STALayer.prototype.createMqttConnectionToSensorThings = function (url, mqttOptio
 
     this.mqttClient.on("message", (topic, observation) => {
         const datastreamId = this.getDatastreamIdFromMqttTopic(topic),
-            layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
+            layerSource = this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource(),
             features = typeof layerSource.getFeatures === "function" && Array.isArray(layerSource.getFeatures()) ? layerSource.getFeatures() : [],
             feature = this.getFeatureByDatastreamId(features, datastreamId),
             phenomenonTime = this.getLocalTimeFormat(observation.phenomenonTime, timezone);
@@ -479,7 +319,7 @@ STALayer.prototype.createMqttConnectionToSensorThings = function (url, mqttOptio
         if (this.get("observeLocation") && isObject(feature)) {
             clonedFeature = feature.clone();
         }
-        this.updateFeatureProperties(feature, datastreamId, observation.result, phenomenonTime, showNoDataValue, noDataValue, bridge.changeFeatureGFI);
+        this.updateFeatureProperties(feature, datastreamId, observation.result, phenomenonTime, showNoDataValue, noDataValue);
         if (this.get("observeLocation") && isObject(feature) && isObject(observation?.location) && this.subscribedDataStreamIds[datastreamId]?.subscribed) {
             if (typeof feature?.get !== "function") {
                 return;
@@ -493,6 +333,7 @@ STALayer.prototype.createMqttConnectionToSensorThings = function (url, mqttOptio
         }
     });
 };
+
 /**
  * Update the historical features for given feature and add onto the map.
  * @param {ol/Feature} feature The feature to update historical features for
@@ -500,7 +341,7 @@ STALayer.prototype.createMqttConnectionToSensorThings = function (url, mqttOptio
  * @param {ol/Layer/Source} layerSource The layer source
  * @returns {void}
  */
-STALayer.prototype.updateHistoricalFeatures = function (feature, clonedFeature, layerSource) {
+Layer2dVectorSensorThings.prototype.updateHistoricalFeatures = function (feature, clonedFeature, layerSource) {
     if (typeof feature?.get !== "function" || !Array.isArray(feature.get("historicalFeatureIds")) || typeof clonedFeature?.set !== "function") {
         return;
     }
@@ -514,7 +355,12 @@ STALayer.prototype.updateHistoricalFeatures = function (feature, clonedFeature, 
     feature.get("historicalFeatureIds").unshift(clonedFeature.getId());
     layerSource.addFeature(clonedFeature);
     feature.get("historicalFeatureIds").forEach((id, index) => {
-        const scale = this.getScale(index, feature.get("historicalFeatureIds").length, this.get("scaleStyleByZoom"), store.getters["Maps/getView"].getZoom() + 1, store.getters["Maps/getView"].getResolutions().length);
+        const scale = this.getScale(
+            index,
+            feature.get("historicalFeatureIds").length,
+            this.get("scaleStyleByZoom"),
+            mapCollection.getMapView("2D").getZoom() + 1,
+            mapCollection.getMapView("2D").getResolutions().length);
 
         if (!isObject(layerSource.getFeatureById(id))) {
             return;
@@ -530,7 +376,7 @@ STALayer.prototype.updateHistoricalFeatures = function (feature, clonedFeature, 
  * @param {Function} onError the function to call errors with
  * @returns {String} the extracted host name
  */
-STALayer.prototype.getMqttHostFromUrl = function (url, onError) {
+Layer2dVectorSensorThings.prototype.getMqttHostFromUrl = function (url, onError) {
     if (typeof url !== "string") {
         if (typeof onError === "function") {
             onError(new Error("getMqttHostFromUrl: the given url is not a string."));
@@ -554,7 +400,7 @@ STALayer.prototype.getMqttHostFromUrl = function (url, onError) {
  * @param {String} topic the topic to extract datastream id from.
  * @returns {String} the found datastream id.
  */
-STALayer.prototype.getDatastreamIdFromMqttTopic = function (topic) {
+Layer2dVectorSensorThings.prototype.getDatastreamIdFromMqttTopic = function (topic) {
     if (typeof topic !== "string") {
         return "";
     }
@@ -572,7 +418,7 @@ STALayer.prototype.getDatastreamIdFromMqttTopic = function (topic) {
  * @param {String} id the id to lookup the feature for
  * @returns {ol/Feature} the ol feature with the given id
  */
-STALayer.prototype.getFeatureByDatastreamId = function (features, id) {
+Layer2dVectorSensorThings.prototype.getFeatureByDatastreamId = function (features, id) {
     if (!Array.isArray(features) || typeof id !== "string") {
         return null;
     }
@@ -591,24 +437,19 @@ STALayer.prototype.getFeatureByDatastreamId = function (features, id) {
     return null;
 };
 
+
 /**
  * Initial loading of sensor data
  * @param {Function} onsuccess a function to call on success
  * @param {Boolean} updateOnly set to true to avoid clearing the source
- * @fires Core#RadioRequestUtilGetProxyURL
  * @returns {void}
  */
-STALayer.prototype.initializeConnection = function (onsuccess, updateOnly = false) {
-    /**
-     * @deprecated in the next major-release!
-     * useProxy
-     * getProxyUrl()
-     */
-    const url = this.get("useProxy") ? getProxyUrl(this.get("url")) : this.get("url"),
+Layer2dVectorSensorThings.prototype.initializeConnection = function (onsuccess, updateOnly = false) {
+    const url = this.get("url"),
         version = this.get("version"),
         urlParams = this.get("urlParameter"),
         currentExtent = {
-            extent: store.getters["Maps/getCurrentExtent"],
+            extent: store.getters["Maps/extent"],
             sourceProjection: mapCollection.getMapView("2D").getProjection().getCode(),
             targetProjection: this.get("epsg")
         },
@@ -617,13 +458,12 @@ STALayer.prototype.initializeConnection = function (onsuccess, updateOnly = fals
         epsg = this.get("epsg"),
         gfiTheme = this.get("gfiTheme"),
         utc = this.get("utc"),
-        isClustered = this.has("clusterDistance"),
-        datastreamIds = this.getDatastreamIdsInCurrentExtent(this.get("layer").getSource().getFeatures(), store.getters["Maps/getCurrentExtent"]);
+        datastreamIds = this.getDatastreamIdsInCurrentExtent(this.getLayerSource().getFeatures(), store.getters["Maps/extent"]);
 
     this.callSensorThingsAPI(url, version, urlParams, currentExtent, intersect, sensorData => {
         const filteredSensorData = !updateOnly ? sensorData : sensorData.filter(data => !datastreamIds.includes(data?.properties?.dataStreamId)),
             features = this.createFeaturesFromSensorData(filteredSensorData, mapProjection, epsg, gfiTheme, utc),
-            layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
+            layerSource = this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource(),
             oldHistoricalFeatures = layerSource.getFeatures().filter(f => typeof f.get("dataStreamId") === "undefined"),
             copyFeatures = {};
 
@@ -642,27 +482,16 @@ STALayer.prototype.initializeConnection = function (onsuccess, updateOnly = fals
                 this.prepareFeaturesFor3D(features);
             }
             layerSource.addFeatures(features);
-
-            bridge.resetVectorLayerFeatures(this.get("id"), features);
-        }
-
-        if (typeof features !== "undefined") {
-            this.styling(isClustered);
-            this.get("layer").setStyle(this.get("style"));
         }
 
         features.forEach(feature => {
-            feature.on("propertychange", () => {
-                feature.setStyle(this.get("style"));
-            });
-            bridge.changeFeatureGFI(feature);
+            if (typeof feature?.get === "function" && Array.isArray(feature.get("historicalFeatureIds"))) {
+                feature.unset("historicalFeatureIds");
+            }
         });
 
         if (typeof onsuccess === "function") {
             onsuccess(features);
-        }
-        if (typeof this.options.afterLoading === "function") {
-            this.options.afterLoading(features);
         }
 
         if (typeof this.get("historicalLocations") === "number" && this.showHistoricalFeatures) {
@@ -684,8 +513,13 @@ STALayer.prototype.initializeConnection = function (onsuccess, updateOnly = fals
         if (this.get("observeLocation") && this.get("loadThingsOnlyInCurrentExtent")) {
             this.getHistoricalLocationsOfFeatures();
         }
+        layerSource.dispatchEvent({
+            type: "featuresloadend",
+            features: layerSource.getFeatures()
+        });
     }, error => {
-        if (typeof this.options.onLoadingError === "function") {
+        console.warn(error);
+        if (typeof this.options?.onLoadingError === "function") {
             this.options.onLoadingError(error);
         }
     });
@@ -702,7 +536,7 @@ STALayer.prototype.initializeConnection = function (onsuccess, updateOnly = fals
  * @param {Function} onerror a callback function (err) to pass errors with
  * @returns {void}
  */
-STALayer.prototype.callSensorThingsAPI = function (url, version, urlParams, currentExtent, intersect, onsuccess, onerror) {
+Layer2dVectorSensorThings.prototype.callSensorThingsAPI = function (url, version, urlParams, currentExtent, intersect, onsuccess, onerror) {
     const requestUrl = this.buildSensorThingsUrl(url, version, urlParams),
         http = new SensorThingsHttp({
             rootNode: urlParams?.root
@@ -731,7 +565,7 @@ STALayer.prototype.callSensorThingsAPI = function (url, version, urlParams, curr
  * @param {Object} urlParams the url parameters
  * @returns {String} url to request the sensorThings with
  */
-STALayer.prototype.buildSensorThingsUrl = function (url, version, urlParams) {
+Layer2dVectorSensorThings.prototype.buildSensorThingsUrl = function (url, version, urlParams) {
     const root = urlParams?.root || "Things",
         versionAsString = typeof version === "number" ? version.toFixed(1) : version;
     let query = "";
@@ -767,7 +601,7 @@ STALayer.prototype.buildSensorThingsUrl = function (url, version, urlParams) {
  * @param {String} version The version from service
  * @returns {Object[]} all prepared things
  */
-STALayer.prototype.getAllThings = function (sensordata, urlParams, url, version) {
+Layer2dVectorSensorThings.prototype.getAllThings = function (sensordata, urlParams, url, version) {
     let allThings;
 
     if (urlParams?.root === "Datastreams") {
@@ -791,7 +625,7 @@ STALayer.prototype.getAllThings = function (sensordata, urlParams, url, version)
  * @param {String[]} thingAttributes The thing attributes.
  * @returns {Object[]} The sensordata with things as root.
  */
-STALayer.prototype.changeSensordataRootToThings = function (sensordata, datastreamAttributes, thingAttributes) {
+Layer2dVectorSensorThings.prototype.changeSensordataRootToThings = function (sensordata, datastreamAttributes, thingAttributes) {
     if (!Array.isArray(sensordata)) {
         return [];
     }
@@ -830,7 +664,7 @@ STALayer.prototype.changeSensordataRootToThings = function (sensordata, datastre
  * @param {String[]} array Array with value to convert to an object.
  * @returns {Object} The object with value of the given array as keys.
  */
-STALayer.prototype.createAssociationObject = function (array) {
+Layer2dVectorSensorThings.prototype.createAssociationObject = function (array) {
     if (!Array.isArray(array)) {
         return {};
     }
@@ -848,7 +682,7 @@ STALayer.prototype.createAssociationObject = function (array) {
  * @param {Object[]} allThings The sensordata with things as root.
  * @returns {Object[]} The sensordata with merged things as root.
  */
-STALayer.prototype.unifyThingsByIds = function (allThings) {
+Layer2dVectorSensorThings.prototype.unifyThingsByIds = function (allThings) {
     if (!Array.isArray(allThings)) {
         return [];
     }
@@ -874,7 +708,7 @@ STALayer.prototype.unifyThingsByIds = function (allThings) {
  * @param {*} arr the array to flatten sub arrays or anything else
  * @returns {*} the flattened array if an array was given, the untouched input otherwise
  */
-STALayer.prototype.flattenArray = function (arr) {
+Layer2dVectorSensorThings.prototype.flattenArray = function (arr) {
     if (!Array.isArray(arr)) {
         return arr;
     }
@@ -901,7 +735,7 @@ STALayer.prototype.flattenArray = function (arr) {
  * @param {String} timezone name of the sensors origin timezone.
  * @returns {Object[]} All things with the newest observation for each dataStream.
  */
-STALayer.prototype.createPropertiesOfDatastreams = function (allThings, showNoDataValue, noDataValue, utc, timezone) {
+Layer2dVectorSensorThings.prototype.createPropertiesOfDatastreams = function (allThings, showNoDataValue, noDataValue, utc, timezone) {
     if (!Array.isArray(allThings)) {
         return [];
     }
@@ -942,7 +776,7 @@ STALayer.prototype.createPropertiesOfDatastreams = function (allThings, showNoDa
  * @param {String} timezone name of the sensors origin timezone.
  * @returns {Boolean} true on success, false if something went wrong.
  */
-STALayer.prototype.createPropertiesOfDatastreamsHelper = function (dataStreams, properties, showNoDataValue, noDataValue, utc, timezone) {
+Layer2dVectorSensorThings.prototype.createPropertiesOfDatastreamsHelper = function (dataStreams, properties, showNoDataValue, noDataValue, utc, timezone) {
     if (!Array.isArray(dataStreams) || !isObject(properties)) {
         return false;
     }
@@ -975,7 +809,6 @@ STALayer.prototype.createPropertiesOfDatastreamsHelper = function (dataStreams, 
             properties[key + "_phenomenonTime"] = noDataValue;
             properties.dataStreamValue.push(noDataValue);
         }
-
         if (typeof dataStreamUnit !== "undefined" && typeof this.get("rotationUnit") !== "undefined" && dataStreamUnit === this.get("rotationUnit")) {
             properties.rotation = {
                 isDegree: true,
@@ -993,7 +826,7 @@ STALayer.prototype.createPropertiesOfDatastreamsHelper = function (dataStreams, 
  * @param {Object} dataStreamProperties The properties from the dataStream.
  * @returns {Boolean} returns true on success and false if anything went wrong.
  */
-STALayer.prototype.moveDatastreamPropertiesToThing = function (thingProperties, dataStreamProperties) {
+Layer2dVectorSensorThings.prototype.moveDatastreamPropertiesToThing = function (thingProperties, dataStreamProperties) {
     if (!isObject(thingProperties) || !isObject(dataStreamProperties)) {
         return false;
     }
@@ -1017,7 +850,7 @@ STALayer.prototype.moveDatastreamPropertiesToThing = function (thingProperties, 
  * @see https://day.js.org/docs/en/timezone/timezone
  * @returns {String} A date string based on phenomenonTime and timezone in clients local format or an empty string if an unknown phenomenonTime is given.
  */
-STALayer.prototype.getLocalTimeFormat = function (phenomenonTime, timezone) {
+Layer2dVectorSensorThings.prototype.getLocalTimeFormat = function (phenomenonTime, timezone) {
     const utcTime = this.getFirstPhenomenonTime(phenomenonTime);
 
     if (utcTime) {
@@ -1033,7 +866,7 @@ STALayer.prototype.getLocalTimeFormat = function (phenomenonTime, timezone) {
  * @param {String} phenomenonTime The phenomenonTime given by sensor
  * @returns {String} The first phenomenonTime
  */
-STALayer.prototype.getFirstPhenomenonTime = function (phenomenonTime) {
+Layer2dVectorSensorThings.prototype.getFirstPhenomenonTime = function (phenomenonTime) {
     if (typeof phenomenonTime !== "string") {
         return undefined;
     }
@@ -1051,7 +884,7 @@ STALayer.prototype.getFirstPhenomenonTime = function (phenomenonTime) {
  * @param {String} version The version from service
  * @returns {Object[]} aggregated things
  */
-STALayer.prototype.aggregatePropertiesOfThings = function (allThings, url, version) {
+Layer2dVectorSensorThings.prototype.aggregatePropertiesOfThings = function (allThings, url, version) {
     if (!Array.isArray(allThings)) {
         return [];
     }
@@ -1084,7 +917,7 @@ STALayer.prototype.aggregatePropertiesOfThings = function (allThings, url, versi
  * @param {Object} result the thing to add aggregated properties to
  * @returns {Boolean} returns true on success and false if something went wrong
  */
-STALayer.prototype.aggregatePropertiesOfThingAsArray = function (arrayOfThings, result) {
+Layer2dVectorSensorThings.prototype.aggregatePropertiesOfThingAsArray = function (arrayOfThings, result) {
     if (!Array.isArray(arrayOfThings) || !isObject(result)) {
         return false;
     }
@@ -1125,7 +958,7 @@ STALayer.prototype.aggregatePropertiesOfThingAsArray = function (arrayOfThings, 
  * @param {Number} index the index of the location in array Locations
  * @returns {Object} the geometry object or null if none was found
  */
-STALayer.prototype.getThingsGeometry = function (thing, index) {
+Layer2dVectorSensorThings.prototype.getThingsGeometry = function (thing, index) {
     const locations = thing?.Locations || thing?.Thing?.Locations,
         location = locations && Object.prototype.hasOwnProperty.call(locations, index) && locations[index]?.location ? locations[index].location : null;
 
@@ -1145,7 +978,7 @@ STALayer.prototype.getThingsGeometry = function (thing, index) {
  * @param {String[]} keys Keys to aggregate
  * @returns {Object} the aggregated properties
  */
-STALayer.prototype.aggregateProperties = function (things, keys) {
+Layer2dVectorSensorThings.prototype.aggregateProperties = function (things, keys) {
     const result = {};
 
     keys.forEach(key => {
@@ -1171,7 +1004,7 @@ STALayer.prototype.aggregateProperties = function (things, keys) {
  * @param {Object} result the thing to add aggregated properties to
  * @returns {Boolean} returns true on success and false if something went wrong.
  */
-STALayer.prototype.aggregatePropertiesOfOneThing = function (thing, result) {
+Layer2dVectorSensorThings.prototype.aggregatePropertiesOfOneThing = function (thing, result) {
     if (!isObject(thing) || !isObject(result)) {
         return false;
     }
@@ -1202,7 +1035,7 @@ STALayer.prototype.aggregatePropertiesOfOneThing = function (thing, result) {
  * @param {Boolean} isHistorical if it is historical data
  * @returns {ol/Feature[]} feature to draw
  */
-STALayer.prototype.createFeaturesFromSensorData = function (sensorData, mapProjection, epsg, gfiTheme, utc, isHistorical = false) {
+Layer2dVectorSensorThings.prototype.createFeaturesFromSensorData = function (sensorData, mapProjection, epsg, gfiTheme, utc, isHistorical = false) {
     if (!Array.isArray(sensorData) || typeof epsg === "undefined") {
         return [];
     }
@@ -1229,7 +1062,7 @@ STALayer.prototype.createFeaturesFromSensorData = function (sensorData, mapProje
         }
         feature.set("utc", utc, true);
         if (isHistorical) {
-            feature.set("scale", this.getScale(index - 1, sensorData.length - 1, this.get("scaleStyleByZoom"), store.getters["Maps/getView"].getZoom() + 1, store.getters["Maps/getView"].getResolutions().length));
+            feature.set("scale", this.getScale(index - 1, sensorData.length - 1, this.get("scaleStyleByZoom"), mapCollection.getMapView("2D").getZoom() + 1, mapCollection.getMapView("2D").getResolutions().length));
             feature.set("originScale", this.getScale(index - 1, sensorData.length - 1));
         }
         feature = this.aggregateDataStreamValue(feature);
@@ -1248,7 +1081,7 @@ STALayer.prototype.createFeaturesFromSensorData = function (sensorData, mapProje
  * @param {Function} onerror a function(error) to be called on error
  * @returns {ol/Feature} the ol feature
  */
-STALayer.prototype.createFeatureByLocation = function (data, featureProjection, dataProjection, onerror) {
+Layer2dVectorSensorThings.prototype.createFeatureByLocation = function (data, featureProjection, dataProjection, onerror) {
     const geojsonReader = new GeoJSON({
         featureProjection,
         dataProjection
@@ -1270,7 +1103,7 @@ STALayer.prototype.createFeatureByLocation = function (data, featureProjection, 
  * @param {ol/Feature} feature The ol feature.
  * @returns {ol/Feature} The feature with new attribute "dataStreamValues".
  */
-STALayer.prototype.aggregateDataStreamValue = function (feature) {
+Layer2dVectorSensorThings.prototype.aggregateDataStreamValue = function (feature) {
     const modifiedFeature = feature,
         dataStreamValues = [];
 
@@ -1297,7 +1130,7 @@ STALayer.prototype.aggregateDataStreamValue = function (feature) {
  * @param {ol/Feature} feature The ol feature.
  * @returns {ol/Feature} The feature with new attribute "dataStreamPhenomenonTime".
  */
-STALayer.prototype.aggregateDataStreamPhenomenonTime = function (feature) {
+Layer2dVectorSensorThings.prototype.aggregateDataStreamPhenomenonTime = function (feature) {
     const modifiedFeature = feature,
         dataStreamPhenomenonTimes = [];
 
@@ -1322,13 +1155,11 @@ STALayer.prototype.aggregateDataStreamPhenomenonTime = function (feature) {
  * Because of usage of several listeners it's necessary to create a "isSubscribed" flag to prevent multiple executions.
  * @returns {void}
  */
-STALayer.prototype.toggleSubscriptionsOnMapChanges = function () {
-    const state = this.getStateOfSTALayer(this.get("isOutOfRange"), this.get("isVisibleInMap"), this.get("isSubscribed"));
+Layer2dVectorSensorThings.prototype.toggleSubscriptionsOnMapChanges = function () {
+    const state = this.getStateOfSTALayer(this.getLayer().getVisible(), this.get("isSubscribed"));
 
     if (state === true) {
-        this.createLegend();
-        this.startSubscription(this.get("layer").getSource().getFeatures());
-
+        this.startSubscription(this.getLayer().getSource().getFeatures());
         if (this.get("observeLocation") && this.moveLayerRevisible === false) {
             this.moveLayerRevisible = state;
         }
@@ -1339,17 +1170,66 @@ STALayer.prototype.toggleSubscriptionsOnMapChanges = function () {
 };
 
 /**
- * Returns the state of the layer based on out of range value, isVisibleInMap and isSubscribed.
- * @param {Boolean} isOutOfRange If map Scale is out of defined layer minScale and maxScale.
- * @param {Boolean} isVisibleInMap If value model is visible or not.
+ * Stops mqtt subscriptions based on the layers state.
+ * @returns {void}
+ */
+Layer2dVectorSensorThings.prototype.stopSubscription = function () {
+    const subscriptionTopics = this.get("subscriptionTopics"),
+        version = this.get("version"),
+        mqttClient = this.mqttClient;
+
+    this.set("isSubscribed", false);
+    store.dispatch("Maps/unregisterListener", {type: "moveend", listener: this.updateSubscription.bind(this)});
+    this.unsubscribeFromSensorThings([], subscriptionTopics, version, mqttClient);
+    clearInterval(this.intervallRequest);
+    this.keepUpdating = false;
+};
+
+/**
+ * Starts the interval for continous updating the features in the current extent.
+ * @param {Number} timeout The timeout in milliseconds.
+ * @returns {void}
+ */
+Layer2dVectorSensorThings.prototype.startIntervalUpdate = function (timeout) {
+    if (!this.keepUpdating || typeof timeout !== "number") {
+        return;
+    }
+    if (this.intervallRequest !== null) {
+        clearInterval(this.intervallRequest);
+    }
+    this.intervallRequest = setTimeout(() => {
+        const datastreamIds = this.getDatastreamIdsInCurrentExtent(this.getLayerSource().getFeatures(), store.getters["Maps/extent"]),
+            subscriptionTopics = this.get("subscriptionTopics"),
+            version = this.get("version"),
+            mqttClient = this.mqttClient,
+            rh = this.get("mqttRh"),
+            qos = this.get("mqttQos");
+
+        this.unsubscribeFromSensorThings(datastreamIds, subscriptionTopics, version, mqttClient);
+        this.initializeConnection(async features => {
+            await this.subscribeToSensorThings(
+                this.getDatastreamIdsInCurrentExtent(features, store.getters["Maps/extent"]),
+                subscriptionTopics,
+                version,
+                mqttClient,
+                {rh, qos}
+            );
+        }, true);
+        this.startIntervalUpdate(timeout);
+    }, timeout);
+};
+
+/**
+ * Returns the state of the layer based on visibility and isSubscribed.
+ * @param {Boolean} visibility If value model is visible or not.
  * @param {Boolean} isSubscribed To prevent multiple executions.
  * @returns {Boolean} true if layer should be subscribed, false if not
  */
-STALayer.prototype.getStateOfSTALayer = function (isOutOfRange, isVisibleInMap, isSubscribed) {
-    if (!isOutOfRange && isVisibleInMap && !isSubscribed) {
+Layer2dVectorSensorThings.prototype.getStateOfSTALayer = function (visibility, isSubscribed) {
+    if (visibility && !isSubscribed) {
         return true;
     }
-    else if ((isOutOfRange || !isVisibleInMap) && isSubscribed) {
+    else if (!visibility && isSubscribed) {
         return false;
     }
     return undefined;
@@ -1360,7 +1240,7 @@ STALayer.prototype.getStateOfSTALayer = function (isOutOfRange, isVisibleInMap, 
  * @param {ol/Feature[]} features all features of the Layer
  * @returns {void}
  */
-STALayer.prototype.startSubscription = function (features) {
+Layer2dVectorSensorThings.prototype.startSubscription = function (features) {
     this.set("isSubscribed", true);
     if (!this.get("loadThingsOnlyInCurrentExtent") && Array.isArray(features) && !features.length) {
         this.initializeConnection(function () {
@@ -1383,28 +1263,11 @@ STALayer.prototype.startSubscription = function (features) {
 };
 
 /**
- * Stops mqtt subscriptions based on the layers state.
- * @returns {void}
- */
-STALayer.prototype.stopSubscription = function () {
-    const subscriptionTopics = this.get("subscriptionTopics"),
-        version = this.get("version"),
-        isVisibleInMap = this.get("isVisibleInMap"),
-        mqttClient = this.mqttClient;
-
-    this.set("isSubscribed", false);
-    store.dispatch("Maps/unregisterListener", {type: "moveend", listener: this.updateSubscription.bind(this)});
-    this.unsubscribeFromSensorThings([], subscriptionTopics, version, isVisibleInMap, mqttClient);
-    clearInterval(this.intervallRequest);
-    this.keepUpdating = false;
-};
-
-/**
  * Starts the interval for continous updating the features in the current extent.
  * @param {Number} timeout The timeout in milliseconds.
  * @returns {void}
  */
-STALayer.prototype.startIntervalUpdate = function (timeout) {
+Layer2dVectorSensorThings.prototype.startIntervalUpdate = function (timeout) {
     if (!this.keepUpdating || typeof timeout !== "number") {
         return;
     }
@@ -1412,18 +1275,17 @@ STALayer.prototype.startIntervalUpdate = function (timeout) {
         clearInterval(this.intervallRequest);
     }
     this.intervallRequest = setTimeout(() => {
-        const datastreamIds = this.getDatastreamIdsInCurrentExtent(this.get("layer").getSource().getFeatures(), store.getters["Maps/getCurrentExtent"]),
+        const datastreamIds = this.getDatastreamIdsInCurrentExtent(this.getLayerSource().getFeatures(), store.getters["Maps/extent"]),
             subscriptionTopics = this.get("subscriptionTopics"),
             version = this.get("version"),
-            isVisibleInMap = this.get("isVisibleInMap"),
             mqttClient = this.mqttClient,
             rh = this.get("mqttRh"),
             qos = this.get("mqttQos");
 
-        this.unsubscribeFromSensorThings(datastreamIds, subscriptionTopics, version, isVisibleInMap, mqttClient);
-        this.initializeConnection(async features => {
-            await this.subscribeToSensorThings(
-                this.getDatastreamIdsInCurrentExtent(features, store.getters["Maps/getCurrentExtent"]),
+        this.unsubscribeFromSensorThings(datastreamIds, subscriptionTopics, version, mqttClient);
+        this.initializeConnection(features => {
+            this.subscribeToSensorThings(
+                this.getDatastreamIdsInCurrentExtent(features, store.getters["Maps/extent"]),
                 subscriptionTopics,
                 version,
                 mqttClient,
@@ -1438,35 +1300,34 @@ STALayer.prototype.startIntervalUpdate = function (timeout) {
  * Refreshes all subscriptions by ending all established subscriptions and creating new ones.
  * @returns {void}
  */
-STALayer.prototype.updateSubscription = function () {
-    // Timout to avoid display issues with url params see FLS-299 ticket. Issue has to be resolved without timeout.
-    setTimeout(async () =>{
-        const datastreamIds = this.getDatastreamIdsInCurrentExtent(this.get("layer").getSource().getFeatures(), store.getters["Maps/getCurrentExtent"]),
-            subscriptionTopics = this.get("subscriptionTopics"),
-            version = this.get("version"),
-            isVisibleInMap = this.get("isVisibleInMap"),
-            mqttClient = this.mqttClient,
-            rh = this.get("mqttRh"),
-            qos = this.get("mqttQos");
+Layer2dVectorSensorThings.prototype.updateSubscription = async function () {
+    const datastreamIds = this.getDatastreamIdsInCurrentExtent(this.getLayer().getSource().getFeatures(), store.getters["Maps/extent"]),
+        subscriptionTopics = this.get("subscriptionTopics"),
+        version = this.get("version"),
+        mqttClient = this.mqttClient,
+        rh = this.get("mqttRh"),
+        qos = this.get("mqttQos");
 
-        if (!this.get("loadThingsOnlyInCurrentExtent") && !this.moveLayerRevisible) {
-            this.unsubscribeFromSensorThings(datastreamIds, subscriptionTopics, version, isVisibleInMap, mqttClient);
-            await this.subscribeToSensorThings(datastreamIds, subscriptionTopics, version, mqttClient, {rh, qos});
+    if (!this.get("loadThingsOnlyInCurrentExtent") && !this.moveLayerRevisible) {
+        this.unsubscribeFromSensorThings(datastreamIds, subscriptionTopics, version, mqttClient);
+        await this.subscribeToSensorThings(datastreamIds, subscriptionTopics, version, mqttClient, {rh, qos});
+        if (typeof this.get("historicalLocations") === "number") {
+            this.getHistoricalLocationsOfFeatures();
         }
-        else {
-            this.unsubscribeFromSensorThings(datastreamIds, subscriptionTopics, version, isVisibleInMap, mqttClient);
-            this.initializeConnection(async () => {
-                await this.subscribeToSensorThings(
-                    this.getDatastreamIdsInCurrentExtent(this.get("layer").getSource().getFeatures(), store.getters["Maps/getCurrentExtent"]),
-                    subscriptionTopics,
-                    version,
-                    mqttClient,
-                    {rh, qos}
-                );
-            });
-        }
-        this.moveLayerRevisible = false;
-    }, 2000);
+    }
+    else {
+        this.unsubscribeFromSensorThings(datastreamIds, subscriptionTopics, version, mqttClient);
+        this.initializeConnection(async () => {
+            await this.subscribeToSensorThings(
+                this.getDatastreamIdsInCurrentExtent(this.getLayer().getSource().getFeatures(), store.getters["Maps/extent"]),
+                subscriptionTopics,
+                version,
+                mqttClient,
+                {rh, qos}
+            );
+        });
+    }
+    this.moveLayerRevisible = false;
 };
 
 /**
@@ -1475,7 +1336,7 @@ STALayer.prototype.updateSubscription = function () {
  * @param {ol/extent} currentExtent the current browser extent
  * @returns {String[]} an array containing all datastream ids from this layer in the current extent
  */
-STALayer.prototype.getDatastreamIdsInCurrentExtent = function (features, currentExtent) {
+Layer2dVectorSensorThings.prototype.getDatastreamIdsInCurrentExtent = function (features, currentExtent) {
     const featuresInExtent = this.getFeaturesInExtent(features, currentExtent);
 
     return this.getDatastreamIds(featuresInExtent);
@@ -1487,7 +1348,7 @@ STALayer.prototype.getDatastreamIdsInCurrentExtent = function (features, current
  * @param {ol/extent} currentExtent the current browser extent coordinates
  * @returns {ol/Feature[]} the features in the given extent
  */
-STALayer.prototype.getFeaturesInExtent = function (features, currentExtent) {
+Layer2dVectorSensorThings.prototype.getFeaturesInExtent = function (features, currentExtent) {
     const featuresInExtent = [];
     let enlargedExtent = currentExtent;
 
@@ -1503,7 +1364,6 @@ STALayer.prototype.getFeaturesInExtent = function (features, currentExtent) {
             featuresInExtent.push(feature);
         }
     });
-
     return featuresInExtent;
 };
 
@@ -1513,7 +1373,7 @@ STALayer.prototype.getFeaturesInExtent = function (features, currentExtent) {
  * @param {Number} factor factor to enlarge extent
  * @returns {ol/extent} the enlarged extent
  */
-STALayer.prototype.enlargeExtent = function (extent, factor) {
+Layer2dVectorSensorThings.prototype.enlargeExtent = function (extent, factor) {
     const bufferAmount = (extent[2] - extent[0]) * factor;
 
     return buffer(extent, bufferAmount);
@@ -1526,7 +1386,7 @@ STALayer.prototype.enlargeExtent = function (extent, factor) {
  * @param {Number} [factor=10] - An optional factor to enlarge the extent.
  * @returns {ol/extent|Boolean} The enlarged extent or false if something failed.
  */
-STALayer.prototype.enlargeExtentForMovableFeatures = function (extent, maxSpeed, factor = 10) {
+Layer2dVectorSensorThings.prototype.enlargeExtentForMovableFeatures = function (extent, maxSpeed, factor = 10) {
     let defaultFactor = factor;
 
     if (!Array.isArray(extent) || extent.length !== 4) {
@@ -1552,7 +1412,7 @@ STALayer.prototype.enlargeExtentForMovableFeatures = function (extent, maxSpeed,
  * @param {ol/Feature[]} features features with datastream ids or features with features (see clustering) with datastreamids
  * @returns {String[]} an array containing all datastream ids from this layer
  */
-STALayer.prototype.getDatastreamIds = function (features) {
+Layer2dVectorSensorThings.prototype.getDatastreamIds = function (features) {
     if (!Array.isArray(features)) {
         return [];
     }
@@ -1578,7 +1438,7 @@ STALayer.prototype.getDatastreamIds = function (features) {
  * @param {String[]} dataStreamIdsArray the array to push the datastream ids into
  * @returns {Boolean} true if the function ran successfull, false if not
  */
-STALayer.prototype.getDatastreamIdsHelper = function (feature, dataStreamIdsArray) {
+Layer2dVectorSensorThings.prototype.getDatastreamIdsHelper = function (feature, dataStreamIdsArray) {
     if (typeof feature?.get !== "function" || typeof feature.get("dataStreamId") !== "string" || !Array.isArray(dataStreamIdsArray)) {
         return false;
     }
@@ -1586,6 +1446,7 @@ STALayer.prototype.getDatastreamIdsHelper = function (feature, dataStreamIdsArra
     feature.get("dataStreamId").split(" | ").forEach(id => {
         dataStreamIdsArray.push(id);
     });
+
     return true;
 };
 
@@ -1594,11 +1455,10 @@ STALayer.prototype.getDatastreamIdsHelper = function (feature, dataStreamIdsArra
  * @param {String[]} datastreamIdsNotToUnsubscribe an array of datastreamIds as whitelist not to unsubscribe from
  * @param {Object} subscriptionTopics an object of subscribed ids as keys and true/false als value
  * @param {String} version the STA version to use in topic
- * @param {Boolean} isVisibleInMap if the layer is visible
  * @param {Object} mqttClient the mqtt client to use
  * @returns {Boolean} returns true on success and false if something went wrong
  */
-STALayer.prototype.unsubscribeFromSensorThings = function (datastreamIdsNotToUnsubscribe, subscriptionTopics, version, isVisibleInMap, mqttClient) {
+Layer2dVectorSensorThings.prototype.unsubscribeFromSensorThings = function (datastreamIdsNotToUnsubscribe, subscriptionTopics, version, mqttClient) {
     if (!Array.isArray(datastreamIdsNotToUnsubscribe) || !isObject(subscriptionTopics) || !isObject(mqttClient)) {
         return false;
     }
@@ -1609,14 +1469,14 @@ STALayer.prototype.unsubscribeFromSensorThings = function (datastreamIdsNotToUns
     });
 
     Object.entries(subscriptionTopics).forEach(([id, isTopicSubscribed]) => {
-        if (isVisibleInMap === false || isVisibleInMap === true && isTopicSubscribed === true && !Object.prototype.hasOwnProperty.call(datastreamIdsAssoc, id)) {
+        if (isTopicSubscribed === true && !Object.prototype.hasOwnProperty.call(datastreamIdsAssoc, id)) {
             mqttClient.unsubscribe("v" + version + "/Datastreams(" + id + ")/Observations");
             if (this.get("observeLocation")) {
                 mqttClient.unsubscribe("v" + version + "/Datastreams(" + id + ")/Thing/Locations");
                 if (typeof this.get("historicalLocations") === "number" && this.showHistoricalFeatures) {
                     this.resetHistoricalLocations(id);
                 }
-                const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
+                const layerSource = this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource(),
                     feature = this.getFeatureByDatastreamId(layerSource.getFeatures(), id);
 
                 if (typeof feature?.set === "function") {
@@ -1640,12 +1500,11 @@ STALayer.prototype.unsubscribeFromSensorThings = function (datastreamIdsNotToUns
  * @param {Object} mqttSubscribeOptions an object with key rh and qos to subscribe with
  * @returns {Boolean} returns true on success and false if something went wrong
  */
-STALayer.prototype.subscribeToSensorThings = async function (dataStreamIds, subscriptionTopics, version, mqttClient, mqttSubscribeOptions = {}) {
+Layer2dVectorSensorThings.prototype.subscribeToSensorThings = async function (dataStreamIds, subscriptionTopics, version, mqttClient, mqttSubscribeOptions = {}) {
     if (!Array.isArray(dataStreamIds) || !isObject(subscriptionTopics) || !isObject(mqttClient)) {
         return false;
     }
-
-    const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
+    const layerSource = this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource(),
         newSubscriptionTopics = subscriptionTopics;
 
     for (let i = 0; i < dataStreamIds.length; i++) {
@@ -1653,13 +1512,11 @@ STALayer.prototype.subscribeToSensorThings = async function (dataStreamIds, subs
 
         if (id && !subscriptionTopics[id]) {
             await mqttClient.subscribe("v" + version + "/Datastreams(" + id + ")/Observations", mqttSubscribeOptions);
-
             if (this.get("observeLocation")) {
                 await mqttClient.subscribe("v" + version + "/Datastreams(" + id + ")/Thing/Locations", mqttSubscribeOptions, () => {
                     if (this.get("loadThingsOnlyInCurrentExtent")) {
                         return;
                     }
-
                     this.fetchHistoricalLocationsByDatastreamId(
                         layerSource.getFeatures(),
                         id,
@@ -1674,7 +1531,6 @@ STALayer.prototype.subscribeToSensorThings = async function (dataStreamIds, subs
                 });
             }
             newSubscriptionTopics[id] = true;
-
             const feature = this.getFeatureByDatastreamId(layerSource.getFeatures(), id);
 
             if (!isObject(feature)) {
@@ -1697,7 +1553,7 @@ STALayer.prototype.subscribeToSensorThings = async function (dataStreamIds, subs
  * @param {Object} observation the observation to update the old observation with
  * @returns {void}
  */
-STALayer.prototype.updateObservationForDatastreams = function (feature, dataStreamId, observation) {
+Layer2dVectorSensorThings.prototype.updateObservationForDatastreams = function (feature, dataStreamId, observation) {
     if (typeof feature?.get !== "function" || !Array.isArray(feature.get("Datastreams"))) {
         return;
     }
@@ -1710,17 +1566,17 @@ STALayer.prototype.updateObservationForDatastreams = function (feature, dataStre
 };
 
 /**
- * Updates the location of a feature.
- * @param {ol/Feature} feature feature to be updated
- * @param {Object} observation the observation to update the old coordinates with
- * @param {Function} onsuccess function which is called when coordinates updated once
- * @returns {void}
- */
-STALayer.prototype.updateFeatureLocation = function (feature, observation, onsuccess) {
+* Updates the location of a feature.
+* @param {ol/Feature} feature feature to be updated
+* @param {Object} observation the observation to update the old coordinates with
+* @param {Function} onsuccess function which is called when coordinates updated once
+* @returns {void}
+*/
+Layer2dVectorSensorThings.prototype.updateFeatureLocation = function (feature, observation, onsuccess) {
     if (typeof feature?.getGeometry !== "function" || !Array.isArray(observation?.location?.geometry?.coordinates) || !observation.location.geometry.coordinates.length) {
         return;
     }
-    const mapProjection = store.getters["Maps/projection"].getCode(),
+    const mapProjection = this.get("crs"),
         coordinates = this.get("epsg") !== mapProjection ? crs.transform(this.get("epsg"), mapProjection, observation.location.geometry.coordinates) : observation.location.geometry.coordinates;
 
     if (typeof onsuccess === "function") {
@@ -1740,10 +1596,9 @@ STALayer.prototype.updateFeatureLocation = function (feature, observation, onsuc
  * @param {String} phenomenonTime the new phenomenonTime
  * @param {Boolean} showNoDataValue true if "nodata" value should be shown, false if not
  * @param {String} noDataValue the value to use for "nodata"
- * @param {Function} funcChangeFeatureGFI a function to change feature gfi with
  * @returns {Boolean} true on success, false if something went wrong
  */
-STALayer.prototype.updateFeatureProperties = function (feature, dataStreamId, result, phenomenonTime, showNoDataValue, noDataValue, funcChangeFeatureGFI) {
+Layer2dVectorSensorThings.prototype.updateFeatureProperties = function (feature, dataStreamId, result, phenomenonTime, showNoDataValue, noDataValue) {
     if (
         typeof feature?.get !== "function"
         || typeof feature?.set !== "function"
@@ -1769,10 +1624,6 @@ STALayer.prototype.updateFeatureProperties = function (feature, dataStreamId, re
         });
     }
 
-    if (typeof funcChangeFeatureGFI === "function") {
-        funcChangeFeatureGFI(feature);
-    }
-
     return true;
 };
 
@@ -1781,7 +1632,7 @@ STALayer.prototype.updateFeatureProperties = function (feature, dataStreamId, re
  * if actual scale is less than configured maxScaleForHistoricalFeatures
  * @returns {void}
  */
-STALayer.prototype.registerInteractionMapScaleListeners = function () {
+Layer2dVectorSensorThings.prototype.registerInteractionMapScaleListeners = function () {
     store.watch((state, getters) => getters["Maps/scale"], scale => {
         if (scale > this.get("maxScaleForHistoricalFeatures")) {
             this.showHistoricalFeatures = false;
@@ -1801,8 +1652,8 @@ STALayer.prototype.registerInteractionMapScaleListeners = function () {
  * Removes the historical Features
  * @returns {void}
  */
-STALayer.prototype.removeHistoricalFeatures = function () {
-    const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
+Layer2dVectorSensorThings.prototype.removeHistoricalFeatures = function () {
+    const layerSource = this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource(),
         allFeatures = layerSource.getFeatures(),
         featuresWithHistoricalIds = allFeatures.filter(feature => typeof feature.get("dataStreamId") !== "undefined" && Array.isArray(feature.get("historicalFeatureIds")));
 
@@ -1814,6 +1665,7 @@ STALayer.prototype.removeHistoricalFeatures = function () {
     });
 };
 
+
 /**
  * Replaces a value of a piped property using dataStreamId to locate the right position in the piped property.
  * @param {ol/Feature} feature the feature with properties
@@ -1822,7 +1674,7 @@ STALayer.prototype.removeHistoricalFeatures = function () {
  * @param {String} value the new value
  * @returns {String} the updated property
  */
-STALayer.prototype.replaceValueInPipedProperty = function (feature, property, dataStreamId, value) {
+Layer2dVectorSensorThings.prototype.replaceValueInPipedProperty = function (feature, property, dataStreamId, value) {
     if (
         typeof feature?.get !== "function"
         || typeof feature.get("dataStreamId") !== "string"
@@ -1849,7 +1701,7 @@ STALayer.prototype.replaceValueInPipedProperty = function (feature, property, da
  * @param {String} value the value to replace the value in result found at position with
  * @returns {Boolean} true if the function ran successfull, false if not
  */
-STALayer.prototype.replaceValueInArrayByReference = function (result, referenceArray, reference, value) {
+Layer2dVectorSensorThings.prototype.replaceValueInArrayByReference = function (result, referenceArray, reference, value) {
     if (!Array.isArray(result) || !Array.isArray(referenceArray)) {
         return false;
     }
@@ -1864,22 +1716,6 @@ STALayer.prototype.replaceValueInArrayByReference = function (result, referenceA
 };
 
 /**
- * Once function which registers given handler by event name.
- * @param {String} eventName The event name.
- * @param {Function} handler The handler.
- * @returns {void}
- */
-STALayer.prototype.once = function (eventName, handler) {
-    if (typeof handler !== "function") {
-        return;
-    }
-
-    if (eventName === "featuresloadend") {
-        this.onceEvents.featuresloadend.push(handler);
-    }
-};
-
-/**
  * Fetches historical locations and return it to callback function.
  * Only for the current extent to minimize the traffic.
  * @param {String} url The base url.
@@ -1888,7 +1724,7 @@ STALayer.prototype.once = function (eventName, handler) {
  * @param {Function} onsuccess The callback function to return the data.
  * @returns {void}
  */
-STALayer.prototype.fetchHistoricalLocations = function (url, urlParams, version, onsuccess) {
+Layer2dVectorSensorThings.prototype.fetchHistoricalLocations = function (url, urlParams, version, onsuccess) {
     if (typeof url !== "string" || typeof version !== "string" || !isObject(urlParams)) {
         return;
     }
@@ -1899,7 +1735,7 @@ STALayer.prototype.fetchHistoricalLocations = function (url, urlParams, version,
         });
 
     http.getInExtent(requestUrl, {
-        extent: store.getters["Maps/getCurrentExtent"],
+        extent: store.getters["Maps/extent"],
         sourceProjection: store.getters["Maps/projection"].getCode(),
         targetProjection: this.get("epsg")
     }, true, result => {
@@ -1915,10 +1751,10 @@ STALayer.prototype.fetchHistoricalLocations = function (url, urlParams, version,
  * Calls the sta api to get historical locations.
  * @returns {void}
  */
-STALayer.prototype.getHistoricalLocationsOfFeatures = function () {
-    const allFeatures = (this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource")).getFeatures(),
+Layer2dVectorSensorThings.prototype.getHistoricalLocationsOfFeatures = function () {
+    const allFeatures = (this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource()).getFeatures(),
         featuresWithoutHistoricalIds = allFeatures.filter(feature => typeof feature.get("dataStreamId") !== "undefined" && !Array.isArray(feature.get("historicalFeatureIds"))),
-        datastreamIds = this.getDatastreamIdsInCurrentExtent(featuresWithoutHistoricalIds, store.getters["Maps/getCurrentExtent"]),
+        datastreamIds = this.getDatastreamIdsInCurrentExtent(featuresWithoutHistoricalIds, store.getters["Maps/extent"]),
         url = this.get("url"),
         urlParam = {
             orderby: "time+desc",
@@ -1931,6 +1767,7 @@ STALayer.prototype.getHistoricalLocationsOfFeatures = function () {
         this.fetchHistoricalLocationsByDatastreamId(allFeatures, datastreamId, amount, url, urlParam, version);
     });
 };
+
 /**
  * Fetches the historical locations by given datastream id.
  * @param {ol/Feature[]} allFeatures All features on the map
@@ -1942,7 +1779,7 @@ STALayer.prototype.getHistoricalLocationsOfFeatures = function () {
  * @param {Function} onsuccess The function to call on success
  * @returns {void}
  */
-STALayer.prototype.fetchHistoricalLocationsByDatastreamId = function (allFeatures, datastreamId, amount, url, urlParam, version, onsuccess) {
+Layer2dVectorSensorThings.prototype.fetchHistoricalLocationsByDatastreamId = function (allFeatures, datastreamId, amount, url, urlParam, version, onsuccess) {
     if (!Array.isArray(allFeatures) || typeof datastreamId === "undefined" || isNaN(amount) || typeof url !== "string" || !isObject(urlParam) || typeof version !== "string") {
         return;
     }
@@ -1972,6 +1809,7 @@ STALayer.prototype.fetchHistoricalLocationsByDatastreamId = function (allFeature
         });
     });
 };
+
 /**
  * Parses the given sensor data to features and adds their ids to the given feature.
  * @param {ol/Feature} feature The feature.
@@ -1981,12 +1819,12 @@ STALayer.prototype.fetchHistoricalLocationsByDatastreamId = function (allFeature
  * @param {String} version The version.
  * @returns {void}
  */
-STALayer.prototype.parseSensorDataToFeature = function (feature, sensorData, urlParam, url, version) {
+Layer2dVectorSensorThings.prototype.parseSensorDataToFeature = function (feature, sensorData, urlParam, url, version) {
     if (typeof feature?.get !== "function" || Array.isArray(feature.get("historicalFeatureIds"))) {
         return;
     }
 
-    const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
+    const layerSource = this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource(),
         mapProjection = store.getters["Maps/projection"].getCode(),
         epsg = this.get("epsg"),
         gfiTheme = this.get("gfiTheme"),
@@ -2003,9 +1841,7 @@ STALayer.prototype.parseSensorDataToFeature = function (feature, sensorData, url
     layerSource.addFeatures(historicalFeatures);
     feature.set("historicalFeatureIds", historicalFeatureIds);
     if (isObject(this.subscribedDataStreamIds[feature.get("dataStreamId")])) {
-        Object.assign(this.subscribedDataStreamIds[feature.get("dataStreamId")], {
-            historicalFeatureIds
-        });
+        Object.assign(this.subscribedDataStreamIds[feature.get("dataStreamId")], {historicalFeatureIds});
     }
 };
 
@@ -2014,8 +1850,8 @@ STALayer.prototype.parseSensorDataToFeature = function (feature, sensorData, url
  * @param {Number} datastreamId The datastream id to get the feature for.
  * @returns {void}
  */
-STALayer.prototype.resetHistoricalLocations = function (datastreamId) {
-    const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
+Layer2dVectorSensorThings.prototype.resetHistoricalLocations = function (datastreamId) {
+    const layerSource = this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource(),
         feature = layerSource.getFeatures().filter(layerFeature => typeof layerFeature?.get === "function" && layerFeature.get("dataStreamId") === datastreamId)[0];
 
     if (typeof feature?.get === "function" && Array.isArray(feature.get("historicalFeatureIds"))) {
@@ -2034,7 +1870,7 @@ STALayer.prototype.resetHistoricalLocations = function (datastreamId) {
  * @param {Number} [zoomLevelCount=1] - The number of zoom levels.
  * @returns {Number} scale
  */
-STALayer.prototype.getScale = function (index, amount, scaleStyleByZoom = false, zoomLevel = 1, zoomLevelCount = 1) {
+Layer2dVectorSensorThings.prototype.getScale = function (index, amount, scaleStyleByZoom = false, zoomLevel = 1, zoomLevelCount = 1) {
     if (scaleStyleByZoom) {
         return (0.7 - 0.5 * index / amount) * zoomLevel / zoomLevelCount;
     }
@@ -2047,15 +1883,12 @@ STALayer.prototype.getScale = function (index, amount, scaleStyleByZoom = false,
  * @param {Object[]} styleRule the style rule of the sta features
  * @returns {void}
  */
-STALayer.prototype.setStyleOfHistoricalFeature = function (feature, scale, styleRule) {
+Layer2dVectorSensorThings.prototype.setStyleOfHistoricalFeature = function (feature, scale, styleRule) {
     if (!Array.isArray(styleRule) || !styleRule.length || !styleRule[0].style) {
-        console.error("The style rule is not right");
+        console.error("The style rule has wrong type, must be an array with at least one entry with prop style!", styleRule);
         return;
     }
-
-    const style = this.getStyleOfHistoricalFeature(styleRule[0].style, scale);
-
-    feature.setStyle(() => style);
+    feature.setStyle(() => this.getStyleOfHistoricalFeature(styleRule[0].style, scale));
 };
 
 /**
@@ -2064,7 +1897,7 @@ STALayer.prototype.setStyleOfHistoricalFeature = function (feature, scale, style
  * @param {Number} scale the icon scale in style
  * @returns {void}
  */
-STALayer.prototype.getStyleOfHistoricalFeature = function (style, scale) {
+Layer2dVectorSensorThings.prototype.getStyleOfHistoricalFeature = function (style, scale) {
     let circleRadius,
         circleFillColor,
         circleStrokeColor,
@@ -2107,16 +1940,18 @@ STALayer.prototype.getStyleOfHistoricalFeature = function (style, scale) {
  * @param {Boolean} scaleStyleByZoom if the scale of style is reset by zoom
  * @returns {void}
  */
-STALayer.prototype.setDynamicalScaleOfHistoricalFeatures = function (features, zoomLevel, zoomLevelCount, observeLocation, scaleStyleByZoom) {
+Layer2dVectorSensorThings.prototype.setDynamicalScaleOfHistoricalFeatures = function (features, zoomLevel, zoomLevelCount, observeLocation, scaleStyleByZoom) {
     if (!observeLocation || !scaleStyleByZoom || typeof zoomLevel !== "number" || zoomLevelCount < 1) {
         return;
     }
     features.forEach(feature => {
-        const style = feature.getStyle()(feature);
+        if (feature.getStyle()) {
+            const style = feature.getStyle()(feature);
 
-        if (typeof style.getImage === "function" && style.getImage() !== null) {
-            style.getImage().setScale(feature.get("originScale") * zoomLevel / zoomLevelCount);
-            feature.setStyle(() => style);
+            if (typeof style.getImage === "function" && style.getImage() !== null) {
+                style.getImage().setScale(feature.get("originScale") * zoomLevel / zoomLevelCount);
+                feature.setStyle(() => style);
+            }
         }
     });
 };
@@ -2126,17 +1961,18 @@ STALayer.prototype.setDynamicalScaleOfHistoricalFeatures = function (features, z
  * @param {Boolean} scaleStyleByZoom if the scale of style is reset by zoom
  * @returns {void}
  */
-STALayer.prototype.registerInteractionMapResolutionListeners = function (scaleStyleByZoom) {
+Layer2dVectorSensorThings.prototype.registerInteractionMapResolutionListeners = function (scaleStyleByZoom) {
     if (!scaleStyleByZoom) {
         return;
     }
     store.watch((state, getters) => getters["Maps/resolution"], resolution => {
-        const layerSource = this.get("layerSource") instanceof Cluster ? this.get("layerSource").getSource() : this.get("layerSource"),
+        const layerSource = this.getLayerSource() instanceof Cluster ? this.getLayerSource().getSource() : this.getLayerSource(),
             allFeatures = layerSource.getFeatures(),
             historicalFeatures = allFeatures.filter(feature => typeof feature.get("dataStreamId") === "undefined" && typeof feature.get("originScale") !== "undefined"),
-            zoomLevel = store.getters["Maps/getView"].getZoomForResolution(resolution) + 1,
-            zoomLevelCount = store.getters["Maps/getView"].getResolutions().length;
+            zoomLevel = mapCollection.getMapView("2D").getZoomForResolution(resolution) + 1,
+            zoomLevelCount = mapCollection.getMapView("2D").getResolutions().length;
 
         this.setDynamicalScaleOfHistoricalFeatures(historicalFeatures, zoomLevel, zoomLevelCount, this.get("observeLocation"), scaleStyleByZoom);
     });
 };
+

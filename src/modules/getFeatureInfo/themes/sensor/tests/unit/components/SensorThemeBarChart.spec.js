@@ -1,20 +1,23 @@
-import Vuex from "vuex";
-import {shallowMount, createLocalVue} from "@vue/test-utils";
+import {config, shallowMount} from "@vue/test-utils";
 import dayjs from "dayjs";
 import {expect} from "chai";
+import sinon from "sinon";
+import Chart from "chart.js";
 import SensorThemeBartChart from "../../../components/SensorThemeBarChart.vue";
 
+config.global.mocks.$t = key => key;
+config.global.mocks.$i18next = {
+    language: "de"
+};
 
-const localVue = createLocalVue();
-
-localVue.use(Vuex);
-
-describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBarChart.vue", () => {
+describe("src/modules/getFeatureInfo/themes/senor/components/SensorThemeBarChart.vue", () => {
     let wrapper;
+
+    dayjs.locale("de");
 
     beforeEach(() => {
         wrapper = shallowMount(SensorThemeBartChart, {
-            propsData: {
+            props: {
                 show: true,
                 chartValue: {
                     title: "Ein schoener Titel"
@@ -34,13 +37,18 @@ describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBa
                     barPercentage: 1.0,
                     titleText: ""
                 };
-            },
-            localVue,
-            mocks: {
-                $t: (msg) => msg
             }
         });
+        sinon.stub(SensorThemeBartChart.methods, "destroyChart").callsFake(() => {
+            const ctx = document.getElementsByTagName("canvas")[0];
+
+            Chart.getChart(ctx).destroy();
+        });
     });
+    afterEach(() => {
+        sinon.restore();
+    });
+
 
     it("should render a canvas if show is true", () => {
         expect(wrapper.find("canvas").exists()).to.be.true;
@@ -48,7 +56,7 @@ describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBa
 
     it("should not render a canvas if show is false", () => {
         const wrapper1 = shallowMount(SensorThemeBartChart, {
-            propsData: {
+            props: {
                 show: false,
                 chartValue: {},
                 targetValue: "",
@@ -56,23 +64,19 @@ describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBa
                 periodLength: 3,
                 periodUnit: "month",
                 processedHistoricalDataByWeekday: []
-            },
-            localVue,
-            mocks: {
-                $t: (msg) => msg
             }
         });
 
         expect(wrapper1.find("canvas").exists()).to.be.false;
-        expect(wrapper1.findAll("button").wrappers.length).equals(0);
+        expect(wrapper1.findAll("button").length).equals(0);
     });
 
     it("should render a two buttons with two span for left and right side if show is true", () => {
-        expect(wrapper.findAll("button").wrappers.length).equals(2);
-        expect(wrapper.findAll("button").wrappers[0].classes()).includes("leftButton", "kat", "btn");
-        expect(wrapper.findAll("button > span > i").wrappers[0].classes().includes("bi-chevron-left"));
-        expect(wrapper.findAll("button").wrappers[1].classes()).includes("rightButton", "kat", "btn");
-        expect(wrapper.findAll("button > span > i").wrappers[1].classes().includes("bi-chevron-right"));
+        expect(wrapper.findAll("button").length).equals(2);
+        expect(wrapper.findAll("button")[0].classes()).includes("leftButton", "kat", "btn");
+        expect(wrapper.findAll("button > span > i")[0].classes().includes("bi-chevron-left"));
+        expect(wrapper.findAll("button")[1].classes()).includes("rightButton", "kat", "btn");
+        expect(wrapper.findAll("button > span > i")[1].classes().includes("bi-chevron-right"));
     });
 
     it("should returns an object with data for the charts ", () => {
@@ -111,9 +115,7 @@ describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBa
             {
                 display: true,
                 position: "bottom",
-                text: ["Ein schoener Titel",
-                    "common:modules.tools.gfi.themes.sensor.sensorBarChart.chartTitleAverage common:modules.tools.gfi.themes.sensor.sensorBarChart.month",
-                    ""]
+                text: ["Ein schoener Titel"]
             }
         );
     });
@@ -130,10 +132,10 @@ describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBa
         const maxValue = 1,
             result = wrapper.vm.createChartTooltip(maxValue);
 
-            expect(result.callbacks.label).to.be.a("function");
-            expect(result.callbacks.label({raw: 1})).equals("100%");
-            expect(result.callbacks.title).to.be.a("function");
-            expect(result.callbacks.title()).to.be.false;
+        expect(result.callbacks.label).to.be.a("function");
+        expect(result.callbacks.label({raw: 1})).equals("100%");
+        expect(result.callbacks.title).to.be.a("function");
+        expect(result.callbacks.title()).to.be.false;
     });
 
     it("should returns an object with scales for the charts ", () => {
@@ -143,7 +145,7 @@ describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBa
         expect(result.x.min).equals(0);
         expect(result.x.max).equals(23);
         expect(result.x.ticks.callback).to.be.a("function");
-        expect(result.x.ticks.callback()).equals("common:modules.tools.gfi.themes.sensor.sensorBarChart.clock");
+        expect(result.x.ticks.callback()).equals("common:modules.getFeatureInfo.themes.sensor.sensorBarChart.clock");
 
         expect(result.y.min).equals(0);
         expect(result.y.max).equals(maxValue);
@@ -169,16 +171,16 @@ describe("src/modules/tools/gfi/components/themes/senor/components/SensorThemeBa
     });
 
     it("should show the day before yesterday after two clicks on left button ", async () => {
-        await wrapper.findAll("button").wrappers[0].trigger("click");
-        await wrapper.findAll("button").wrappers[0].trigger("click");
+        await wrapper.findAll("button").at(0).trigger("click");
+        await wrapper.findAll("button").at(0).trigger("click");
 
-        expect(wrapper.find("div > div > span").text()).equals(dayjs().subtract(2, "day").format("dddd"));
+        expect(wrapper.find("div > div > span").text()).equals(dayjs().subtract(2, "days").format("dddd"));
     });
 
     it("should show the day after tomorrow after two clicks on right button ", async () => {
-        await wrapper.findAll("button").wrappers[1].trigger("click");
-        await wrapper.findAll("button").wrappers[1].trigger("click");
+        await wrapper.findAll("button")[1].trigger("click");
+        await wrapper.findAll("button")[1].trigger("click");
 
-        expect(wrapper.find("div > div > span").text()).equals(dayjs().add(2, "day").format("dddd"));
+        expect(wrapper.find("div > div > span").text()).equals(dayjs().add(2, "days").format("dddd"));
     });
 });

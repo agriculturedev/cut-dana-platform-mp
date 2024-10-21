@@ -1,7 +1,7 @@
 import axios from "axios";
 import {RoutingGeosearchResult} from "../classes/routing-geosearch-result";
 import state from "../../store/stateRouting";
-import store from "../../../../../app-store";
+import store from "../../../../app-store";
 
 /**
  * Requests POIs from text from LocationFinder
@@ -31,7 +31,7 @@ async function fetchRoutingLocationFinderGeosearch (search) {
  * @returns {String} the url
  */
 function getRoutingLocationFinderGeosearchUrl (search) {
-    let serviceUrl = store.getters.getRestServiceById(state.geosearch.serviceId).url,
+    let serviceUrl = store.getters.restServiceById(state.geosearch.serviceId).url,
         url = null;
 
     if (serviceUrl.endsWith("/")) {

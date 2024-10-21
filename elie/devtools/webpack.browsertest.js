@@ -1,3 +1,7 @@
+/* eslint-disable no-sync */
+/* eslint-disable global-require */
+/* eslint-disable no-console */
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-return-assign */
 /* eslint-disable no-process-env */
 const merge = require("webpack-merge"),

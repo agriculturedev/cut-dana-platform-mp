@@ -1,9 +1,11 @@
-import testAction from "../../../../../../../../test/unittests/VueTestUtils";
-import actions from "../../../../store/actions/actionsPrintInitialization";
+import {expect} from "chai";
 import VectorLayer from "ol/layer/Vector.js";
-import Canvas from "../../../../utils/buildCanvas";
 import sinon from "sinon";
-import OpenTileLayer from "ol/layer/Tile.js";
+import store from "../../../../../app-store";
+
+import testAction from "../../../../../../devtools/tests/VueTestUtils";
+import actions from "../../../store/actionsPrintInitialization";
+import Canvas from "../../../js/buildCanvas";
 
 const {
     chooseCurrentLayout,
@@ -22,11 +24,15 @@ const {
     getPrintMapSize,
     getPrintMapScales,
     setDpiList,
-    compute3DPrintMask
+    compute3dPrintMask
 } = actions;
 
-describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", () => {
-    let map = null;
+describe("src/modules/print/store/actionsPrintInitialization.js", () => {
+    let map = null,
+        commit,
+        dispatch,
+        getters,
+        rootGetters;
 
     before(() => {
         map = {
@@ -39,6 +45,22 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
         mapCollection.clear();
         mapCollection.addMap(map, "2D");
     });
+    beforeEach(() => {
+        store.getters = {
+            "Maps/getResolutionByScale": () => sinon.stub()
+        };
+
+        commit = sinon.spy();
+        dispatch = sinon.spy();
+        getters = {
+            visibleLayer: [],
+            invisibleLayer: [],
+            hintInfo: "",
+            showInvisibleLayerInfo: true
+        };
+    });
+
+    afterEach(sinon.restore);
     describe("chooseCurrentLayout", () => {
         it("should choose the current Layout", done => {
             const payload = [
@@ -100,44 +122,31 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
     describe("parsePlotserviceCapabilities", function () {
         it("should parse the plotservice capabilities", done => {
             const payload = {
-                    layouts: [
-                        {
-                            name: "A4 Hochformat",
-                            geoDocument: "pdf_a4_hoch"
-                        },
-                        {
-                            name: "A4 Querformat",
-                            geoDocument: "pdf_a4_quer"
-                        },
-                        {
-                            name: "A3 Hochformat",
-                            geoDocument: "pdf_a3_hoch"
-                        },
-                        {
-                            name: "A3 Querformat",
-                            geoDocument: "pdf_a3_quer"
-                        }
-                    ],
-                    formats: [
-                        "jpg", "png", "pdf"
-                    ]
-                },
-                state = {
-                    layoutOrder: [
-                        "Default A4 hoch",
-                        "Default A4 quer",
-                        "Default A3 hoch",
-                        "Default A3 quer",
-                        "Default A4 hoch Legende",
-                        "Default A4 quer Legende",
-                        "Default A3 hoch Legende",
-                        "Default A3 quer Legende"
-                    ],
-                    isGfiAvailable: false
-                };
+                layouts: [
+                    {
+                        name: "A4 Hochformat",
+                        geoDocument: "pdf_a4_hoch"
+                    },
+                    {
+                        name: "A4 Querformat",
+                        geoDocument: "pdf_a4_quer"
+                    },
+                    {
+                        name: "A3 Hochformat",
+                        geoDocument: "pdf_a3_hoch"
+                    },
+                    {
+                        name: "A3 Querformat",
+                        geoDocument: "pdf_a3_quer"
+                    }
+                ],
+                formats: [
+                    "jpg", "png", "pdf"
+                ]
+            };
 
             // action, payload, state, rootState, expectedMutationsAndActions, getters = {}, done, rootGetters
-            testAction(parsePlotserviceCapabilities, payload, state, {}, [
+            testAction(parsePlotserviceCapabilities, payload, {}, {}, [
                 {type: "setLayoutList", payload: payload.layouts}
             ], {}, done);
         });
@@ -149,7 +158,7 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
             // action, payload, state, rootState, expectedMutationsAndActions, getters = {}, done, rootGetters
             testAction(getGfiForPrint, null, {}, {}, [
                 {type: "setGfiForPrint", payload: []}
-            ], {}, done, {"Tools/Gfi/currentFeature": null});
+            ], {}, done, {"Modules/GetFeatureInfo/currentFeature": null});
         });
         it("should set gfi for print", done => {
             const feature = {
@@ -160,7 +169,7 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
             // action, payload, state, rootState, expectedMutationsAndActions, getters = {}, done, rootGetters
             testAction(getGfiForPrint, null, {}, {}, [
                 {type: "setGfiForPrint", payload: ["TestProperties", "TestTitle", undefined]}
-            ], {}, done, {"Tools/Gfi/currentFeature": feature, "Map/clickCoord": undefined});
+            ], {}, done, {"Modules/GetFeatureInfo/currentFeature": feature, "Map/clickCoord": undefined});
         });
     });
 
@@ -188,7 +197,6 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
         it("should toggle the post render listener and should register listener", done => {
             const TileLayer = {},
                 state = {
-                    active: true,
                     visibleLayerList: [
                         TileLayer,
                         VectorLayer,
@@ -206,89 +214,69 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
                 on: () => "postrender"
             }));
 
-
             // action, payload, state, rootState, expectedMutationsAndActions, getters = {}, done, rootGetters
             testAction(togglePostrenderListener, undefined, state, {}, [
                 {type: "setVisibleLayer", payload: state.visibleLayerList, commit: true},
                 {type: "setEventListener", payload: "postrender", commit: true}
             ], {}, done);
         });
-        it("toggle the post render listener with active false and should unregister listener", done => {
-            const TileLayer = {},
-                state = {
-                    active: false,
-                    visibleLayerList: [
-                        TileLayer,
-                        VectorLayer,
-                        VectorLayer,
-                        VectorLayer,
-                        VectorLayer
-                    ],
-                    eventListener: undefined,
-                    layoutList: [{
-                        name: "A4 Hochformat"
-                    }]
-                };
-
-            testAction(togglePostrenderListener, undefined, state, {}, [
-                {type: "setVisibleLayer", payload: state.visibleLayerList, commit: true},
-                {type: "setEventListener", payload: undefined, commit: true}
-            ], {}, done);
-        });
     });
 
     describe("setPrintLayers", function () {
-        it("should Get the layer which is visible in print scale", done => {
-            const TileLayer = {
-                    getMaxResolution: () => 66.80725559074865,
-                    getMinResolution: () => 0.13229159522920522,
-                    setVisible: () => true
+        it("one layer is invisible in print scale, shows hint", () => {
+            const layer = {
+                    getMaxResolution: () => 66.807,
+                    getMinResolution: () => 10.132,
+                    get: () => "name"
                 },
-                scale = 40000,
-                state = {
-                    active: true,
-                    visibleLayerList: [
-                        TileLayer
-                    ],
-                    eventListener: undefined,
-                    layoutList: [],
-                    showInvisibleLayerInfo: true
-                },
-                rootGetters = {
-                    "Maps/getResolutionByScale": () => 10
-                };
+                scale = 40000;
 
-            testAction(setPrintLayers, scale, state, {}, [
-                {type: "setHintInfo", payload: "", commit: true},
-                {type: "setInvisibleLayer", payload: [], commit: true}
-            ], {}, done, rootGetters);
+            getters.invisibleLayer.push(layer);
+
+            setPrintLayers({dispatch, commit, getters}, scale);
+            expect(commit.calledTwice).to.be.true;
+            expect(commit.firstCall.args[0]).to.be.equals("setHintInfo");
+            expect(commit.firstCall.args[1].length > 0).to.be.true;
+            expect(commit.secondCall.args[0]).to.be.equals("setInvisibleLayer");
+            expect(commit.secondCall.args[1].length).to.be.equals(1);
+            expect(dispatch.calledOnce).to.be.true;
+            expect(dispatch.firstCall.args[0]).to.be.equals("Alerting/addSingleAlert");
+            expect(typeof dispatch.firstCall.args[1]).to.deep.equals("object");
         });
-        it("should not commit setHintInfo", done => {
-            const attributes = {id: 1},
-                TileLayer = new OpenTileLayer(attributes),
-                scale = 40000,
-                state = {
-                    active: true,
-                    visibleLayerList: [
-                        TileLayer
-                    ],
-                    eventListener: undefined,
-                    layoutList: [],
-                    showInvisibleLayerInfo: false,
-                    invisibleLayer: []
+        it("one layer is invisible in print scale, shows no hint, because showInvisibleLayerInfo is false", () => {
+            const layer = {
+                    getMaxResolution: () => 66.807,
+                    getMinResolution: () => 10.132,
+                    get: () => "name"
                 },
-                rootGetters = {
-                    "Maps/getResolutionByScale": () => 10
-                };
+                scale = 40000;
 
-            TileLayer.setMaxResolution(9);
-            TileLayer.setMinResolution(11);
-            TileLayer.setVisible(true);
-            TileLayer.set("name", "TestLayer");
+            getters.invisibleLayer.push(layer);
+            getters.showInvisibleLayerInfo = false;
 
-            testAction(setPrintLayers, scale, state, {}, [
-                {type: "setInvisibleLayer", payload: [TileLayer], commit: true}
-            ], {}, done, rootGetters);
+            setPrintLayers({dispatch, commit, getters, rootGetters}, scale);
+            expect(commit.calledOnce).to.be.true;
+            expect(commit.firstCall.args[0]).to.be.equals("setInvisibleLayer");
+            expect(commit.firstCall.args[1].length).to.be.equals(1);
+            expect(dispatch.notCalled).to.be.true;
+        });
+        it("no layer is invisible in print scale, shows no hint", () => {
+            const layer = {
+                    getMaxResolution: () => 66.807,
+                    getMinResolution: () => 0.132,
+                    get: () => "name"
+                },
+                scale = 40000;
+
+            getters.visibleLayer.push(layer);
+
+            setPrintLayers({dispatch, commit, getters, rootGetters}, scale);
+            expect(commit.calledTwice).to.be.true;
+            expect(commit.firstCall.args[0]).to.be.equals("setHintInfo");
+            expect(commit.firstCall.args[1]).to.be.equals("");
+            expect(commit.secondCall.args[0]).to.be.equals("setInvisibleLayer");
+            expect(commit.secondCall.args[1].length).to.be.equals(0);
+            expect(dispatch.notCalled).to.be.true;
         });
     });
 
@@ -301,7 +289,6 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
                 },
                 scale = 40000,
                 state = {
-                    active: true,
                     visibleLayerList: [
                         TileLayer
                     ],
@@ -654,7 +641,7 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
             ], {}, done);
         });
     });
-    describe("compute3DPrintMask", () => {
+    describe("compute3dPrintMask", () => {
         it("should dispatch getPrintMapSize and getPrintMapScales", done => {
             const state = {
                 mapAttribute: {
@@ -665,7 +652,7 @@ describe("src/modules/tools/print/store/actions/actionsPrintInitialization.js", 
                 }
             };
 
-            testAction(compute3DPrintMask, undefined, state, {}, [
+            testAction(compute3dPrintMask, undefined, state, {}, [
                 {type: "getPrintMapSize", payload: undefined, dispatch: true},
                 {type: "getPrintMapScales", payload: undefined, dispatch: true}
             ], {}, done);

@@ -1,10 +1,11 @@
+
 const merge = require("webpack-merge"),
-    // einkommentieren um eine grafische Darstellung vom bundle als html zu erzeugen
-    // BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin,
     Common = require("./webpack.common.js"),
     fse = require("fs-extra"),
     HttpsProxyAgent = require("https-proxy-agent"),
-    /* eslint-disable no-process-env */
+    // comment in to create a graphical representation of the bundle as html
+    // BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin,
+    /* eslint-disable n/no-process-env */
     proxyServer = process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
     proxyAgent = proxyServer !== undefined ? new HttpsProxyAgent(proxyServer) : "";
 
@@ -33,7 +34,7 @@ Object.keys(proxies).forEach(proxy => {
 });
 
 module.exports = function () {
-    return merge.smart(new Common(), {
+    return merge.smart({
         mode: "development",
         devtool: "cheap-module-eval-source-map",
         devServer: {
@@ -50,7 +51,7 @@ module.exports = function () {
         },
         module: {
             rules: [
-                // Bootstrap Icons werden von bootstrap gelesen
+                // Bootstrap Icons are read by bootstrap
                 {
                     test: /bootstrap-icons\.(eot|svg|ttf|woff|woff2)$/,
                     loader: "file-loader",
@@ -59,20 +60,20 @@ module.exports = function () {
                         publicPath: "../../node_modules/bootstrap-icons/font/fonts"
                     }
                 },
-                // alle anderen Schriftarten
+                // all other fonts
                 {
                     test: /\.(eot|svg|ttf|woff|woff2)$/,
                     loader: "file-loader",
                     options: {
                         name: "[name].[ext]",
-                        publicPath: "../../css/fonts"
+                        publicPath: "../../src/assets/css/fonts"
                     }
                 }
             ]
         }
-        // einkommentieren um eine grafische Darstellung vom bundle als html unter "build/statistics.html" zu erzeugen
+        // comment in to create a graphical representation of the bundle as html that is automatically displayed in the browser at 'npm run start'
         // ,plugins: [
         //     new BundleAnalyzerPlugin()
         // ]
-    });
+    }, new Common());
 };

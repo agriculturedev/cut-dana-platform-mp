@@ -10,7 +10,7 @@ const fs = require("fs-extra"),
 
     distPath = path.resolve(rootPath, "dist/"),
     buildTempPath = path.resolve(distPath, "build/"),
-    mastercodeVersionPath = path.resolve(distPath, "mastercode/", mastercodeVersionFolderName).split(path.sep).join("/");
+    mastercodeVersionPath = path.resolve(distPath, "mastercode/", mastercodeVersionFolderName);
 
 /**
  * remove files if if they already exist.
@@ -27,10 +27,10 @@ function buildSinglePortal (allPortalPaths) {
     sourcePortalPath = allPortalPaths.pop();
     // MASTERPORTAL_DISTRIBUTION_RUN has to be set true in repository portalconfigs/bitbucket-pipelines.yml, for a distribution run of masterportal
     // BITBUCKET_BRANCH is appended to portalName, if usual e2e-tests are running
-    /* eslint-disable-next-line n/no-process-env */
+    /* eslint-disable-next-line no-process-env */
     const appendix = process.env.BITBUCKET_BRANCH && process.env.MASTERPORTAL_DISTRIBUTION_RUN !== "true" ? "_" + process.env.BITBUCKET_BRANCH.replace(/\//g, "_") : "",
         portalName = sourcePortalPath.split(path.sep).pop(),
-        distPortalPath = path.resolve(distPath, portalName + appendix).split(path.sep).join("/");
+        distPortalPath = path.resolve(distPath, portalName + appendix);
 
     fs.remove(distPortalPath).then(() => {
         // console.warn("NOTE: Deleted directory \"" + distPortalPath + "\".");
@@ -52,8 +52,7 @@ function buildSinglePortal (allPortalPaths) {
 module.exports = function buildWebpack (answers) {
     const
         sourcePortalsFolder = path.resolve(rootPath, answers.portalPath),
-        excludeAddon = answers.excludeAddon ? answers.excludeAddon.trim() : "",
-        cliExecCommand = "cross-env EXCLUDE_ADDON=" + excludeAddon + " webpack --config devtools/webpack.prod.js";
+        cliExecCommand = "webpack --config devtools/webpack.prod.js";
 
     let allPortalPaths = [];
 
@@ -80,7 +79,7 @@ module.exports = function buildWebpack (answers) {
         fs.remove(mastercodeVersionPath).then(() => {
             // console.warn("NOTE: Deleted directory \"" + mastercodeVersionPath + "\".");
 
-            fs.copy("./src/assets/img", mastercodeVersionPath + "/img").then(() => {
+            fs.copy("./img", mastercodeVersionPath + "/img").then(() => {
                 // console.warn("NOTE: Copied \"./img\" to \"" + mastercodeVersionPath + "\".");
 
                 fs.copy("./locales", mastercodeVersionPath + "/locales").then(() => {

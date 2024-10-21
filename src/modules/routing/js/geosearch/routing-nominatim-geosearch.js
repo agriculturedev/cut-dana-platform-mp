@@ -1,7 +1,7 @@
 import axios from "axios";
 import {RoutingGeosearchResult} from "../classes/routing-geosearch-result";
 import state from "./../../store/stateRouting";
-import store from "../../../../../app-store";
+import store from "../../../../app-store";
 
 /**
  * Requests POIs from text from Nominatim
@@ -27,7 +27,7 @@ async function fetchRoutingNominatimGeosearch (search) {
  * @returns {String} the url
  */
 function getRoutingNominatimGeosearchUrl (search) {
-    const serviceUrl = store.getters.getRestServiceById(state.geosearch.serviceId).url,
+    const serviceUrl = store.getters.restServiceById(state.geosearch.serviceId).url,
         url = new URL(serviceUrl);
 
     url.searchParams.set("countrycodes", "de");
@@ -40,7 +40,7 @@ function getRoutingNominatimGeosearchUrl (search) {
 
 /**
  * Requests POI at coordinate from Nominatim
- * @param {[Number, Number]} coordinates to search at
+ * @param {Array<{Number, Number}>} coordinates to search at
  * @returns {RoutingGeosearchResult} routingGeosearchResult
  */
 async function fetchRoutingNominatimGeosearchReverse (coordinates) {
@@ -62,7 +62,7 @@ async function fetchRoutingNominatimGeosearchReverse (coordinates) {
  * @returns {String} the url
  */
 function getRoutingNominatimGeosearchReverseUrl (coordinates) {
-    const serviceUrl = store.getters.getRestServiceById(state.geosearchReverse.serviceId).url,
+    const serviceUrl = store.getters.restServiceById(state.geosearchReverse.serviceId).url,
         url = new URL(serviceUrl);
 
     url.searchParams.set("lon", coordinates[0]);

@@ -3,34 +3,37 @@ const js = require("@eslint/js"),
     pluginVue = require("eslint-plugin-vue"),
     pluginJsdoc = require("eslint-plugin-jsdoc"),
     pluginMocha = require("eslint-plugin-mocha"),
-    globals = require("globals");
+    globals = require("globals"),
+    stylisticJs = require("@stylistic/eslint-plugin-js"),
+    nodePlugin = require("eslint-plugin-n");
 
 module.exports = [
     js.configs.recommended,
-    ...pluginVue.configs["flat/vue2-recommended"],
+    ...pluginVue.configs["flat/recommended"],
     ...pluginVuejsAccessibility.configs["flat/recommended"],
     pluginMocha.configs.flat.recommended,
     pluginJsdoc.configs["flat/recommended"],
+    nodePlugin.configs["flat/recommended-script"],
     {
         languageOptions: {
-            ecmaVersion: 2022,
+            ecmaVersion: 2023,
             sourceType: "module",
             globals: {
                 ...globals.browser,
                 ...globals.mocha,
                 ...globals.node,
                 ...globals.amd,
-                $: true,
-                _: true,
                 Config: true,
-                Radio: true,
                 Cesium: true,
                 i18next: true,
-                mapCollection: true
+                mapCollection: true,
+                moduleCollection: true,
+                StreetSmartApi: true
             }
         },
         plugins: {
-            "vuejs-accessibility": pluginVuejsAccessibility
+            "vuejs-accessibility": pluginVuejsAccessibility,
+            "@stylistic/js": stylisticJs
         },
         rules: {
             // Possible Problems - These rules relate to possible logic errors in code:
@@ -43,6 +46,7 @@ module.exports = [
             "no-template-curly-in-string": "off", // Is uses in some strings
             "no-unmodified-loop-condition": "error",
             "no-unreachable-loop": "error",
+            "no-unused-private-class-members": "error",
             "no-use-before-define": "off", // Here it is done the other way around
             "require-atomic-updates": "error",
             // Suggestions - These rules suggest alternate ways of doing things:
@@ -60,7 +64,6 @@ module.exports = [
             "max-depth": "error",
             "max-nested-callbacks": ["error", 10],
             "max-params": ["warn", 9],
-            "new-cap": "error",
             "no-alert": "error",
             "no-array-constructor": "error",
             "no-caller": "error",
@@ -115,8 +118,12 @@ module.exports = [
             "prefer-const": "error",
             "prefer-numeric-literals": "error",
             "prefer-rest-params": "error",
+            "radix": "error",
+            "spaced-comment": "error",
+            "vars-on-top": "error",
+            "yoda": "error",
             // changes for eslint v9
-            "no-undef": "off",
+            "no-undef": "error",
             "no-unused-vars": ["error",
                 {"caughtErrors": "none"}
             ],
@@ -131,40 +138,37 @@ module.exports = [
             "no-mixed-spaces-and-tabs": "error",
             "no-new-symbol": "error",
             // end of changes for eslint v9
-            "radix": "error",
-            "spaced-comment": "error",
-            "vars-on-top": "error",
-            "yoda": "error",
             // Layout & Formatting - These rules care about how the code looks rather than how it executes:
-            "array-bracket-spacing": "error",
-            "block-spacing": "error",
-            "brace-style": ["error", "stroustrup"],
-            "comma-dangle": "error",
-            "comma-spacing": "error",
-            "comma-style": "error",
-            "computed-property-spacing": "error",
-            "eol-last": ["error", "always"],
-            "func-call-spacing": ["error", "never"],
-            "implicit-arrow-linebreak": "error",
-            "indent": ["error", 4, {"SwitchCase": 1}],
-            "jsx-quotes": "error",
-            "key-spacing": "error",
-            "keyword-spacing": "error",
-            "max-statements-per-line": "error",
-            "new-parens": "error",
-            "no-multi-spaces": "error",
-            "no-extra-parens": [
+            // Deprecated - The old rules have been deprecated (in ESLint v8.53.0) in accordance with the deprecation policy, and replaced by those newer rules:
+            "@stylistic/js/array-bracket-spacing": "error",
+            "@stylistic/js/block-spacing": "error",
+            "@stylistic/js/brace-style": ["error", "stroustrup"],
+            "@stylistic/js/comma-dangle": "error",
+            "@stylistic/js/comma-spacing": "error",
+            "@stylistic/js/comma-style": "error",
+            "@stylistic/js/computed-property-spacing": "error",
+            "@stylistic/js/eol-last": ["error", "always"],
+            "@stylistic/js/func-call-spacing": ["error", "never"],
+            "@stylistic/js/implicit-arrow-linebreak": "error",
+            "@stylistic/js/indent": ["error", 4, {"SwitchCase": 1}],
+            "@stylistic/js/jsx-quotes": "error",
+            "@stylistic/js/key-spacing": "error",
+            "@stylistic/js/keyword-spacing": "error",
+            "@stylistic/js/max-statements-per-line": "error",
+            "@stylistic/js/new-parens": "error",
+            "@stylistic/js/no-multi-spaces": "error",
+            "@stylistic/js/no-extra-parens": [
                 "error",
                 "all",
                 {"nestedBinaryExpressions": false}
             ],
-            "no-multiple-empty-lines": ["error", {"max": 2, "maxBOF": 1}],
-            "no-tabs": "error",
-            "no-trailing-spaces": "error",
-            "no-whitespace-before-property": "error",
-            "object-curly-spacing": "error",
-            "object-property-newline": 0,
-            "padding-line-between-statements": [
+            "@stylistic/js/no-multiple-empty-lines": ["error", {"max": 2, "maxBOF": 1}],
+            "@stylistic/js/no-tabs": "error",
+            "@stylistic/js/no-trailing-spaces": "error",
+            "@stylistic/js/no-whitespace-before-property": "error",
+            "@stylistic/js/object-curly-spacing": "error",
+            "@stylistic/js/object-property-newline": "off",
+            "@stylistic/js/padding-line-between-statements": [
                 "error",
                 {
                     "blankLine": "always",
@@ -177,24 +181,32 @@ module.exports = [
                     "next": ["const", "let", "var"]
                 }
             ],
-            "quotes": "error",
-            "semi": "error",
-            "semi-spacing": "error",
-            "semi-style": "error",
-            "space-before-blocks": "error",
-            "space-before-function-paren": "error",
-            "space-in-parens": "error",
-            "space-infix-ops": "error",
-            "space-unary-ops": "error",
-            "switch-colon-spacing": "error",
-            "wrap-regex": "error",
-            // Deprecated - These rules have been deprecated in accordance with the deprecation policy, and replaced by newer rules:
-            "callback-return": "error",
-            "handle-callback-err": "error",
-            "no-buffer-constructor": "error",
-            "no-path-concat": "error",
-            "no-process-env": "error",
-            "no-process-exit": "error",
+            "@stylistic/js/quotes": "error",
+            "@stylistic/js/semi": "error",
+            "@stylistic/js/semi-spacing": "error",
+            "@stylistic/js/semi-style": "error",
+            "@stylistic/js/space-before-blocks": "error",
+            "@stylistic/js/space-before-function-paren": "error",
+            "@stylistic/js/space-in-parens": "error",
+            "@stylistic/js/space-infix-ops": "error",
+            "@stylistic/js/space-unary-ops": "error",
+            "@stylistic/js/switch-colon-spacing": "error",
+            "@stylistic/js/wrap-regex": "error",
+            // Deprecated - The old rules have been deprecated (in ESLint v7.0.0) in accordance with the deprecation policy, and replaced by those newer rules:
+            "n/callback-return": "error",
+            "n/handle-callback-err": "error",
+            "n/prefer-global/buffer": "error",
+            "n/no-path-concat": "error",
+            "n/no-process-env": "error",
+            "n/no-unpublished-import": "off",
+            "n/no-missing-import": "off",
+            "n/no-extraneous-import": "off",
+            "n/no-unsupported-features/node-builtins": "off",
+            "n/no-unpublished-require": "off",
+            "n/no-extraneous-require": "off",
+            "n/no-missing-require": "off",
+            "n/no-unsupported-features/es-syntax": "off",
+            "n/no-unsupported-features/es-builtins": "off",
             // eslint-plugin-jsdoc
             "jsdoc/check-types": "off",
             "jsdoc/require-returns": "off",
@@ -272,6 +284,7 @@ module.exports = [
              * in the map interactions
              */
             "vuejs-accessibility/no-onchange": "off",
+            "vuejs-accessibility/form-control-has-label": "off",
             // eslint-plugin-mocha
             "mocha/consistent-spacing-between-blocks": "off",
             "mocha/no-mocha-arrows": "off",
@@ -282,27 +295,25 @@ module.exports = [
             "mocha/no-skipped-tests": "off",
             "mocha/no-async-describe": "off",
             "mocha/max-top-level-suites": "off",
-            "mocha/no-sibling-hooks": "off"
+            "mocha/no-sibling-hooks": "off",
+            "mocha/no-nested-tests": "off",
+            "mocha/handle-done-callback": "off"
         }
     },
     {
         ignores: [
             "**/node_modules/",
-            "**/build/",
-            "**/unit/",
-            "**/end2end/",
             "**/dist/",
             "**/portalconfigs/",
-            "**/scripte/",
             "**/jsdoc/",
-            "**/lib/",
-            "**/examples/",
+            "**/docHtml/",
             "**/.git/",
             "portal/*",
             "!portal/basic",
             "!portal/master",
-            "!portal/masterCustom",
-            "!portal/masterDefault"
+            "!portal/auto",
+            "site/",
+            ".venv/"
         ]
     }
 ];

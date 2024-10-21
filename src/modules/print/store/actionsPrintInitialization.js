@@ -1,12 +1,12 @@
 
-import {DEVICE_PIXEL_RATIO} from "ol/has.js";
-import thousandsSeparator from "../../../../../utils/thousandsSeparator";
-import Canvas from "./../../utils/buildCanvas";
-import BuildSpec from "./../../utils/buildSpec";
-import getVisibleLayer from "./../../utils/getVisibleLayer";
-import {createEmpty, extendCoordinate} from "ol/extent.js";
 import {apply as applyTransform} from "ol/transform.js";
-import getProxyUrl from "../../../../../utils/getProxyUrl";
+import {createEmpty, extendCoordinate} from "ol/extent.js";
+import {DEVICE_PIXEL_RATIO} from "ol/has.js";
+
+import BuildSpec from "../js/buildSpec";
+import Canvas from "../js/buildCanvas";
+import layerProvider from "../js/getVisibleLayer";
+import thousandsSeparator from "../../../shared/js/utils/thousandsSeparator";
 import {autoDrawMask} from "olcs/lib/olcs/print/drawCesiumMask.js";
 import {computeRectangle} from "olcs/lib/olcs/print/computeRectangle.js";
 
@@ -32,14 +32,7 @@ export default {
         let serviceUrl;
 
         if (state.serviceId !== "") {
-            serviceUrl = rootGetters.getRestServiceById(state.serviceId).url;
-
-            /**
-             * @deprecated in the next major-release!
-             * useProxy
-             * getProxyUrl()
-             */
-            serviceUrl = state.useProxy ? getProxyUrl(serviceUrl) : serviceUrl;
+            serviceUrl = rootGetters.restServiceById(state.serviceId).url;
 
             if (state.printService !== "plotservice" && !serviceUrl.includes("/print/")) {
                 serviceUrl = serviceUrl + "print/";
@@ -79,10 +72,11 @@ export default {
      * @param {Object} param.state the state
      * @param {Object} param.commit the commit
      * @param {Object} param.dispatch the dispatch
+     * @param {Object} param.rootGetters the rootgetters
      * @param {Object[]} response - config.yaml from mapfish.
      * @returns {void}
      */
-    parseMapfishCapabilities: function ({state, commit, dispatch}, response) {
+    parseMapfishCapabilities: function ({state, commit, dispatch, rootGetters}, response) {
         commit("setLayoutList", response.layouts);
         dispatch("chooseCurrentLayout", response.layouts);
         dispatch("getAttributeInLayoutByName", "metadata");
@@ -91,7 +85,7 @@ export default {
         dispatch("getAttributeInLayoutByName", "scale");
         dispatch("setDpiList");
         commit("setFormatList", state.formatList);
-        commit("setCurrentScale", Radio.request("MapView", "getOptions").scale);
+        commit("setCurrentScale", rootGetters["Maps/scale"]);
         dispatch("togglePostrenderListener");
         if (state.isGfiAvailable) {
             dispatch("getGfiForPrint");
@@ -104,20 +98,16 @@ export default {
      * @param {Object} param.state the state
      * @param {Object} param.commit the commit
      * @param {Object} param.dispatch the dispatch
+     * @param {Object} param.rootGetters the rootgetters
      * @param {Object[]} response - config.yaml from mapfish.
      * @returns {void}
      */
-    parsePlotserviceCapabilities: function ({state, commit, dispatch}, response) {
-        const layoutOrder = state.layoutOrder;
-
-        response.layouts.sort((a, b) => {
-            return layoutOrder.indexOf(a.name) - layoutOrder.indexOf(b.name);
-        });
+    parsePlotserviceCapabilities: function ({state, commit, dispatch, rootGetters}, response) {
         commit("setLayoutList", response.layouts);
         dispatch("chooseCurrentLayout", response.layouts);
         commit("setScaleList", response.scales.map(scale => parseInt(scale.value, 10)).sort((a, b) => a - b));
         commit("setFormatList", response.outputFormats.map(format => format.name));
-        commit("setCurrentScale", Radio.request("MapView", "getOptions").scale);
+        commit("setCurrentScale", rootGetters["Maps/scale"]);
         dispatch("togglePostrenderListener");
         if (state.isGfiAvailable) {
             dispatch("getGfiForPrint");
@@ -142,13 +132,13 @@ export default {
 
     /**
      * Gets the Gfi Information
-     * @param {Object} param.rootGetters the rootgetters
      * @param {Object} param.commit the commit
+     * @param {Object} param.rootGetters the rootGetters
      * @returns {void}
      */
-    getGfiForPrint: function ({rootGetters, commit}) {
-        if (rootGetters["Tools/Gfi/currentFeature"] !== null) {
-            commit("setGfiForPrint", [rootGetters["Tools/Gfi/currentFeature"].getMappedProperties(), rootGetters["Tools/Gfi/currentFeature"].getTitle(), rootGetters["Maps/clickCoordinate"]]);
+    getGfiForPrint: function ({commit, rootGetters}) {
+        if (rootGetters["Modules/GetFeatureInfo/currentFeature"] !== null && typeof rootGetters["Modules/GetFeatureInfo/currentFeature"]?.getMappedProperties === "function" && typeof rootGetters["Modules/GetFeatureInfo/currentFeature"]?.getTitle === "function") {
+            commit("setGfiForPrint", [rootGetters["Modules/GetFeatureInfo/currentFeature"].getMappedProperties(), rootGetters["Modules/GetFeatureInfo/currentFeature"].getTitle(), rootGetters["Maps/clickCoordinate"]]);
         }
         else {
             commit("setGfiForPrint", []);
@@ -206,121 +196,81 @@ export default {
      * @param {Object} param.state the state
      * @param {Object} param.commit the commit
      * @param {Object} param.dispatch the dispatch
+     * @param {Boolean} [active=true] The print module is activated or deactivated
      * @returns {void}
      */
-    togglePostrenderListener: function ({state, dispatch, commit}) {
+    togglePostrenderListener: function ({state, dispatch, commit}, active = true) {
         const foundVectorTileLayers = [],
             ol3d = mapCollection.getMap("3D");
 
-        getVisibleLayer(state.printMapMarker);
+        layerProvider.getVisibleLayer(state.printMapMarker);
 
         /*
         * Since MapFish 3 does not yet support VTL (see https://github.com/mapfish/mapfish-print/issues/659),
         * they are filtered in the following code and an alert is shown to the user informing him about which
         * layers will not be printed.
         */
-        if (foundVectorTileLayers.length && state.active) {
-            dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.print.vtlWarning"), {root: true});
+        if (foundVectorTileLayers.length && active) {
+            dispatch("Alerting/addSingleAlert", {
+                category: "warning",
+                content: i18next.t("common:modules.print.vtlWarning")
+            }, {root: true});
         }
 
         commit("setVisibleLayer", state.visibleLayerList);
-        if (state.active && state.layoutList.length !== 0 && state.visibleLayerList.length >= 1) {
+
+        if (active && state.layoutList.length !== 0 && state.visibleLayerList.length >= 1) {
             if (state.eventListener !== undefined) {
                 dispatch("Maps/unregisterListener", {type: state.eventListener}, {root: true});
                 commit("setEventListener", undefined);
             }
             const canvasLayer = Canvas.getCanvasLayer(state.visibleLayerList);
 
-            commit("setEventListener", canvasLayer.on("postrender", evt => dispatch("createPrintMask", evt)));
+            if (Object.keys(canvasLayer).length > 0) {
+                commit("setEventListener", canvasLayer.on("postrender", evt => dispatch("createPrintMask", evt)));
+            }
             draw3dMask(state, dispatch, ol3d);
         }
-        else if (!state.active) {
+
+        if (!active) {
             dispatch("Maps/unregisterListener", {type: state.eventListener}, {root: true});
             commit("setEventListener", undefined);
             if (ol3d) {
                 autoDrawMask(ol3d.getCesiumScene(), null);
             }
-            if (state.invisibleLayer) {
-                dispatch("setOriginalPrintLayer");
-                commit("setHintInfo", "");
-            }
         }
+
         mapCollection.getMap("2D").render();
     },
 
     /**
-     * Getting und showing the layer which is visible in map scale
-     * @param {Object} param.state the state
-     * @returns {void}
-     */
-    setOriginalPrintLayer: function ({state, rootGetters}) {
-        const invisibleLayer = state.invisibleLayer,
-            mapScale = state.currentMapScale,
-            // eslint-disable-next-line new-cap
-            resoByMaxScale = rootGetters["Maps/getResolutionByScale"](mapScale, "max"),
-            // eslint-disable-next-line new-cap
-            resoByMinScale = rootGetters["Maps/getResolutionByScale"](mapScale, "min");
-
-        invisibleLayer.forEach(layer => {
-            const layerModel = Radio.request("ModelList", "getModelByAttributes", {"id": layer.get("id")});
-
-            if (resoByMaxScale <= layer.getMaxResolution() && resoByMinScale > layer.getMinResolution()) {
-                layerModel.setIsOutOfRange(false);
-            }
-            else {
-                layerModel.setIsOutOfRange(true);
-            }
-            layer.setVisible(true);
-
-        });
-    },
-
-    /**
-     * Getting und showing the layer which is visible in print scale
-     * @param {Object} param.state the state
+     * Getting and showing the layer which is visible in print scale. Shows alert, if layers are not visible in the print scale.
      * @param {Object} param.commit the commit
      * @param {Object} param.dispatch the dispatch
+     * @param {Object} param.getters the getters
+     * @param {Object} param.rootGetters the rootGetters
      * @param {String} scale - the current print scale
      * @returns {void}
      */
-    setPrintLayers: function ({state, dispatch, commit, rootGetters}, scale) {
-        const visibleLayer = state.visibleLayerList,
-            // eslint-disable-next-line new-cap
-            resoByMaxScale = rootGetters["Maps/getResolutionByScale"](scale, "max"),
-            // eslint-disable-next-line new-cap
-            resoByMinScale = rootGetters["Maps/getResolutionByScale"](scale, "min"),
-            invisibleLayer = [];
-
-        let invisibleLayerNames = "",
+    setPrintLayers: function ({dispatch, commit, getters}, scale) {
+        let invisibleLayer = [],
             hintInfo = "";
 
-        visibleLayer.forEach(layer => {
-            const layerModel = Radio.request("ModelList", "getModelByAttributes", {"id": layer.id});
+        layerProvider.getVisibleLayer(getters.printMapMarker);
+        invisibleLayer = getters.invisibleLayer;
+        hintInfo = i18next.t("common:modules.print.invisibleLayer", {scale: "1: " + thousandsSeparator(scale, ".")});
+        hintInfo = hintInfo + "<br>" + getters.invisibleLayerNames;
 
-            if (resoByMaxScale > layer.getMaxResolution() || resoByMinScale < layer.getMinResolution()) {
-                invisibleLayer.push(layer);
-                invisibleLayerNames += "- " + layer.get("name") + "<br>";
-                if (layerModel !== undefined) {
-                    layerModel.setIsOutOfRange(true);
-                }
-            }
-            else if (layerModel !== undefined) {
-                layerModel.setIsOutOfRange(false);
-            }
-        });
-
-        hintInfo = i18next.t("common:modules.tools.print.invisibleLayer", {scale: "1: " + thousandsSeparator(scale, " ")});
-        hintInfo = hintInfo + "<br>" + invisibleLayerNames;
-
-        if ((invisibleLayer.length && hintInfo !== state.hintInfo) && state.showInvisibleLayerInfo) {
-            dispatch("Alerting/addSingleAlert", hintInfo, {root: true});
+        if ((invisibleLayer.length && hintInfo !== getters.hintInfo) && getters.showInvisibleLayerInfo) {
+            dispatch("Alerting/addSingleAlert", {
+                category: "info",
+                content: hintInfo
+            }, {root: true});
             commit("setHintInfo", hintInfo);
         }
-
         if (!invisibleLayer.length) {
             commit("setHintInfo", "");
         }
-
         commit("setInvisibleLayer", invisibleLayer);
     },
 
@@ -335,6 +285,9 @@ export default {
         const visibleLayerList = state.visibleLayerList;
         let canvasLayer = {};
 
+        if (state.currentScaleUrlParams) {
+            state.currentScaleUrlParams = undefined;
+        }
         dispatch("Maps/unregisterListener", {type: state.eventListener}, {root: true});
         canvasLayer = Canvas.getCanvasLayer(visibleLayerList);
         dispatch("chooseCurrentLayout", state.layoutList);
@@ -350,7 +303,7 @@ export default {
      * @param {Object} dispatch the dispatch
      * @returns {void}
      */
-    compute3DPrintMask: function ({dispatch}) {
+    compute3dPrintMask: function ({dispatch}) {
         dispatch("getPrintMapSize");
         dispatch("getPrintMapScales");
     },
@@ -392,9 +345,17 @@ export default {
         }
         else if (state.autoAdjustScale) {
             dispatch("getOptimalScale", canvasOptions);
-            canvasPrintOptions.scale = state.optimalScale;
+            if (state.currentScaleUrlParams) {
+                canvasPrintOptions.scale = state.currentScaleUrlParams;
+            }
+            else {
+                canvasPrintOptions.scale = state.optimalScale;
+            }
         }
         else {
+            if (state.currentScaleUrlParams) {
+                state.currentScale = state.currentScaleUrlParams;
+            }
             canvasPrintOptions.scale = state.currentScale;
         }
 
@@ -427,30 +388,30 @@ export default {
         });
 
         commit("setOptimalScale", optimalScale);
-        commit("setCurrentScale", optimalScale);
+        commit("setCurrentScale", state.currentScaleUrlParams ? state.currentScaleUrlParams : optimalScale);
     },
 
     /**
      * draws a mask on the whole map
-     * @param {Object} _ state
+     * @param {Object} context The Vuex action context.
      * @param {Object} drawMaskOpt - context of the postrender event
      * @returns {void}
      */
-    drawMask: function (_, drawMaskOpt) {
+    drawMask: function (context, drawMaskOpt) {
         const mapSize = drawMaskOpt.frameState.size,
-            context = drawMaskOpt.context,
+            postrenderContext = drawMaskOpt.context,
             ration = drawMaskOpt.context.canvas.width > mapSize[0] ? DEVICE_PIXEL_RATIO : 1,
             mapWidth = mapSize[0] * ration,
             mapHeight = mapSize[1] * ration;
 
-        context.beginPath();
+        postrenderContext.beginPath();
         // Outside polygon, must be clockwise
-        context.moveTo(0, 0);
-        context.lineTo(mapWidth, 0);
-        context.lineTo(mapWidth, mapHeight);
-        context.lineTo(0, mapHeight);
-        context.lineTo(0, 0);
-        context.closePath();
+        postrenderContext.moveTo(0, 0);
+        postrenderContext.lineTo(mapWidth, 0);
+        postrenderContext.lineTo(mapWidth, mapHeight);
+        postrenderContext.lineTo(0, mapHeight);
+        postrenderContext.lineTo(0, 0);
+        postrenderContext.closePath();
     },
     /**
      * draws the print page
@@ -540,7 +501,7 @@ export default {
 };
 
 /**
- * Calls the autoDrawMask if ol3d is given and dispatches compute3DPrintMask in the callback
+ * Calls the autoDrawMask if ol3d is given and dispatches compute3dPrintMask in the callback
  * for autoDrawMask function.
  * @param {Object} state the state
  * @param {Object} dispatch the dispatch
@@ -554,7 +515,7 @@ function draw3dMask (state, dispatch, ol3d) {
     autoDrawMask(ol3d.getCesiumScene(), () => {
         const evt = {ol3d: ol3d};
 
-        dispatch("compute3DPrintMask");
+        dispatch("compute3dPrintMask");
         evt.printRectangle = computeRectangle(
             evt.ol3d.getCesiumScene().canvas,
             state.layoutMapInfo[0],

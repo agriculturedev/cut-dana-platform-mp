@@ -132,7 +132,6 @@ module.exports = {
         new webpack.IgnorePlugin(/canvas/, /jsdom$/)
     ],
     node: {
-        fs: "empty",
-        __dirname: true // webpack configuration of node's global variable __dirname, which is used in some libs. Reference: https://webpack.js.org/configuration/node/#node__dirname
+        fs: "empty"
     }
 };

@@ -1,13 +1,10 @@
-import Vuex from "vuex";
-import {shallowMount, createLocalVue} from "@vue/test-utils";
+import {shallowMount, config} from "@vue/test-utils";
 import {expect} from "chai";
 import ChartJs from "chart.js/auto";
 import {nextTick} from "vue";
 import PiechartItem from "../../../components/PiechartItem.vue";
 
-const localVue = createLocalVue();
-
-localVue.use(Vuex);
+config.global.mocks.$t = key => key;
 
 describe("src/share-components/charts/components/PiechartItem.vue", () => {
     let wrapper;
@@ -20,26 +17,28 @@ describe("src/share-components/charts/components/PiechartItem.vue", () => {
                     datasets: []
                 },
                 givenOptions: {}
-            },
-            localVue
+            }
         });
     });
 
     describe("mounted", () => {
-        it("should create an instance of ChartJS when mounted", async () => {
-            await wrapper.vm.$nextTick();
-            expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+        it("should create an instance of ChartJS when mounted", () => {
+            nextTick(() => {
+                expect(wrapper.vm.chart).to.be.an.instanceof(ChartJs);
+            });
         });
-        it("should create a chart of type pie when mounted", async () => {
-            await wrapper.vm.$nextTick();
-            expect(wrapper.vm.chart.config.type).to.equal("pie");
+        it("should create a chart of type pie when mounted", () => {
+            nextTick(() => {
+                expect(wrapper.vm.chart.config.type).to.equal("pie");
+            });
         });
-        it("should create a canvas element in its component", async () => {
-            await wrapper.vm.$nextTick();
-            expect(wrapper.find("canvas").exists()).to.be.true;
+        it("should create a canvas element in its component", () => {
+            nextTick(() => {
+                expect(wrapper.find("canvas").exists()).to.be.true;
+            });
         });
     });
-    describe("mounted as doughnut", async () => {
+    describe("mounted as doughnut", () => {
         const doughnut = shallowMount(PiechartItem, {
             propsData: {
                 data: {

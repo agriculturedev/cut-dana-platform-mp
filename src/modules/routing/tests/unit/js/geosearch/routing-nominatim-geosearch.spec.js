@@ -1,33 +1,33 @@
 import axios from "axios";
-import store from "../../../../../../../app-store";
+import store from "../../../../../../app-store";
 import {expect} from "chai";
 import sinon from "sinon";
-import {RoutingGeosearchResult} from "../../../../utils/classes/routing-geosearch-result";
+import {RoutingGeosearchResult} from "../../../../js/classes/routing-geosearch-result";
 import {
     fetchRoutingNominatimGeosearch,
     fetchRoutingNominatimGeosearchReverse,
     getRoutingNominatimGeosearchUrl,
     getRoutingNominatimGeosearchReverseUrl
-} from "../../../../utils/geosearch/routing-nominatim-geosearch";
+} from "../../../../js/geosearch/routing-nominatim-geosearch";
 
-describe("src/modules/tools/routing/utils/geosearch/routing-nominatim-geosearch.js", () => {
+describe("src/modules/routing/js/geosearch/routing-nominatim-geosearch.js", () => {
     let service;
 
     beforeEach(() => {
         service = "https://service";
         sinon.stub(i18next, "t").callsFake((...args) => args);
         store.getters = {
-            getRestServiceById: sinon.stub().callsFake(() =>{
+            restServiceById: sinon.stub().callsFake(() =>{
                 return {url: service};
             })
         };
-        store.state.Tools.Routing.geosearch = {
+        store.state.Modules.Routing.geosearch = {
             serviceId: {
                 url: "http://serviceId.url"
             },
             limit: 1000
         };
-        store.state.Tools.Routing.geosearchReverse = {
+        store.state.Modules.Routing.geosearchReverse = {
             serviceId: {
                 url: "http://serviceIdReverse.url"
             }
@@ -95,8 +95,7 @@ describe("src/modules/tools/routing/utils/geosearch/routing-nominatim-geosearch.
             const result = await fetchRoutingNominatimGeosearch("testsearch"),
                 expectedResult = [
                     new RoutingGeosearchResult([51.3331205, 6.5623343], "Krefeld, Nordrhein-Westfalen, 47798, Deutschland"),
-                    new RoutingGeosearchResult(
-                        [51.3459404, 6.579289471155352], "Krefeld, Nordrhein-Westfalen, Deutschland")
+                    new RoutingGeosearchResult([51.3459404, 6.579289471155352], "Krefeld, Nordrhein-Westfalen, Deutschland")
                 ];
 
             expect(result).deep.to.equal(expectedResult);
@@ -170,7 +169,6 @@ describe("src/modules/tools/routing/utils/geosearch/routing-nominatim-geosearch.
             }
         });
     });
-
     describe("getRoutingNominatimGeosearchUrl", () => {
         it("test params", () => {
             const search = "search",
@@ -183,14 +181,12 @@ describe("src/modules/tools/routing/utils/geosearch/routing-nominatim-geosearch.
             expect(createdUrl.searchParams.get("bounded")).to.eql("1");
             expect(createdUrl.searchParams.get("q")).to.eql(search);
         });
-
         it("createUrl should respect questionmark in serviceUrl", () => {
             const search = "search";
             let createdUrl = null;
 
             service = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map";
             createdUrl = getRoutingNominatimGeosearchUrl(search);
-
             expect(createdUrl.origin).to.eql("https://mapservice.regensburg.de");
             expect(decodeURI(createdUrl)).to.eql(service + "&countrycodes=de&format=json&limit=1000&bounded=1&q=search");
             expect(createdUrl.searchParams.get("countrycodes")).to.eql("de");
@@ -200,7 +196,6 @@ describe("src/modules/tools/routing/utils/geosearch/routing-nominatim-geosearch.
             expect(createdUrl.searchParams.get("q")).to.eql(search);
         });
     });
-
     describe("getRoutingNominatimGeosearchReverseUrl", () => {
         it("test params", () => {
             const coordinates = [1, 2],
@@ -212,14 +207,12 @@ describe("src/modules/tools/routing/utils/geosearch/routing-nominatim-geosearch.
             expect(createdUrl.searchParams.get("format")).to.eql("json");
             expect(createdUrl.searchParams.get("addressdetails")).to.eql("0");
         });
-
         it("createUrl should respect questionmark in serviceUrl", () => {
             const coordinates = [1, 2];
             let createdUrl = null;
 
             service = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map";
             createdUrl = getRoutingNominatimGeosearchReverseUrl(coordinates);
-
             expect(createdUrl.origin).to.eql("https://mapservice.regensburg.de");
             expect(decodeURI(createdUrl)).to.eql(service + "&lon=1&lat=2&format=json&addressdetails=0");
             expect(createdUrl.searchParams.get("lon")).to.eql(String(coordinates[0]));

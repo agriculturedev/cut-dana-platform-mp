@@ -1,31 +1,27 @@
 import axios from "axios";
-import getProxyUrl from "../../../../utils/getProxyUrl";
-import BuildSpec from "./../utils/buildSpec";
-import {getRecordById} from "../../../../api/csw/getRecordById";
-import omit from "../../../../utils/omit";
-import actionsPrintInitialization from "./actions/actionsPrintInitialization";
-import getVisibleLayer from "./../utils/getVisibleLayer";
 import {DEVICE_PIXEL_RATIO} from "ol/has.js";
+
+import actionsPrintInitialization from "./actionsPrintInitialization";
+import BuildSpec from "../js/buildSpec";
+import getCswRecordById from "../../../shared/js/api/getCswRecordById";
+import layerProvider from "../js/getVisibleLayer";
+import omit from "../../../shared/js/utils/omit";
+import changeCase from "../../../shared/js/utils/changeCase";
 import {takeScreenshot} from "olcs/lib/olcs/print/takeCesiumScreenshot.js";
 import {computeRectangle} from "olcs/lib/olcs/print/computeRectangle.js";
+import {trackMatomo} from "../../../plugins/matomo";
 
-export default {
-
+const actions = {
     ...actionsPrintInitialization,
+
     /**
      * Performs an asynchronous HTTP request
-     * @param {Object} param.state the state
      * @param {Object} param.dispatch the dispatch
      * @param {Object} serviceRequest the request content
      * @returns {void}
      */
-    sendRequest: function ({state, dispatch}, serviceRequest) {
-        /**
-         * @deprecated in the next major-release!
-         * useProxy
-         * getProxyUrl()
-         */
-        const url = state.useProxy ? getProxyUrl(serviceRequest.serviceUrl) : serviceRequest.serviceUrl;
+    sendRequest: function ({dispatch}, serviceRequest) {
+        const url = serviceRequest.serviceUrl;
 
         axios({
             url: url,
@@ -69,9 +65,6 @@ export default {
      */
     startPrint3d: async function ({state, dispatch, commit}, print) {
         commit("setProgressWidth", "width: 25%");
-        /**
-         * @type {import('olcs/OLCesium.js').default}
-         */
         const ol3d = mapCollection.getMap("3D"),
             ol2d = ol3d.getOlMap(),
             view = ol2d.getView(),
@@ -79,7 +72,7 @@ export default {
             options = (function () {
                 const evt = {ol3d: ol3d};
 
-                dispatch("compute3DPrintMask");
+                dispatch("compute3dPrintMask");
                 evt.printRectangle = computeRectangle(
                     evt.ol3d.getCesiumScene().canvas,
                     state.layoutMapInfo[0],
@@ -134,6 +127,7 @@ export default {
         if (state.isScaleAvailable) {
             spec.buildScale(state.currentScale);
         }
+        await spec.buildLayers(state.visibleLayerList);
         spec.defaults.attributes.map.layers = [cesiumLayer];
         // Use bbox instead of center + scale
         delete spec.defaults.attributes.map.scale;
@@ -163,7 +157,7 @@ export default {
     },
 
     /**
-     * Starts the printing process
+     * starts the printing process
      * @param {Object} param.state the state
      * @param {Object} param.dispatch the dispatch
      * @param {Object} param.commit the commit
@@ -172,11 +166,11 @@ export default {
      * @param {Number} print.index The print index.
      * @returns {void}
      */
-    startPrint: async function ({state, dispatch, commit}, print) {
+    startPrint: async function ({state, getters, dispatch, commit}, print) {
         commit("setProgressWidth", "width: 25%");
-        getVisibleLayer(state.printMapMarker);
+        layerProvider.getVisibleLayer(state.printMapMarker);
 
-        const visibleLayerList = state.visibleLayerList,
+        const visibleLayerList = [...getters.visibleLayerList, ...getters.activeAdditionalLayers],
             attr = {
                 "layout": state.currentLayoutName,
                 "outputFilename": state.filename,
@@ -192,7 +186,8 @@ export default {
                 }
             };
 
-        let spec = BuildSpec;
+        let spec = BuildSpec,
+            printJob = {};
 
         Object.assign(attr.attributes, print.layoutAttributes);
         spec.setAttributes(attr);
@@ -210,7 +205,6 @@ export default {
             dispatch("getGfiForPrint");
             spec.buildGfi(state.isGfiSelected, state.gfiForPrint);
         }
-
         if (state.isLegendAvailable) {
             spec.buildLegend(state.isLegendSelected, state.isMetadataAvailable, print.getResponse, print.index);
         }
@@ -218,7 +212,7 @@ export default {
             spec.setLegend({});
             spec.setShowLegend(false);
             spec = omit(spec, ["uniqueIdList"]);
-            const printJob = {
+            printJob = {
                 index: print.index,
                 payload: spec.defaults,
                 printAppId: state.printAppId,
@@ -231,28 +225,13 @@ export default {
     },
 
     /**
-     * Gets the Gfi Information
-     * @param {Object} param.rootGetters the rootgetters
-     * @param {Object} param.commit the commit
-     * @returns {void}
-     */
-    getGfiForPrint: async function ({rootGetters, commit}) {
-        if (rootGetters["Tools/Gfi/currentFeature"] !== null && typeof rootGetters["Tools/Gfi/currentFeature"].getMappedProperties === "function" && typeof rootGetters["Tools/Gfi/currentFeature"].getTitle === "function") {
-            commit("setGfiForPrint", [rootGetters["Tools/Gfi/currentFeature"].getMappedProperties(), rootGetters["Tools/Gfi/currentFeature"].getTitle(), rootGetters["Maps/clickCoordinate"]]);
-        }
-        else {
-            commit("setGfiForPrint", []);
-        }
-    },
-
-    /**
      * sets the metadata for print
-     * @param {Object} param.rootGetters the rootGetters
      * @param {Object} param.dispatch the dispatch
+     * @param {Object} param.rootGetters the rootGetters
      * @param {Object} cswObject the object with all the info
      * @returns {void}
      */
-    getMetaDataForPrint: async function ({rootGetters, dispatch}, cswObject) {
+    getMetaDataForPrint: async function ({dispatch, rootGetters}, cswObject) {
         const cswObj = cswObject;
         let metadata;
 
@@ -264,25 +243,23 @@ export default {
 
         if (cswObj.cswUrl === null || typeof cswObj.cswUrl === "undefined") {
             const cswId = Config.cswId || "3",
-                cswService = rootGetters.getRestServiceById(cswId);
+                cswService = rootGetters.restServiceById(cswId);
 
             cswObj.cswUrl = cswService.url;
         }
 
-        /**
-         * @deprecated in the next major-release!
-         * useProxy
-         * getProxyUrl()
-         */
-        if (rootGetters.metadata.useProxy?.includes(cswObj.cswUrl)) {
-            metadata = await getRecordById(getProxyUrl(cswObj.cswUrl), cswObj.metaId);
+        if (rootGetters.metadata.useProxy.includes(cswObj.cswUrl)) {
+            metadata = await getCswRecordById.getRecordById(cswObj.cswUrl, cswObj.metaId);
         }
         else {
-            metadata = await getRecordById(cswObj.cswUrl, cswObj.metaId);
+            metadata = await getCswRecordById.getRecordById(cswObj.cswUrl, cswObj.metaId);
         }
 
         if (typeof metadata === "undefined") {
-            dispatch("Alerting/addSingleAlert", i18next.t("common:modules.layerInformation.errorMessage", {cswObjCswUrl: cswObj.cswUrl}), {root: true});
+            dispatch("Alerting/addSingleAlert", {
+                category: "error",
+                content: i18next.t("common:modules.print.errorMessage", {cswObjCswUrl: cswObj.cswUrl})
+            }, {root: true});
         }
         else {
             cswObj.parsedData = {};
@@ -338,10 +315,10 @@ export default {
             let serviceUrl;
 
             if (state.mapfishServiceId !== "") {
-                serviceUrl = rootGetters.getRestServiceById(state.mapfishServiceId).url;
+                serviceUrl = rootGetters.restServiceById(state.mapfishServiceId).url;
             }
             else {
-                serviceUrl = rootGetters.getRestServiceById("mapfish").url;
+                serviceUrl = rootGetters.restServiceById("mapfish").url;
             }
 
             if (state.printService !== "plotservice" && !serviceUrl.includes("/print/")) {
@@ -373,6 +350,13 @@ export default {
         else {
             response.data.index = printJob.index;
             dispatch("waitForPrintJob", response.data);
+        }
+
+        if (printJob.payload.attributes.is3dMode) {
+            trackMatomo("Print", "3D printjob created ", "Layout: " + printJob.payload.layout);
+        }
+        else {
+            trackMatomo("Print", "2D printjob created ", "Layout: " + printJob.payload.layout);
         }
     },
 
@@ -472,7 +456,10 @@ export default {
 
         // Error processing...
         if (response.status === "error") {
-            dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.print.waitForPrintErrorMessage"), {root: true});
+            dispatch("Alerting/addSingleAlert", {
+                category: "error",
+                content: i18next.t("common:modules.print.waitForPrintErrorMessage")
+            }, {root: true});
             console.error("Error: " + response.error);
         }
         else if (response.done) {
@@ -508,24 +495,15 @@ export default {
 
     /**
      * Starts the download from printfile,
-     * @param {Object} param.state the state
      * @param {Object} param.commit the commit
      * @param {Object} fileSpecs The url to dwonloadfile and name
      * @returns {void}
      */
-    downloadFile: function ({state, commit}, fileSpecs) {
-        /**
-         * @deprecated in the next major-release!
-         * useProxy
-         * getProxyUrl()
-         */
-        const fileUrl = state.useProxy ? getProxyUrl(fileSpecs.fileUrl) : fileSpecs.fileUrl;
+    downloadFile: function ({commit}, fileSpecs) {
+        const fileUrl = fileSpecs.fileUrl;
 
         commit("setPrintStarted", false);
         commit("setPrintFileReady", true);
-
-        // Radio trigger for external backbone modules.
-        Radio.trigger("Print", "printFileReady", fileUrl);
 
         commit("setFileDownloadUrl", fileUrl);
         commit("setFilename", fileSpecs.filename);
@@ -537,5 +515,13 @@ export default {
                 downloadUrl: fileUrl
             });
         }
+    },
+
+    urlParams ({commit}, params) {
+        Object.keys(params).forEach(key => {
+            commit(`set${changeCase.upperFirst(key)}`, params[key]);
+        });
     }
 };
+
+export default actions;

@@ -51,10 +51,17 @@
  */
 
 export default {
-    active: false,
-    id: "modeler3D",
+    icon: "bi-bounding-box",
+    description: "common:modules.modeler3D.description",
+    hasMouseMapInteractions: true,
+    name: "common:modules.modeler3D.name",
+    supportedDevices: ["Desktop", "Mobile", "Table"],
+    supportedMapModes: ["3D"],
+    type: "modeler3D",
+
     activeShapePoints: [],
     adaptToHeight: true,
+    clampToGround: true,
     coordinateEasting: 0,
     coordinateNorthing: 0,
     currentLayout: {
@@ -67,14 +74,20 @@ export default {
     currentModelId: null,
     currentModelPosition: null,
     currentProjection: {id: "http://www.opengis.net/gml/srs/epsg.xml#25832", name: "EPSG:25832", projName: "utm"},
-    currentView: "import",
+    currentView: "modeler-import",
     cylinderId: null,
+    dimensions: true,
     drawDepth: 0,
+    drawIcons: {
+        rectangle: "bi-square",
+        line: "bi-slash-lg",
+        polygon: "bi-octagon"
+    },
     drawName: "",
     drawnModels: [],
     drawModelTypes: ["rectangle"],
     drawRotation: 0,
-    drawTypes: ["line", "polygon", "rectangle"],
+    drawTypes: ["rectangle", "line", "polygon"],
     extrudedHeight: 20,
     gmlIdPath: "gmlid",
     height: 0,
@@ -86,11 +99,14 @@ export default {
         silhouetteSize: 4
     },
     highlightTimeout: null,
+    importedEntities: [],
     importedModels: [],
+    isApplyingState: false,
     isDragging: false,
     isDrawing: false,
     isLoading: false,
     lineWidth: 2,
+    movingEntity: false,
     newFillColor: "",
     newStrokeColor: "",
     opacity: 1,
@@ -102,22 +118,8 @@ export default {
     scale: 1,
     selectedDrawModelType: "",
     selectedDrawType: "",
-    selectedDrawTypeMain: "",
     selectedFillColor: "",
     selectedOutlineColor: "",
     updateAllLayers: true,
-    useAnchorMove: true,
-    importedEntities: [],
-    isApplyingState: false,
-
-    // defaults for config.json parameters
-    icon: "bi-bounding-box",
-    deactivateGFI: true,
-    name: "common:menu.tools.modeler3D",
-    onlyDesktop: true,
-    renderToWindow: false,
-    resizableWindow: true,
-    clampToGround: true,
-    dimensions: true,
-    movingEntity: false
+    useAnchorMove: true
 };

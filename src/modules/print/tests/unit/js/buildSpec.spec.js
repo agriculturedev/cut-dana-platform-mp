@@ -1,34 +1,51 @@
-import BuildSpec from "./../../../utils/buildSpec";
-import {Style as OlStyle} from "ol/style.js";
+import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList.js";
 import WMTSTileGrid from "ol/tilegrid/WMTS";
 import TileGrid from "ol/tilegrid/TileGrid";
+import {Style as OlStyle} from "ol/style.js";
 import {TileWMS, ImageWMS, WMTS} from "ol/source.js";
-import StaticImageSource from "ol/source/ImageStatic.js";
 import {Tile, Vector} from "ol/layer.js";
-import VectorLayer from "ol/layer/Vector.js";
-import VectorSource from "ol/source/Vector.js";
+import {expect} from "chai";
+import createTestFeatures from "./testHelper";
 import Feature from "ol/Feature.js";
 import {Polygon} from "ol/geom.js";
-import {expect} from "chai";
-import {EOL} from "os";
-import measureStyle from "./../../../../measure/utils/measureStyle";
-import createTestFeatures from "./testHelper";
+import VectorLayer from "ol/layer/Vector.js";
+import VectorSource from "ol/source/Vector.js";
+import StaticImageSource from "ol/source/ImageStatic.js";
+import measureStyle from "./../../../../measure/js/measureStyle";
+import layerCollection from "../../../../../core/layers/js/layerCollection";
 import sinon from "sinon";
-import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList.js";
+import BuildSpec from "../../../js/buildSpec";
 import Circle from "ol/geom/Circle.js";
+import CircleStyle from "ol/style/Circle";
+import IconStyle from "ol/style/Icon";
 
-describe("src/modules/tools/print/utils/buildSpec", function () {
+describe("src/modules/print/js/buildSpec", function () {
     let buildSpec,
         pointFeatures,
         multiPointFeatures,
         lineStringFeatures,
         multiLineStringFeatures,
         polygonFeatures,
-        originalGetStyleObject,
-        multiPolygonFeatures;
+        multiPolygonFeatures,
+        originalGetStyleModel,
+        style = {
+            getText: () => {
+                return {
+                    getText: () => "veryCreativeLabelText"
+                };
+            },
+            getImage: () => {
+                return new CircleStyle();
+            }
+        },
+        localWindow,
+        originalGetFontSize,
+        originalGetFontFamily,
+        originalGetLabelAlign,
+        originalGetImageName;
 
-    const originWindow = window,
-        attr = {
+
+    const attr = {
             "layout": "A4 Hochformat",
             "outputFormat": "pdf",
             "attributes": {
@@ -41,47 +58,46 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
                 }
             }
         },
-        style = {
-            getText: () => {
-                return {
-                    getText: () => "veryCreativeLabelText"
-                };
-            }
-        },
-        modelFromRadio = {
-            get: key => ({
-                styleId: "8712",
-                id: "8712",
-                typ: "WFS",
-                children: sinon.spy()
-            })[key]
-        },
-        groupLayer = {
-            get: key => ({
-                styleId: "8712-child",
-                id: "8712-child",
-                typ: "GROUP",
-                children: [{id: "8712-child"}]
-            })[key]
-        };
+        originWindow = window,
+        originalStyle = style;
 
     before(() => {
         buildSpec = BuildSpec;
         buildSpec.setAttributes(attr);
-        originalGetStyleObject = buildSpec.getStyleObject;
+        originalGetStyleModel = buildSpec.getStyleModel;
+        originalGetFontSize = buildSpec.getFontSize;
+        originalGetFontFamily = buildSpec.getFontFamily;
+        originalGetLabelAlign = buildSpec.getLabelAlign;
+        originalGetImageName = buildSpec.getImageName;
+        buildSpec.getStyleModel = sinon.spy();
         pointFeatures = createTestFeatures("resources/testFeatures.xml");
         multiPointFeatures = createTestFeatures("resources/testFeaturesSpassAmWasserMultiPoint.xml");
         polygonFeatures = createTestFeatures("resources/testFeaturesNaturschutzPolygon.xml");
         multiPolygonFeatures = createTestFeatures("resources/testFeaturesBplanMultiPolygon.xml");
         lineStringFeatures = createTestFeatures("resources/testFeaturesVerkehrsnetzLineString.xml");
         multiLineStringFeatures = createTestFeatures("resources/testFeaturesVeloroutenMultiLineString.xml");
-        global.window = {location: {origin: "https://example.com", href: "https://example.com/portal/path/"}};
+        global.window = {location: {origin: "https://example.com", href: "https://example.com/portal/path/"}, getComputedStyle: () => {
+            return {
+                transitionDuration: sinon.stub()
+            };
+        }};
+    });
+
+    beforeEach(() => {
+        buildSpec.getStyleModel = sinon.spy();
+        localWindow = global.window;
     });
 
     afterEach(() => {
+        buildSpec.getStyleModel = originalGetStyleModel;
+        buildSpec.getFontSize = originalGetFontSize;
+        buildSpec.getFontFamily = originalGetFontFamily;
+        buildSpec.getLabelAlign = originalGetLabelAlign;
+        buildSpec.getImageName = originalGetImageName;
+        style = originalStyle;
         sinon.restore();
+        global.window = localWindow;
     });
-
     after(() => {
         global.window = originWindow;
     });
@@ -129,6 +145,7 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             expect(buildSpec.parseAddressToString(address)).to.equal("Hamburg");
         });
     });
+
     describe("isOwnMetaRequest", function () {
         it("should return true if uniqueId is in uniqueIdList", function () {
             expect(buildSpec.isOwnMetaRequest(["1234", "5678"], "1234")).to.be.true;
@@ -146,6 +163,7 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             expect(buildSpec.isOwnMetaRequest(undefined, undefined)).to.be.false;
         });
     });
+
     describe("removeUniqueIdFromList", function () {
         it("should remove uniqueId from uniqueIdList if uniqueId in uniqueIdList", function () {
             buildSpec.removeUniqueIdFromList(["1234", "5678"], "1234");
@@ -168,6 +186,7 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             expect(buildSpec.defaults.uniqueIdList).to.be.an("array").that.is.empty;
         });
     });
+
     describe("updateMetaData", function () {
         it("should not crash if legend doesn't exist yet", function () {
             const parsedData = {
@@ -210,48 +229,6 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
                 metaTel: "123456",
                 metaUrl: "www.url.de"
             });
-        });
-    });
-    describe("legendContainsPdf", function () {
-        it("should return false if legend array of strings does not contain PDF", function () {
-            const legend = ["foobar", "barfoo"];
-
-            expect(buildSpec.legendContainsPdf(legend)).to.be.false;
-        });
-        it("should return true if legend array of strings contains PDF", function () {
-            const legend = ["foobar", "some.pdf", "barfoo"];
-
-            expect(buildSpec.legendContainsPdf(legend)).to.be.true;
-        });
-        it("should return false if legend array of objects does not contain PDF", function () {
-            const legend = [
-                {
-                    graphic: "foobar",
-                    name: "name_foobar"
-                },
-                {
-                    graphic: "barfoo",
-                    name: "name_barfoo"
-                }];
-
-            expect(buildSpec.legendContainsPdf(legend)).to.be.false;
-        });
-        it("should return true if legend array of objects contains PDF", function () {
-            const legend = [
-                {
-                    graphic: "foobar",
-                    name: "name_foobar"
-                },
-                {
-                    graphic: "some.pdf",
-                    name: "name_some_pdf"
-                },
-                {
-                    graphic: "barfoo",
-                    name: "name_barfoo"
-                }];
-
-            expect(buildSpec.legendContainsPdf(legend)).to.be.true;
         });
     });
     describe("prepareLegendAttributes", function () {
@@ -420,73 +397,6 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
         });
     });
 
-    describe("getFillColorFromSVG", function () {
-        it("should return fillColor from svg string in rgb for polygon geometry", function () {
-            const svg_string = "<svg foobar fill:rgb(255, 0, 0);/>";
-
-            expect(buildSpec.getFillColorFromSVG(svg_string)).to.equal("rgb(255, 0, 0)");
-        });
-        it("should return fillColor from svg for string in rgb for point geometry", function () {
-            const svg_string = "<svg foobar fill='rgb(10, 200, 100)'/>";
-
-            expect(buildSpec.getFillColorFromSVG(svg_string)).to.equal("rgb(10, 200, 100)");
-        });
-        it("should return fillColor with fillOpacity from svg string in rgba for polygon geometry", function () {
-            const svg_string = "<svg foobar fill:rgb(255, 0, 0);fill-opacity:0.35;/>";
-
-            expect(buildSpec.getFillColorFromSVG(svg_string)).to.equal("rgba(255, 0, 0, 0.35)");
-        });
-        it("should return fillColor with fillOpacity from svg string in rgba for point geometry", function () {
-            const svg_string = "<svg foobar fill='rgb(10, 200, 100)' fill-opacity='0.35'/>";
-
-            expect(buildSpec.getFillColorFromSVG(svg_string)).to.equal("rgba(10, 200, 100, 0.35)");
-        });
-        it("should return fillColor from svg string in hex", function () {
-            const svg_string = "<svg foobar fill:#ff0000;/>";
-
-            expect(buildSpec.getFillColorFromSVG(svg_string)).to.equal("#ff0000");
-        });
-    });
-
-    describe("getFillStrokeFromSVG", function () {
-        it("should add stroke attributes from svg string to legendObj for polygon geometry", function () {
-            const svg_string = "data:image/svg+xml;charset=utf-8,<svg height='35' width='35' version='1.1' xmlns='http://www.w3.org/2000/svg'><polygon points='5,5 30,5 30,30 5,30' style='fill:rgb(237, 107, 83);fill-opacity:0.35;stroke:rgb(0, 0, 0);stroke-opacity:1;stroke-width:3;stroke-linecap:round;stroke-dasharray:10,8;'/></svg>",
-                legendObj = {};
-
-            buildSpec.getFillStrokeFromSVG(svg_string, legendObj);
-            expect(legendObj).to.deep.equals({
-                strokeColor: "rgba(0, 0, 0, 1)",
-                strokeWidth: "3",
-                strokeStyle: "Dashed"
-            });
-        });
-
-        it("should add stroke attributes from svg string to legendObj for point geometry", function () {
-            const svg_string = "data:image/svg+xml;charset=utf-8,<svg height='23' width='23' version='1.1' xmlns='http://www.w3.org/2000/svg'><circle cx='11.5' cy='11.5' r='10' stroke='rgb(0, 0, 0)' stroke-opacity='1' stroke-width='2' fill='rgb(10, 200, 100)' fill-opacity='0.5'/></svg>",
-                legendObj = {};
-
-            buildSpec.getFillStrokeFromSVG(svg_string, legendObj);
-            expect(legendObj).to.deep.equals({
-                strokeColor: "rgba(0, 0, 0, 1)",
-                strokeWidth: "2"
-            });
-        });
-    });
-
-    describe("getGeometryTypeFromSVG", function () {
-        it("should return geometry type for polygon", function () {
-            const svg_string = "data:image/svg+xml;charset=utf-8,<svg height='35' width='35' version='1.1' xmlns='http://www.w3.org/2000/svg'><polygon points='5,5 30,5 30,30 5,30' style='fill:rgb(237, 107, 83);fill-opacity:0.35;stroke:rgb(0, 0, 0);stroke-opacity:1;stroke-width:3;stroke-linecap:round;stroke-dasharray:10,8;'/></svg>";
-
-            expect(buildSpec.getGeometryTypeFromSVG(svg_string)).to.equals("polygon");
-        });
-
-        it("should return geometry type for point", function () {
-            const svg_string = "data:image/svg+xml;charset=utf-8,<svg height='23' width='23' version='1.1' xmlns='http://www.w3.org/2000/svg'><circle cx='11.5' cy='11.5' r='10' stroke='rgb(0, 0, 0)' stroke-opacity='1' stroke-width='2' fill='rgb(10, 200, 100)' fill-opacity='0.5'/></svg>";
-
-            expect(buildSpec.getGeometryTypeFromSVG(svg_string)).to.equals("point");
-        });
-    });
-
     describe("prepareGfiAttributes", function () {
         it("should create gfi attributes array", function () {
             const gfiAttributes = {
@@ -515,6 +425,7 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             expect(buildSpec.prepareGfiAttributes({})).to.be.an("array").that.is.empty;
         });
     });
+
     describe("buildScale", function () {
         it("should create scale that is \"1:20000\" for number input", function () {
             buildSpec.buildScale(20000);
@@ -524,8 +435,8 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             buildSpec.buildScale(undefined);
             expect(buildSpec.defaults.attributes.scale).to.deep.include("1:undefined");
         });
-
     });
+
     describe("inInScaleRange", function () {
         it("Should return false if current resolution is higher than layer max resolution", function () {
             expect(buildSpec.isInScaleRange(1000, 5000, 10000)).to.be.false;
@@ -545,8 +456,8 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
         it("Should return true if current resolution the layer min resolution", function () {
             expect(buildSpec.isInScaleRange(1000, 5000, 1000)).to.be.true;
         });
-
     });
+
     describe("buildWmts", () => {
         const matrixIds = [0, 1, 2],
             matrixSizes = [[1, 1], [2, 2], [4, 4]],
@@ -599,6 +510,7 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             });
         });
     });
+
     describe("buildTileWms", function () {
         const tileWmsLayer = new Tile({
             source: new TileWMS({
@@ -634,20 +546,21 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             });
         });
     });
-    describe("buildImageWms", function () {
-        it("should buildImageWms", function () {
-            const imageWmsLayer = new Tile({
-                source: new ImageWMS({
-                    url: "url",
-                    params: {
-                        LAYERS: "layer1,layer2",
-                        FORMAT: "image/png",
-                        TRANSPARENT: true
-                    }
-                }),
-                opacity: 1
-            });
 
+    describe("buildImageWms", function () {
+        const imageWmsLayer = new Tile({
+            source: new ImageWMS({
+                url: "url",
+                params: {
+                    LAYERS: "layer1,layer2",
+                    FORMAT: "image/png",
+                    TRANSPARENT: true
+                }
+            }),
+            opacity: 1
+        });
+
+        it("should buildImageWms", function () {
             expect(buildSpec.buildImageWms(imageWmsLayer)).to.deep.own.include({
                 baseURL: "url",
                 opacity: 1,
@@ -660,74 +573,191 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
                 }
             });
         });
-        it("should buildImageWms for static image", function () {
-            const imageWmsLayer = new Tile({
-                source: new StaticImageSource({
-                    url: "url"
-                })
-            });
-
-            expect(buildSpec.buildImageWms(imageWmsLayer)).to.deep.own.include({
-                baseURL: "url",
-                opacity: 1,
-                type: "image"
-            });
-        });
     });
-
-    describe("getStyleObject", function () {
-        const vectorLayer = new Vector();
-        let layerId;
-
-        beforeEach(() => {
-            sinon.stub(styleList, "returnStyleObject").returns(true);
-        });
-
-        it("should return the style model from a given layer", function () {
-            layerId = "1711";
-            sinon.stub(Radio, "request").callsFake(() => {
-                return modelFromRadio;
-            });
-            buildSpec.getStyleObject = originalGetStyleObject;
-            expect(buildSpec.getStyleObject(vectorLayer, layerId)).to.be.true;
-        });
-        it("should return the style model of a child from a group layer", function () {
-            layerId = "8712-child";
-            sinon.stub(Radio, "request").callsFake(() => {
-                return groupLayer;
-            });
-            buildSpec.getStyleObject = originalGetStyleObject;
-            expect(buildSpec.getStyleObject(vectorLayer, layerId)).to.be.true;
-        });
-    });
-
-    describe("getStyleAttributes", function () {
-        const vectorLayer = new Vector();
-
-        it("should return \"styleId\" if styleList is not available", function () {
-            buildSpec.getStyleModel = sinon.spy();
-            expect(buildSpec.getStyleAttributes(vectorLayer, pointFeatures[0])).to.eql(["styleId"]);
-        });
-
-        it("should return \"default\" if no rule applies", function () {
-            buildSpec.getStyleModel = sinon.spy();
-            buildSpec.getStyleObject = sinon.stub().returns({
-                rules: [],
-                styleId: "TestId"
-            });
-            buildSpec.getChildModelIfGroupLayer = sinon.stub().returns({get: () => true});
-            buildSpec.getRulesForFeature = sinon.stub().returns([]);
-
-            expect(buildSpec.getStyleAttributes(vectorLayer, pointFeatures[0])).to.eql(["default"]);
-        });
-    });
-
     describe("getFeatureStyle", function () {
         const vectorLayer = new Vector();
 
         it("should return array with an ol-style", function () {
             expect(buildSpec.getFeatureStyle(pointFeatures[0], vectorLayer)).to.be.an("array");
             expect(buildSpec.getFeatureStyle(pointFeatures[0], vectorLayer)[0]).to.be.an.instanceof(OlStyle);
+        });
+    });
+    describe("getStyleAttributes", function () {
+        const vectorLayer = new Vector();
+
+        it("should return \"styleId\" if styleList is not available", function () {
+            expect(buildSpec.getStyleAttributes(vectorLayer, pointFeatures[0], false)).to.eql(["styleId"]);
+        });
+    });
+    describe("getStyleObject", function () {
+        const styleObj = {
+                id: 123,
+                get: (key) => {
+                    if (key === "styleId") {
+                        return 123;
+                    }
+                    return null;
+                }
+            },
+            layerAttributes = {
+                id: "123",
+                name: "foobar",
+                typ: "WMS",
+                styleId: "123"
+            };
+        let layerId,
+            layer = {
+                get: () => {
+                    return "123";
+                }
+            };
+
+        beforeEach(() => {
+            sinon.stub(layerCollection, "getLayerById").callsFake((id) => {
+                if (id === "123") {
+                    return {
+                        get: (key) => {
+                            return layerAttributes[key];
+                        }
+                    };
+                }
+                return undefined;
+            });
+            sinon.stub(styleList, "returnStyleObject").returns(styleObj);
+        });
+
+        it("should return the style object if type is GROUP", function () {
+            layerAttributes.type = "GROUP";
+
+            expect(buildSpec.getStyleObject(layer, layerId)).to.be.an("object");
+        });
+        it("should return the style object if type is not GROUP", function () {
+            expect(buildSpec.getStyleObject(layer, layerId)).to.be.an("object");
+        });
+        it("should return undefined if no layerModel is found", function () {
+            layer = {
+                get: () => {
+                    return "1234";
+                }
+            };
+            layerId = "1234";
+            expect(buildSpec.getStyleObject(layer, layerId)).to.be.undefined;
+        });
+    });
+    describe("checkPolygon", function () {
+        it("should correct coordinates of measure-layer polygon with measureStyle", function () {
+            const source = new VectorSource(),
+                layer = new VectorLayer({
+                    source,
+                    style: measureStyle
+                }),
+                feature = new Feature({
+                    geometry: new Polygon([[[0, 0], [0, 1], [1, 1], [0, 0]]])
+                });
+            let styles = null,
+                checked1 = false,
+                checked2 = false;
+
+            layer.getSource().addFeature(feature);
+            styles = layer.getStyleFunction()(feature);
+            styles.forEach((aStyle) => {
+                const geom = aStyle.getGeometryFunction()(feature);
+                let corrected = null,
+                    coordinates = null;
+
+                feature.setGeometry(geom);
+                corrected = buildSpec.checkPolygon(feature);
+                coordinates = corrected.getGeometry().getCoordinates();
+                if (coordinates.length === 1) {
+                    if (coordinates[0].length === 4) {
+                        expect(corrected.getGeometry().getCoordinates()).to.deep.equals([[[0, 0], [0, 1], [1, 1], [0, 0]]]);
+                        checked1 = true;
+                    }
+                }
+                else if (coordinates.length === 2) {
+                    expect(corrected.getGeometry().getCoordinates()).to.deep.equals([[0, 0], [0, 0]]);
+                    checked2 = true;
+                }
+            });
+            expect(checked1).to.be.true;
+            expect(checked2).to.be.true;
+        });
+
+        it("should convert circle feature to JSON", () => {
+            const feature = new Feature({
+                geometry: new Circle([500, 500], 10),
+                name: "The circle feature"
+            });
+            let convertedFeature = null;
+
+            feature.setId("123456");
+            convertedFeature = buildSpec.convertFeatureToGeoJson(feature, style);
+            expect(convertedFeature).to.deep.own.include({
+                type: "Feature",
+                properties: {
+                    name: "The circle feature",
+                    _label: "veryCreativeLabelText"
+                }
+            });
+            expect(convertedFeature.geometry.type).to.equals("Polygon");
+            expect(convertedFeature.geometry.coordinates[0].length).to.equals(101);
+        });
+
+        it("should convert point feature to JSON and remove all @ and . in key if it includes @Datastream", function () {
+            const testFeature = new Feature({
+                "@Datastreams.0.Observation.0.result": 0,
+                geometry: new Polygon([[[0, 0], [0, 1], [1, 1], [0, 0]]])
+            });
+
+            expect(buildSpec.convertFeatureToGeoJson(testFeature, style)).to.deep.own.include({
+                type: "Feature",
+                properties: {
+                    _label: "veryCreativeLabelText",
+                    "Datastreams0Observation0result": 0
+                },
+                geometry: {
+                    type: "Polygon",
+                    coordinates: [[
+                        [0, 0], [0, 1], [1, 1], [0, 0]
+                    ]]
+                }
+            });
+        });
+    });
+    describe("getStylingRules", function () {
+        const vectorLayer = new Vector();
+
+        it("should return \"*\" if styleAttribute is empty string", function () {
+            expect(buildSpec.getStylingRules(vectorLayer, pointFeatures[0], [""])).to.equal("*");
+        });
+        it("should return \"[styleId='undefined']\" if styleAttribute is \"styleId\"", function () {
+            expect(buildSpec.getStylingRules(vectorLayer, pointFeatures[0], ["styleId"])).to.equal("[styleId='undefined']");
+        });
+        it("should return \"[kh_nummer='20']\" if styleAttribute is \"kh_nummer\"", function () {
+            expect(buildSpec.getStylingRules(vectorLayer, pointFeatures[0], ["kh_nummer"])).to.equal("[kh_nummer='20']");
+        });
+        it("should return \"[styleId='*']\" if styleAttribute is \"styleId\"", function () {
+            const featuresArray = [
+                    {
+                        get: () => {
+                            return undefined;
+                        }
+                    }
+                ],
+                clusteredFeature = {
+                    get: (key) => {
+                        if (key === "features") {
+                            return featuresArray;
+                        }
+                        return undefined;
+                    },
+                    getProperties: () => {
+                        return {};
+                    },
+                    set: () => sinon.stub()
+                };
+
+            expect(buildSpec.getStylingRules(vectorLayer, clusteredFeature, ["styleId"])).to.equal("[styleId='*']");
         });
     });
     describe("addFeatureToGeoJsonList", function () {
@@ -828,17 +858,6 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             expect(list).to.be.an("array");
             expect(list[0]).to.deep.own.include({
                 type: "Feature",
-                properties: {
-                    RoutenTyp: "Radfernwege",
-                    Status: "Hauptroute",
-                    Richtung: "Hin- und Rückweg",
-                    RoutenName: "1. Grüner Ring",
-                    Group_: "1. Grüner Ring_Hauptroute_Hinweg",
-                    Routennummer: "0",
-                    Verlauf: `${EOL}Landungsbrücken - Deichtorhallen - Planten un Blomen - Wallring - Landungsbrücken${EOL}`,
-                    Routeninformation: `${EOL}Landungsbrücken - Deichtorhallen - Planten un Blomen - Wallring - Landungsbrücken${EOL}`,
-                    _label: "veryCreativeLabelText"
-                },
                 geometry: {
                     type: "MultiLineString",
                     coordinates: [[
@@ -850,6 +869,17 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
                         [5933232.553300001, 564780.0521999998, 0],
                         [5933229.584100001, 564741.4397, 0]
                     ]]
+                },
+                properties: {
+                    RoutenTyp: "Radfernwege",
+                    Status: "Hauptroute",
+                    Richtung: "Hin- und Rückweg",
+                    RoutenName: "1. Grüner Ring",
+                    Group_: "1. Grüner Ring_Hauptroute_Hinweg",
+                    Routennummer: "0",
+                    Verlauf: "\nLandungsbrücken - Deichtorhallen - Planten un Blomen - Wallring - Landungsbrücken\n",
+                    Routeninformation: "\nLandungsbrücken - Deichtorhallen - Planten un Blomen - Wallring - Landungsbrücken\n",
+                    _label: "veryCreativeLabelText"
                 }
             });
         });
@@ -1040,8 +1070,8 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
                     RoutenName: "1. Grüner Ring",
                     Group_: "1. Grüner Ring_Hauptroute_Hinweg",
                     Routennummer: "0",
-                    Verlauf: `${EOL}Landungsbrücken - Deichtorhallen - Planten un Blomen - Wallring - Landungsbrücken${EOL}`,
-                    Routeninformation: `${EOL}Landungsbrücken - Deichtorhallen - Planten un Blomen - Wallring - Landungsbrücken${EOL}`,
+                    Verlauf: "\nLandungsbrücken - Deichtorhallen - Planten un Blomen - Wallring - Landungsbrücken\n",
+                    Routeninformation: "\nLandungsbrücken - Deichtorhallen - Planten un Blomen - Wallring - Landungsbrücken\n",
                     _label: "veryCreativeLabelText"
                 },
                 geometry: {
@@ -1147,95 +1177,176 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
                 }
             });
         });
+    });
+    describe("buildPointStyle", function () {
+        const layer = new Vector();
 
-        it("should convert circle feature to JSON", () => {
-            const feature = new Feature({
-                geometry: new Circle([500, 500], 10),
-                name: "The circle feature"
-            });
-            let convertedFeature = null;
-
-            feature.setId("123456");
-
-            convertedFeature = buildSpec.convertFeatureToGeoJson(feature, style);
-
-            expect(convertedFeature).to.deep.own.include({
-                type: "Feature",
-                properties: {
-                    name: "The circle feature",
-                    _label: "veryCreativeLabelText"
-                }
-            });
-            expect(convertedFeature.geometry.type).to.equals("Polygon");
-            expect(convertedFeature.geometry.coordinates[0].length).to.equals(101);
+        it("should return circle point style if image name is circleStyle", function () {
+            sinon.stub(buildSpec, "buildPointStyleCircle").returns("CircleStyle");
+            expect(buildSpec.buildPointStyle(style, layer)).to.eql("CircleStyle");
         });
-
-        it("should convert point feature to JSON and remove all @ and . in key if it includes @Datastream", function () {
-            const testFeature = new Feature({
-                "@Datastreams.0.Observation.0.result": 0,
-                geometry: new Polygon([[[0, 0], [0, 1], [1, 1], [0, 0]]])
-            });
-
-            expect(buildSpec.convertFeatureToGeoJson(testFeature, style)).to.deep.own.include({
-                type: "Feature",
-                properties: {
-                    _label: "veryCreativeLabelText",
-                    "Datastreams0Observation0result": 0
-                },
-                geometry: {
-                    type: "Polygon",
-                    coordinates: [[
-                        [0, 0], [0, 1], [1, 1], [0, 0]
-                    ]]
+        it("should return circle point style if image name is pointStyleIcon", function () {
+            style = {
+                getImage: () => {
+                    return new IconStyle({
+                        src: "https://example.com"
+                    });
                 }
-            });
+            };
+            sinon.stub(buildSpec, "buildPointStyleIcon").returns("Icon");
+            expect(buildSpec.buildPointStyle(style, layer)).to.eql("Icon");
+        });
+        it("should return circle point style if image name is textStyle", function () {
+            style = {
+                getImage: () => {
+                    return {
+                        constructor: {
+                            name: "TextStyle"
+                        },
+                        getScale: () => {
+                            return 1;
+                        }
+                    };
+                }
+            };
+            sinon.stub(buildSpec, "buildTextStyle").returns("TextStyle");
+            expect(buildSpec.buildTextStyle(style)).to.eql("TextStyle");
         });
     });
-    describe("getStylingRules", function () {
+    describe("buildPointStyleCircle", function () {
+        it("should return an style object", function () {
+            style = {
+                getImage: () => {
+                    return {
+                        constructor: {
+                            name: "Icon"
+                        },
+                        getScale: () => {
+                            return 1;
+                        }
+                    };
+                },
+                getFill: () => sinon.stub(),
+                getStroke: () => sinon.stub(),
+                getRadius: () => sinon.stub()
+            };
+            sinon.stub(buildSpec, "buildFillStyle");
+            sinon.stub(buildSpec, "buildStrokeStyle");
+            expect(buildSpec.buildPointStyleCircle(style)).to.be.an("object");
+        });
+    });
+    describe("buildFillStyle", function () {
+        it("should return an style object", function () {
+            style = {
+                getColor: () => sinon.stub()
+            };
+            expect(buildSpec.buildFillStyle(style, {})).to.be.an("object");
+        });
+    });
+    describe("buildStrokeStyle", function () {
+        it("should return an style object", function () {
+            style = {
+                getColor: () => sinon.stub()
+            };
+            expect(buildSpec.buildStrokeStyle(style, {})).to.be.an("object");
+        });
+    });
+    describe("buildPointStyleIcon", function () {
         const vectorLayer = new Vector();
 
-        it("should return \"*\" if styleAttribute is empty string", function () {
-            expect(buildSpec.getStylingRules(vectorLayer, pointFeatures[0], [""])).to.equal("*");
-        });
-        it("should return \"[styleId='undefined']\" if styleAttribute is \"styleId\"", function () {
-            expect(buildSpec.getStylingRules(vectorLayer, pointFeatures[0], ["styleId"])).to.equal("[styleId='undefined']");
-        });
-        it("should return \"[kh_nummer='20']\" if styleAttribute is \"kh_nummer\"", function () {
-            expect(buildSpec.getStylingRules(vectorLayer, pointFeatures[0], ["kh_nummer"])).to.equal("[kh_nummer='20']");
-        });
-        it("should return \"[styleId='*']\" if styleAttribute is \"styleId\"", function () {
-            const featuresArray = [
-                    {
-                        get: () => {
-                            return undefined;
-                        }
-                    }
-                ],
-                clusteredFeature = {
-                    get: (key) => {
-                        if (key === "features") {
-                            return featuresArray;
-                        }
-                        return undefined;
-                    },
-                    set: () => sinon.stub()
-                };
-
-            expect(buildSpec.getStylingRules(vectorLayer, clusteredFeature, ["styleId"])).to.equal("[styleId='*']");
+        it("should return  an style object", function () {
+            style = {
+                getSize: () => sinon.stub(),
+                getSrc: () => sinon.stub()
+            };
+            sinon.stub(buildSpec, "buildGraphicPath");
+            expect(buildSpec.buildPointStyleIcon(style, vectorLayer)).to.be.an("object");
+            expect(buildSpec.buildPointStyleIcon(style, vectorLayer).type).to.be.eql("point");
         });
     });
-    describe("rgbStringToRgbArray", function () {
-        it("should turn \"rgb(0,12,345)\" into [0,12,345]", function () {
-            expect(buildSpec.rgbStringToRgbArray("rgb(0,12,345)")).to.deep.equal([0, 12, 345]);
+    describe("buildGraphicPath", function () {
+        it("should return a url", function () {
+            const src = "https://test/img";
+
+            buildSpec.getImageName = sinon.spy();
+            expect(buildSpec.buildGraphicPath(src)).to.eql("https://test/img");
         });
-        it("should turn \"rgba(0,12,345,1)\" into [0,12,345,1]", function () {
-            expect(buildSpec.rgbStringToRgbArray("rgb(0,12,345,1)")).to.deep.equal([0, 12, 345, 1]);
+        it("should return a url", function () {
+            const src = "/img";
+
+            global.window = {
+                location: {
+                    origin: "https://localhost"
+                }
+            };
+            buildSpec.getImageName = sinon.spy();
+            expect(buildSpec.buildGraphicPath(src)).to.eql("https://localhost/img");
         });
-        it("should turn \"rgba(0,12,345,.1)\" into [0,12,345,.1]", function () {
-            expect(buildSpec.rgbStringToRgbArray("rgb(0,12,345,.1)")).to.deep.equal([0, 12, 345, 0.1]);
+        it("should return a url", function () {
+            const src = "./img";
+
+            global.window = {
+                location: {
+                    href: "https://localhost"
+                }
+            };
+            buildSpec.getImageName = sinon.spy();
+            expect(buildSpec.buildGraphicPath(src)).to.eql("https://localhost/img");
         });
-        it("should turn \"rgba(0,12,345,0.1)\" into [0,12,345,01]", function () {
-            expect(buildSpec.rgbStringToRgbArray("rgb(0,12,345,0.1)")).to.deep.equal([0, 12, 345, 0.1]);
+        it("should return a url", function () {
+            const src = "img";
+
+            global.window = {
+                location: {
+                    origin: "https://test"
+                }
+            };
+            sinon.stub(buildSpec, "getImageName").returns(src);
+            expect(buildSpec.buildGraphicPath(src)).to.eql("https://test/lgv-config/img/img");
+        });
+        it("should return a url", function () {
+            const src = "data:image/svg+xml;charset=utf-8";
+
+            global.window = {
+                location: {
+                    origin: "https://localhost"
+                }
+            };
+            buildSpec.getImageName = sinon.spy();
+            expect(buildSpec.buildGraphicPath(src)).to.eql("data:image/svg+xml;charset=utf-8");
+        });
+    });
+    describe("getImageName", function () {
+        it("should return the image name", function () {
+            const imageSrc = "https://localhost/lgv-config/img/krankenhaus.png";
+
+            expect(buildSpec.getImageName(imageSrc)).to.eql("krankenhaus.png");
+        });
+    });
+    describe("buildTextStyle", function () {
+        it("should return text style", function () {
+            style = {
+                getFont: () => sinon.stub(),
+                getScale: () => sinon.stub(),
+                getStroke: () => {
+                    return {
+                        getColor: () => sinon.stub(),
+                        getWidth: () => sinon.stub()
+                    };
+                },
+                getFill: () => {
+                    return {
+                        getColor: () => sinon.stub()
+                    };
+                },
+                getColor: () => sinon.stub(),
+                getOffsetX: () => sinon.stub(),
+                getOffsetY: () => sinon.stub()
+            };
+            buildSpec.getFontSize = sinon.spy();
+            buildSpec.getFontFamily = sinon.spy();
+            buildSpec.getLabelAlign = sinon.spy();
+            expect(buildSpec.buildTextStyle(style).type).to.eql("text");
         });
     });
     describe("getFontSize", function () {
@@ -1280,65 +1391,94 @@ describe("src/modules/tools/print/utils/buildSpec", function () {
             expect(buildSpec.getFontFamily("", "pzuouk")).to.equals("");
             expect(buildSpec.getFontFamily("16", "")).to.equals("");
         });
-
-
     });
-    describe("checkPolygon", function () {
-        it("should correct coordinates of measure-layer polygon with measureStyle", function () {
-            const source = new VectorSource(),
-                layer = new VectorLayer({
-                    source,
-                    style: measureStyle
-                }),
-                feature = new Feature({
-                    geometry: new Polygon([[[0, 0], [0, 1], [1, 1], [0, 0]]])
-                });
-            let styles = null,
-                checked1 = false,
-                checked2 = false;
-
-            layer.getSource().addFeature(feature);
-            styles = layer.getStyleFunction()(feature);
-            styles.forEach((aStyle) => {
-                const geom = aStyle.getGeometryFunction()(feature);
-                let corrected = null,
-                    coordinates = null;
-
-                feature.setGeometry(geom);
-                corrected = buildSpec.checkPolygon(feature);
-                coordinates = corrected.getGeometry().getCoordinates();
-                if (coordinates.length === 1) {
-                    if (coordinates[0].length === 4) {
-                        expect(corrected.getGeometry().getCoordinates()).to.deep.equals([[[0, 0], [0, 1], [1, 1], [0, 0]]]);
-                        checked1 = true;
-                    }
-                }
-                else if (coordinates.length === 2) {
-                    expect(corrected.getGeometry().getCoordinates()).to.deep.equals([[0, 0], [0, 0]]);
-                    checked2 = true;
-                }
-            });
-            expect(checked1).to.be.true;
-            expect(checked2).to.be.true;
+    describe("getLabelAlign", function () {
+        it("should return lb if style text align is left", function () {
+            style = {
+                getTextAlign: () => "left"
+            };
+            expect(buildSpec.getLabelAlign(style)).to.eql("lb");
+        });
+        it("should return lb if style text align is left", function () {
+            style = {
+                getTextAlign: () => "right"
+            };
+            expect(buildSpec.getLabelAlign(style)).to.eql("rb");
+        });
+        it("should return lb if style text align is left", function () {
+            style = {
+                getTextAlign: () => "center"
+            };
+            expect(buildSpec.getLabelAlign(style)).to.eql("cm");
+        });
+        it("should return cb if nothing match", function () {
+            style = {
+                getTextAlign: () => ""
+            };
+            expect(buildSpec.getLabelAlign(style)).to.eql("cb");
         });
     });
+    describe("buildPolygonStyle", function () {
+        const vectorLayer = new Vector();
 
-    describe("buildStrokeStyle", () => {
-        it("should return a stroke with line dash style", () => {
-            const lineDashStyle = {
-                    getColor: () => [0, 255, 0, 1],
-                    getLineCap: () => "round",
-                    getLineDash: () => [10, 8],
-                    getLineDashOffset: () => 0
-                },
-                obj = {};
+        it("should return a polygon style", function () {
+            style = {
+                getFill: () => sinon.stub(),
+                getStroke: () => sinon.stub()
+            };
+            buildSpec.buildFillStyle = sinon.spy();
+            buildSpec.buildStrokeStyle = sinon.spy();
+            expect(buildSpec.buildPolygonStyle(style, vectorLayer).type).to.eql("polygon");
+        });
+    });
+    describe("buildLineStringStyle", function () {
+        const vectorLayer = new Vector();
 
-            expect(buildSpec.buildStrokeStyle(lineDashStyle, obj)).to.deep.equals({
-                strokeColor: "#00ff00",
-                strokeLinecap: "round",
-                strokeDashstyle: "10 8",
-                strokeDashOffset: 0,
-                strokeOpacity: 1
+        it("should return a line string style", function () {
+            style = {
+                getStroke: () => sinon.stub()
+            };
+            buildSpec.buildStrokeStyle = sinon.spy();
+            expect(buildSpec.buildLineStringStyle(style, vectorLayer).type).to.eql("line");
+        });
+    });
+    describe("buildImageWms", function () {
+        it("should buildImageWms", function () {
+            const imageWmsLayer = new Tile({
+                source: new ImageWMS({
+                    url: "url",
+                    params: {
+                        LAYERS: "layer1,layer2",
+                        FORMAT: "image/png",
+                        TRANSPARENT: true
+                    }
+                }),
+                opacity: 1
+            });
+
+            expect(buildSpec.buildImageWms(imageWmsLayer)).to.deep.own.include({
+                baseURL: "url",
+                opacity: 1,
+                type: "WMS",
+                layers: ["layer1", "layer2"],
+                imageFormat: "image/png",
+                customParams: {
+                    TRANSPARENT: true,
+                    DPI: 200
+                }
+            });
+        });
+        it("should buildImageWms for static image", function () {
+            const imageWmsLayer = new Tile({
+                source: new StaticImageSource({
+                    url: "url"
+                })
+            });
+
+            expect(buildSpec.buildImageWms(imageWmsLayer)).to.deep.own.include({
+                baseURL: "url",
+                opacity: 1,
+                type: "image"
             });
         });
     });

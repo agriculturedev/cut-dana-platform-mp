@@ -2,10 +2,8 @@ import axios from "axios";
 import Feature from "ol/Feature";
 import {Point, Polygon} from "ol/geom";
 import WFS from "ol/format/WFS";
-import handleAxiosResponse from "../../../../utils/handleAxiosResponse";
+import handleAxiosResponse from "../../../shared/js/utils/handleAxiosResponse";
 import {buildFilter, buildStoredFilter} from "./buildFilter";
-import store from "../../../../app-store";
-import crs from "@masterportal/masterportalapi/src/crs";
 
 /**
  * Makes sure that the filter is ready to be used.
@@ -16,7 +14,6 @@ import crs from "@masterportal/masterportalapi/src/crs";
  */
 function adjustFilter (filter) {
     if (Array.isArray(filter)) {
-        // If the user didn't insert a value, the array will be empty
         if (filter.length === 0) {
             return "";
         }
@@ -29,18 +26,16 @@ function adjustFilter (filter) {
 /**
  * Parses the response from a WFS-G as the features can not be parsed by OL (yet).
  *
- * @param {string} responseData The response data returned by the WFS-G; GML string.
+ * @param {String} responseData The response data returned by the WFS-G; GML string.
  * @param {String|String[]} namespaces The namespaces of the service.
  * @param {String} memberSuffix The suffix of the feature in the FeatureCollection.
- * @param {String} responseProjection The expected projection of the features in responseData
  * @returns {module:ol/Feature[]} Array of Features returned from the service.
  */
-function parseGazetteerResponse (responseData, namespaces, memberSuffix, responseProjection) {
+function parseGazetteerResponse (responseData, namespaces, memberSuffix) {
     const attributes = {},
         features = [],
         namespaceArray = Array.isArray(namespaces) ? namespaces : [namespaces],
-        gmlFeatures = new DOMParser().parseFromString(responseData, "application/xml").getElementsByTagName(`wfs:${memberSuffix}`),
-        transformCoordinates = responseProjection !== store.getters["Maps/projection"].getCode();
+        gmlFeatures = new DOMParser().parseFromString(responseData, "application/xml").getElementsByTagName(`wfs:${memberSuffix}`);
 
     if (gmlFeatures.length === 0) {
         return features;
@@ -57,18 +52,16 @@ function parseGazetteerResponse (responseData, namespaces, memberSuffix, respons
             });
 
         if (feature.getElementsByTagName("iso19112:position").length > 0) {
-            let coordinates = feature.getElementsByTagName("iso19112:position")[0].getElementsByTagName("gml:pos")[0]
-                .textContent.split(" ")
-                .map(coordinatePart => parseFloat(coordinatePart));
-
-            if (transformCoordinates) {
-                coordinates = crs.transformToMapProjection(mapCollection.getMap(store.getters["Maps/mode"]), responseProjection, coordinates);
-            }
-            attributes.geometry = new Point(coordinates);
+            attributes.geometry = new Point(
+                feature.getElementsByTagName("iso19112:position")[0].getElementsByTagName("gml:pos")[0]
+                    .textContent.split(" ")
+                    .map(coordinate => parseFloat(coordinate))
+            );
         }
 
         if (feature.getElementsByTagName("iso19112:geographicExtent").length > 0) {
-            let coordinates =
+            // Reads the coordinates from the response and prepares them to a readable format for the OL Polygon.
+            attributes.geographicExtent = new Polygon([
                 feature
                     .getElementsByTagName("iso19112:geographicExtent")[0]
                     .getElementsByTagName("gml:posList")[0]
@@ -76,15 +69,8 @@ function parseGazetteerResponse (responseData, namespaces, memberSuffix, respons
                     .map(coordinate => parseFloat(coordinate))
                     .reduce((accumulator, _, index, array) => index % 2 === 0
                         ? [...accumulator, [array[index], array[index + 1]]]
-                        : accumulator, []);
-
-            if (transformCoordinates) {
-                coordinates = coordinates.map(coordinate => {
-                    return crs.transformToMapProjection(mapCollection.getMap(store.getters["Maps/mode"]), responseProjection, coordinate);
-                });
-            }
-            // Reads the coordinates from the response and prepares them to a readable format for the OL Polygon.
-            attributes.geographicExtent = new Polygon(coordinates);
+                        : accumulator, [])
+            ]);
         }
 
         features.push(new Feature(attributes));
@@ -95,7 +81,6 @@ function parseGazetteerResponse (responseData, namespaces, memberSuffix, respons
 
 /**
  * Returns the version, storedQuery and filter to the request url for a WFS@2.0.0.
- *
  * @param {Object} requestUrl The Url object.
  * @param {String} filter The filter consisting of Url parameters to be added to the request url.
  * @param {String} storedQueryId The Id of the stored Query of the service.
@@ -120,7 +105,6 @@ function storedFilter (requestUrl, filter, storedQueryId) {
 
 /**
  * Returns the version and filter to the request url for a WFS@1.1.0
- *
  * @param {Object} requestUrl The Url object.
  * @param {XML[]} filter The filter written in XML.
  * @returns {String} The added parts for the request Url.
@@ -138,6 +122,7 @@ let currentRequest = null;
 /**
  * Searches the service for features based on the build or given filter.
  *
+ * @param {Object} store Vuex store.
  * @param {Object} currentInstance The currently selected searchInstance.
  * @param {Object[]} currentInstance.literals Array of literals.
  * @param {?Object} [currentInstance.requestConfig.gazetteer] Declares whether the used WFS service is a WFS-G, which needs to be parsed differently.
@@ -146,13 +131,12 @@ let currentRequest = null;
  * @param {String} currentInstance.requestConfig.layerId Id of the layer defined in the services.json. Here it is used to check if that is the case or if the layer was defined in the rest-service.json.
  * @param {Number} currentInstance.requestConfig.maxFeatures The maximum amount of features allowed.
  * @param {String} currentInstance.requestConfig.storedQueryId Id of the stored Query. If given, a WFS@2.0.0 is queried.
- * @param {String} currentInstance.requestConfig.responseProjection The expected projection of the features in responseData.
  * @param {Object} service The service to send the request to.
  * @param {?String} [singleValueFilter = null] If given, this filter should be used.
  * @param {?String} [featureType = null] FeatureType of the features which should be requested. Only given for queries for suggestions.
  * @returns {Promise} If the send request was successful, the found features are converted from XML to OL Features and returned.
  */
-function searchFeatures ({literals, requestConfig: {gazetteer = null, layerId, maxFeatures, storedQueryId, responseProjection = store.getters["Maps/projection"].getCode()}}, service, singleValueFilter = null, featureType = null) {
+function searchFeatures (store, {literals, requestConfig: {gazetteer = null, layerId, maxFeatures, storedQueryId}}, service, singleValueFilter = null, featureType = null) {
     const fromServicesJson = Boolean(layerId);
     let filter;
 
@@ -163,11 +147,11 @@ function searchFeatures ({literals, requestConfig: {gazetteer = null, layerId, m
         filter = storedQueryId ? buildStoredFilter(literals) : buildFilter(literals);
     }
 
-    return sendRequest(service, filter, fromServicesJson, storedQueryId, maxFeatures, featureType)
+    return sendRequest(store, service, filter, fromServicesJson, storedQueryId, maxFeatures, featureType)
         .then(data => {
             // NOTE: This extra case can be removed when OL can parse WFS-G services with the WFS.readFeatures function.
             if (gazetteer) {
-                return parseGazetteerResponse(data, gazetteer.namespaces, gazetteer.memberSuffix, responseProjection);
+                return parseGazetteerResponse(data, gazetteer.namespaces, gazetteer.memberSuffix);
             }
             return new WFS({version: storedQueryId ? "2.0.0" : "1.1.0"}).readFeatures(data);
         });
@@ -207,6 +191,7 @@ function createUrl (urlString, typeName, filter, fromServicesJson, storedQueryId
 /**
  * Builds the request url and sends a GetFeature request via GET to the service.
  *
+ * @param {Object} store Vuex store.
  * @param {Object} service The service to send the request to.
  * @param {String} service.url The base Url as defined in the services.json or rest-services.json.
  * @param {String} service.typeName If the Url was defined in the services.json, the typeName is set to be added to the Url.
@@ -218,7 +203,7 @@ function createUrl (urlString, typeName, filter, fromServicesJson, storedQueryId
  * @returns {Promise} If the request was successful, the data of the response gets resolved.
  *                    If an error occurs (e.g. the service is not reachable or there was no such feature) the error is caught and the message is displayed as an alert.
  */
-function sendRequest ({url, typeName}, filter, fromServicesJson, storedQueryId, maxFeatures = 8, featureType = null) {
+function sendRequest (store, {url, typeName}, filter, fromServicesJson, storedQueryId, maxFeatures = 8, featureType = null) {
     const requestUrl = createUrl(url, typeName, filter, fromServicesJson, storedQueryId, maxFeatures, featureType);
 
     if (currentRequest) {
@@ -228,7 +213,7 @@ function sendRequest ({url, typeName}, filter, fromServicesJson, storedQueryId, 
 
     return axios.get(decodeURI(requestUrl))
         .then(response => handleAxiosResponse(response, "WfsSearch, searchFeatures, sendRequest"))
-        .catch(error => store.dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.wfsSearch.searchError", {error})));
+        .catch(error => store.dispatch("Alerting/addSingleAlert", i18next.t("common:modules.wfsSearch.searchError", {error})));
 }
 
 export default {

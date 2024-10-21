@@ -1,7 +1,7 @@
 import {expect} from "chai";
-import requestsModule from "../../../utils/requests";
+import requestsModule from "../../../js/requests";
 
-describe("src/modules/tools/wfsSearch/utils/requests.js", () => {
+describe("src/modules/wfsSearch/js/requests.js", () => {
     describe("createUrl", () => {
         it("createUrl should respect questionmark in given url", () => {
             const url = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map",
@@ -16,7 +16,6 @@ describe("src/modules/tools/wfsSearch/utils/requests.js", () => {
 
             expect(createdUrl).to.eql(expectedUrl);
         });
-
         it("createUrl with usual url given", () => {
             const url = "https://getwfs.de",
                 typeName = "typeName",
@@ -30,7 +29,6 @@ describe("src/modules/tools/wfsSearch/utils/requests.js", () => {
 
             expect(createdUrl).to.eql(expectedUrl);
         });
-
         it("createUrl not from servicesJson", () => {
             const url = "https://getwfs.de",
                 typeName = "typeName",
@@ -44,7 +42,6 @@ describe("src/modules/tools/wfsSearch/utils/requests.js", () => {
 
             expect(createdUrl).to.eql(expectedUrl);
         });
-
         it("createUrl maxFeatures is 'showAll' and storedFilter", () => {
             const url = "https://getwfs.de",
                 typeName = "typeName",
@@ -58,7 +55,6 @@ describe("src/modules/tools/wfsSearch/utils/requests.js", () => {
 
             expect(createdUrl).to.eql(expectedUrl);
         });
-
         it("createUrl maxFeatures is 'showAll' and xmlFilter", () => {
             const url = "https://getwfs.de",
                 typeName = "typeName",
@@ -75,6 +71,4 @@ describe("src/modules/tools/wfsSearch/utils/requests.js", () => {
             expect(createdUrl.searchParams.get("version")).to.eql("1.1.0");
         });
     });
-
-
 });

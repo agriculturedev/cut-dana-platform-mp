@@ -1,11 +1,11 @@
 import {expect} from "chai";
-import {setCsvAttributes} from "../../../utils/setCsvAttributes";
+import {setCsvAttributes} from "../../../js/setCsvAttributes";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
 import LineString from "ol/geom/LineString";
 import Polygon from "ol/geom/Polygon";
 
-describe("src/modules/tools/draw/utils/setCsvAttributes.js", () => {
+describe("src/modules/draw/js/setCsvAttributes.js", () => {
     let features, code;
 
     beforeEach(function () {
@@ -13,21 +13,17 @@ describe("src/modules/tools/draw/utils/setCsvAttributes.js", () => {
             new Feature({
                 geometry: new Polygon([[[30, 10], [40, 40], [130, 130], [240, 40], [30, 10]]]),
                 name: "featureOne",
-                isGeoCircle: true
+                masterportal_attributes: {
+                    isGeoCircle: true
+                }
             }),
             new Feature({
                 geometry: new Point([123, 456]),
-                name: "featureTwo",
-                attributes: {
-                    name: "featureTwo"
-                }
+                name: "featureTwo"
             }),
             new Feature({
                 geometry: new LineString([[30, 10], [40, 40]]),
-                name: "featureTwo",
-                attributes: {
-                    name: "featureTwo"
-                }
+                name: "featureTwo"
             })
         ];
         code = "EPSG:25382";
@@ -45,49 +41,48 @@ describe("src/modules/tools/draw/utils/setCsvAttributes.js", () => {
     it("should set the property attributes to the feature if it is not available", function () {
         const wktFeatures = setCsvAttributes(features, code);
 
-        expect(wktFeatures[0].get("attributes")).to.be.an("object");
+        expect(wktFeatures[0].get("csv_attributes")).to.be.an("object");
     });
 
     it("should add the key 'geometry' and 'epsg' to the feature attributes", function () {
         const wktFeatures = setCsvAttributes(features, code);
 
-        expect(wktFeatures[1].get("attributes")).to.have.all.keys(["epsg", "geometry", "name"]);
+        expect(wktFeatures[1].get("csv_attributes")).to.have.all.keys(["epsg", "geometry", "name"]);
     });
 
     it("should set the point geometry as wkt", function () {
         const wktFeatures = setCsvAttributes(features, code);
 
-        expect(wktFeatures[1].get("attributes").geometry).to.be.equal("POINT(123 456)");
+        expect(wktFeatures[1].get("csv_attributes").geometry).to.be.equal("POINT(123 456)");
     });
 
     it("should set the linestring geometry as wkt", function () {
         const wktFeatures = setCsvAttributes(features, code);
 
-        expect(wktFeatures[2].get("attributes").geometry).to.be.equal("LINESTRING(30 10,40 40)");
+        expect(wktFeatures[2].get("csv_attributes").geometry).to.be.equal("LINESTRING(30 10,40 40)");
     });
 
     it("should set the polygon geometry as wkt", function () {
         const wktFeatures = setCsvAttributes(features, code);
 
-        expect(wktFeatures[0].get("attributes").geometry).to.be.equal("POLYGON((30 10,40 40,130 130,240 40,30 10))");
+        expect(wktFeatures[0].get("csv_attributes").geometry).to.be.equal("POLYGON((30 10,40 40,130 130,240 40,30 10))");
     });
 
     it("should set the point geometry with default epsg code", function () {
         const wktFeatures = setCsvAttributes(features, code);
 
-        expect(wktFeatures[1].get("attributes").epsg).to.be.equal(code);
+        expect(wktFeatures[1].get("csv_attributes").epsg).to.be.equal(code);
     });
 
     it("should set the linestring geometry with default epsg code", function () {
         const wktFeatures = setCsvAttributes(features, code);
 
-        expect(wktFeatures[2].get("attributes").epsg).to.be.equal(code);
+        expect(wktFeatures[2].get("csv_attributes").epsg).to.be.equal(code);
     });
 
-    it("should set the polygon geometry with another epsg code", function () {
-        code = "EPSG:4326";
+    it("should set the polygon geometry with default epsg code", function () {
         const wktFeatures = setCsvAttributes(features, code);
 
-        expect(wktFeatures[0].get("attributes").epsg).to.be.equal(code);
+        expect(wktFeatures[0].get("csv_attributes").epsg).to.be.equal(code);
     });
 });

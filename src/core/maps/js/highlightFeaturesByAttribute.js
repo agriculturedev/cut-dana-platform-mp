@@ -345,7 +345,6 @@ export default {
             dispatch("Alerting/addSingleAlert", i18next.t("common:core.maps.highlightFeaturesByAttribute.messages.configurationError"), {root: true});
             return;
         }
-
         axios.post(layer.url, requestBody, {
             headers: {
                 "Content-Type": "raw"

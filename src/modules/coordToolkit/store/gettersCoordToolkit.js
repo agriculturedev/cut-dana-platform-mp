@@ -1,16 +1,18 @@
 
 import crs from "@masterportal/masterportalapi/src/crs";
-import {generateSimpleGetters} from "../../../../app-store/utils/generators";
+import {generateSimpleGetters} from "../../../shared/js/utils/generators";
 import coordState from "./stateCoordToolkit";
 
-const getters = {
+/**
+ * The getters for the CoodToolkit.
+ * @module modules/coordToolkit/store/gettersCoordToolkit
+ */
+export default {
     ...generateSimpleGetters(coordState),
-
-    // NOTE overwrite getters here if you need a special behaviour in a getter
 
     /**
      * Transforms the projection.
-     * @param {Object} state state of this tool
+     * @param {Object} state state of this module
      * @param {Object} map the map
      * @param {Object} targetProjection the target projection
      * @returns {Object} the transformed projection
@@ -29,7 +31,7 @@ const getters = {
     },
     /**
      * Returns the projection to the given id.
-     * @param {Object} state state of this tool
+     * @param {Object} state state of this module
      * @param {String} id of the projection, is like the name and in case of decimal "-DG" is appended to name
      * @returns {Object} projection
      */
@@ -42,7 +44,7 @@ const getters = {
     },
     /**
      * Returns true to easting coordinate error variable if one test case fails.
-     * @param {Object} state state of this tool
+     * @param {Object} state state of this module
      * @returns {Boolean} true if an error for the coordinate occurs
      */
     getEastingError: state => {
@@ -50,7 +52,7 @@ const getters = {
     },
     /**
      * Returns true to northing coordinate error variable if one test case fails.
-     * @param {Object} state state of this tool
+     * @param {Object} state state of this module
      * @returns {Boolean} true if an error for the coordinate occurs
      */
     getNorthingError: state => {
@@ -58,7 +60,7 @@ const getters = {
     },
     /**
      * Returns the label name depending on the selected coordinate system.
-     * @param {Object} state state of this tool
+     * @param {Object} state state of this module
      * @param {String} key in the language files
      * @returns {String} the name of the label
      */
@@ -80,8 +82,6 @@ const getters = {
                 type = "cartesian";
         }
 
-        return "modules.tools.coordToolkit." + type + "." + key;
+        return "common:modules.coordToolkit." + type + "." + key;
     }
 };
-
-export default getters;

@@ -118,8 +118,7 @@ describe("src/core/maps/js/highlightFeaturesByAttribute", () => {
                         getCoordinates: () => [100, 100]
                     }),
                     getProperties: () => [],
-                    get: () => sinon.stub(),
-                    setStyle: sinon.stub()
+                    get: () => sinon.stub()
                 },
                 {
                     id: "789",
@@ -128,36 +127,31 @@ describe("src/core/maps/js/highlightFeaturesByAttribute", () => {
                         getCoordinates: () => [150, 150]
                     }),
                     getProperties: () => [],
-                    get: () => sinon.stub(),
-                    setStyle: sinon.stub()
+                    get: () => sinon.stub()
                 }
             ],
             polygonFeatures = [
                 {
                     id: "123",
                     getGeometry: () => new Polygon([[[565086.1948534324, 5934664.461947621], [565657.6945448224, 5934738.54524095], [565625.9445619675, 5934357.545446689], [565234.3614400891, 5934346.962119071], [565086.1948534324, 5934664.461947621]]]),
-                    getProperties: () => [],
-                    setStyle: sinon.stub()
+                    getProperties: () => []
                 },
                 {
                     id: "456",
                     getGeometry: () => new Polygon([[[565086.1948534324, 5934664.461947621], [565657.6945448224, 5934738.54524095], [565625.9445619675, 5934357.545446689], [565234.3614400891, 5934346.962119071], [565086.1948534324, 5934664.461947621]]]),
-                    getProperties: () => [],
-                    setStyle: sinon.stub()
+                    getProperties: () => []
                 }
             ],
             lineFeatures = [
                 {
                     id: "123",
                     getGeometry: () => new LineString([[0, 0], [1000, 0]]),
-                    getProperties: () => [],
-                    setStyle: sinon.stub()
+                    getProperties: () => []
                 },
                 {
                     id: "456",
                     getGeometry: () => new LineString([[0, 0], [1000, 0]]),
-                    getProperties: () => [],
-                    setStyle: sinon.stub()
+                    getProperties: () => []
                 }
             ],
             styleObject = {

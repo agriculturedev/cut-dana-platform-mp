@@ -16,6 +16,7 @@ describe("src/shared/js/utils/getWmsFeaturesByMimeType.js", () => {
     let layer = null,
         aFeature = null;
 
+
     beforeEach(() => {
         layer = {
             get: (key) => {
@@ -232,37 +233,6 @@ describe("src/shared/js/utils/getWmsFeaturesByMimeType.js", () => {
             expect(result[0].getTheme()).to.equal("gfiTheme");
             expect(result[0].getAttributesToShow()).to.equal("attributesToShow");
             expect(result[0].getProperties()).to.deep.equal({});
-        });
-        it("handles response with mimeType application/json, filled body with geometry and the given url", async () => {
-            const objectMock = {
-                    features: [
-                        {
-                            geometry: {
-                                coordinates: [
-                                    [
-                                        [
-                                            [386470, 5819395],
-                                            [386470, 5819390],
-                                            [386559, 5819397],
-                                            [386558, 5819403],
-                                            [386470, 5819395]
-                                        ]
-                                    ]
-                                ],
-                                type: "MultiPolygon"
-                            },
-                            id: "1",
-                            properties: {},
-                            type: "Feature"
-                        }
-                    ]
-                },
-                result = handleJSONResponse(objectMock, layer, url);
-
-            expect(result).to.be.an("array").to.have.lengthOf(1);
-            expect(result[0]).to.be.an("object");
-            expect(result[0].getOlFeature()).to.be.an("object");
-            expect(result[0].getOlFeature().getGeometry).to.be.an("function");
         });
     });
     describe("mergeFeatures", () => {

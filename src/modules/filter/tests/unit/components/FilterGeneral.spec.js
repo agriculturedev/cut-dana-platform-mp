@@ -63,20 +63,6 @@ describe("src/modules/filter/components/FilterGeneral.vue", () => {
         expect(wrapper.find("#filter").exists()).to.be.true;
     });
 
-    it("should not render element with question class", () => {
-        wrapper.vm.setActive(true);
-
-        expect(wrapper.find(".question").exists()).to.be.false;
-    });
-
-    it("should render element with question class", async () => {
-        wrapper.vm.setActive(true);
-        wrapper.vm.setQuestionLink("https://bitbucket.org/geowerkstatt-hamburg/addons/src/dev/cosi/manuals/005filter.md");
-        await wrapper.vm.$nextTick();
-
-        expect(wrapper.find(".question").exists()).to.be.true;
-    });
-
     it("should render two accordions if two layer groups are present and layerSelectorVisible is true", async () => {
         wrapper.vm.setLayerGroups(groups);
         await wrapper.vm.$nextTick();

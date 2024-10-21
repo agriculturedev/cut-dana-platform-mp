@@ -53,36 +53,19 @@ const symbol = {
      * @property {String[]} drawSymbolSettings.color The color of the drawn feature represented as an array.
      * @property {Number} drawSymbolSettings.opacity The opacity of the color of the drawn features. NOTE: The values of the transparencySettings are opacity values.
      * @property {Object} drawLineSettings the values used for the drawType drawLine
-     * @property {Object} drawLineSettings.unit The unit of measurement (e.g. "km").
-     * @property {Object} drawLineSettings.length the length of the line
      * @property {Number} drawLineSettings.strokeWidth Stroke width.
      * @property {Number} drawLineSettings.opacityContour The opacity of the color of the contours for features of drawType "LineString". NOTE: The values of the transparencySettings are opacity values.
      * @property {String[]} drawLineSettings.colorContour The color of the contours of the drawn feature represented as an array.
-     * @property {Object} drawLineSettings.tooltipStyle The custom style for the tooltip of drawType "Line".
      * @property {Object} drawCurveSettings the values used for the drawType drawCurve
      * @property {Number} drawCurveSettings.strokeWidth Stroke width.
      * @property {Number} drawCurveSettings.opacityContour The opacity of the color of the contours for features of drawType "LineString". NOTE: The values of the transparencySettings are opacity values.
      * @property {String[]} drawCurveSettings.colorContour The color of the contours of the drawn feature represented as an array.
      * @property {Object} drawAreaSettings the values used for the drawType drawArea
      * @property {Number} drawAreaSettings.strokeWidth Stroke width.
-     * @property {String} drawAreaSettings.unit The unit of measurement (e.g. "km").
-     * @property {String} drawAreaSettings.area The area of the area.
      * @property {String[]} drawAreaSettings.color The color of the drawn feature represented as an array.
      * @property {Number} drawAreaSettings.opacity The opacity of the color of the drawn features. NOTE: The values of the transparencySettings are opacity values.
      * @property {String[]} drawAreaSettings.colorContour The color of the contours of the drawn feature represented as an array.
      * @property {Number} drawAreaSettings.opacityContour The opacity of the color of the contours for features of drawType "LineString". NOTE: The values of the transparencySettings are opacity values.
-     * @property {Object} drawAreaSettings.tooltipStyle The custom style for the tooltip of drawType "Area".
-     * @property {Object} drawSquareSettings the values used for the drawType drawSquare
-     * @property {String} drawSquareSettings.squareMethod The method for drawing features of drawType "Square".
-     * @property {Number} drawSquareSettings.strokeWidth Stroke width.
-     * @property {String} drawSquareSettings.unit The unit of measurement (e.g. "km").
-     * @property {Number} drawSquareSettings.squareArea The area of the square.
-     * @property {Number} drawSquareSettings.squareSide The length of the sides from the square, only calculated if not modified and all sides are the same length.
-     * @property {String[]} drawSquareSettings.color The color of the drawn feature represented as an array.
-     * @property {Number} drawSquareSettings.opacity The opacity of the color of the drawn features. NOTE: The values of the transparencySettings are opacity values.
-     * @property {String[]} drawSquareSettings.colorContour The color of the contours of the drawn feature represented as an array.
-     * @property {Number} drawSquareSettings.opacityContour The opacity of the color of the contours for features of drawType "LineString". NOTE: The values of the transparencySettings are opacity values.
-     * @property {Object} drawSquareSettings.tooltipStyle The custom style for the tooltip of drawType "Square".
      * @property {Object} drawCircleSettings the values used for the drawType drawCircle
      * @property {String} drawCircleSettings.circleMethod The method for drawing features of drawType "Circle".
      * @property {Object} drawCircleSettings.tooltipStyle The custom style for the tooltip of drawType "Circle".
@@ -180,18 +163,9 @@ const symbol = {
             opacity: 1
         },
         drawLineSettings: {
-            unit: "m",
-            length: 0,
             strokeWidth: 1,
             opacityContour: 1,
-            colorContour: [0, 0, 0, 1],
-            tooltipStyle: {
-                fontSize: "14px",
-                paddingTop: "3px",
-                paddingLeft: "3px",
-                paddingRight: "3px",
-                backgroundColor: "rgba(255, 255, 255, .9)"
-            }
+            colorContour: [0, 0, 0, 1]
         },
         drawCurveSettings: {
             strokeWidth: 1,
@@ -200,37 +174,10 @@ const symbol = {
         },
         drawAreaSettings: {
             strokeWidth: 1,
-            unit: "m",
-            area: 0,
             color: [55, 126, 184, 1],
             opacity: 1,
             colorContour: [0, 0, 0, 1],
-            opacityContour: 1,
-            tooltipStyle: {
-                fontSize: "14px",
-                paddingTop: "3px",
-                paddingLeft: "3px",
-                paddingRight: "3px",
-                backgroundColor: "rgba(255, 255, 255, .9)"
-            }
-        },
-        drawSquareSettings: {
-            squareMethod: "interactive",
-            strokeWidth: 1,
-            squareSide: 0,
-            unit: "m",
-            squareArea: 0,
-            color: [55, 126, 184, 1],
-            opacity: 1,
-            colorContour: [0, 0, 0, 1],
-            opacityContour: 1,
-            tooltipStyle: {
-                fontSize: "14px",
-                paddingTop: "3px",
-                paddingLeft: "3px",
-                paddingRight: "3px",
-                backgroundColor: "rgba(255, 255, 255, .9)"
-            }
+            opacityContour: 1
         },
         drawCircleSettings: {
             circleMethod: "interactive",

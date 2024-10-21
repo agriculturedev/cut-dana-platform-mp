@@ -1,14 +1,13 @@
-/* eslint-disable no-process-env */
 const webpack = require("webpack"),
     MiniCssExtractPlugin = require("mini-css-extract-plugin"),
     path = require("path"),
     fse = require("fs-extra"),
-    VueLoaderPlugin = require("vue-loader/lib/plugin"),
+    {VueLoaderPlugin} = require("vue-loader"),
 
     rootPath = path.resolve(__dirname, "../"),
     addonBasePath = path.resolve(rootPath, "addons"),
     addonConfigPath = path.resolve(addonBasePath, "addonsConf.json"),
-    entryPoints = {masterportal: path.resolve(rootPath, "js/main.js")};
+    entryPoints = {masterportal: path.resolve(rootPath, "src/main.js")};
 
 let addonEntryPoints = {};
 
@@ -21,27 +20,7 @@ else {
 
 module.exports = function () {
     const addonsRelPaths = {},
-        vueAddonsRelPaths = {},
-        plugins = [
-            // provide libraries globally
-            new webpack.ProvidePlugin({
-                jQuery: "jquery",
-                $: "jquery",
-                Backbone: "backbone",
-                Radio: "backbone.radio",
-                i18next: ["i18next/dist/cjs/i18next.js"],
-                _: "underscore"
-            }),
-            // create css under build/
-            new MiniCssExtractPlugin({
-                filename: "css/[name].css"
-            }),
-            new VueLoaderPlugin()
-        ];
-
-    if (process.env.EXCLUDE_ADDON) {
-        plugins.push(new webpack.IgnorePlugin(new RegExp(process.env.EXCLUDE_ADDON + "/", "i")));
-    }
+        vueAddonsRelPaths = {};
 
     for (const addonName in addonEntryPoints) {
         let isVueAddon = false,
@@ -86,14 +65,8 @@ module.exports = function () {
         else {
             addonsRelPaths[addonName] = addonCombinedRelpath;
         }
-    }
 
-    plugins.push(
-        // create global constant at compile time
-        new webpack.DefinePlugin({
-            ADDONS: JSON.stringify(addonsRelPaths),
-            VUE_ADDONS: JSON.stringify(vueAddonsRelPaths)
-        }));
+    }
 
     return {
         entry: entryPoints,
@@ -120,8 +93,10 @@ module.exports = function () {
         resolve: {
             alias: {
                 text: "text-loader",
-                "variables": path.resolve(__dirname, "..", "css", "variables.scss")
-            }
+                "mixins": path.resolve(__dirname, "..", "src", "assets", "css", "mixins.scss"),
+                "variables": path.resolve(__dirname, "..", "src", "assets", "css", "variables.scss")
+            },
+            extensions: [".tsx", ".ts", ".js"]
         },
         module: {
             unknownContextCritical: false,
@@ -148,6 +123,17 @@ module.exports = function () {
                     }
                 },
                 {
+                    test: /\.[t]sx?$/,
+                    use: {
+                        loader: "esbuild-loader"
+                    }
+                },
+                {
+                    test: /\.mjs$/,
+                    include: /node_modules/,
+                    type: "javascript/auto"
+                },
+                {
                     test: /\.scss$/,
                     use: [
                         {
@@ -169,12 +155,7 @@ module.exports = function () {
                 },
                 {
                     test: /\.vue$/,
-                    loader: "vue-loader",
-                    options: {
-                        loaders: {
-                            js: "esbuild-loader?"
-                        }
-                    }
+                    loader: "vue-loader"
                 },
                 {
                     test: /\.(png|jpe?g|gif)$/i,
@@ -192,6 +173,23 @@ module.exports = function () {
                 }
             ]
         },
-        plugins: plugins
+        plugins: [
+            // provide libraries globally
+            new webpack.ProvidePlugin({
+                i18next: ["i18next/dist/cjs/i18next.js"]
+            }),
+            // create css under build/
+            new MiniCssExtractPlugin({
+                filename: "css/[name].css"
+            }),
+            new VueLoaderPlugin(),
+            // create global constant at compile time
+            new webpack.DefinePlugin({
+                ADDONS: JSON.stringify(addonsRelPaths),
+                __VUE_OPTIONS_API__: true,
+                __VUE_PROD_DEVTOOLS__: false,
+                VUE_ADDONS: JSON.stringify(vueAddonsRelPaths)
+            })
+        ]
     };
 };

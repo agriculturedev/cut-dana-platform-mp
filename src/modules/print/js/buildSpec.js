@@ -1,25 +1,26 @@
-import {Point} from "ol/geom.js";
-import {fromCircle} from "ol/geom/Polygon.js";
-import CircleStyle from "ol/style/Circle";
-import Icon from "ol/style/Icon";
 import Feature from "ol/Feature.js";
 import {GeoJSON} from "ol/format.js";
 import {Group, Image, Tile, Vector} from "ol/layer.js";
-import store from "../../../../app-store/index";
-import isObject from "../../../../utils/isObject";
-import differenceJS from "../../../../utils/differenceJS";
-import sortBy from "../../../../utils/sortBy";
-import uniqueId from "../../../../utils/uniqueId";
-import findWhereJs from "../../../../utils/findWhereJs";
-import Geometry from "ol/geom/Geometry";
-import {convertColor} from "../../../../utils/convertColor";
 import {MVTEncoder} from "@geoblocks/print";
+import Geometry from "ol/geom/Geometry";
+import {Point} from "ol/geom.js";
+import Icon from "ol/style/Icon";
+import {fromCircle} from "ol/geom/Polygon.js";
+import CircleStyle from "ol/style/Circle";
 import VectorTileLayer from "ol/layer/VectorTile";
-import {getLastPrintedExtent} from "../store/actions/actionsPrintInitialization";
+import StaticImageSource from "ol/source/ImageStatic.js";
+import {convertColor} from "../../../shared/js/utils/convertColor";
+import isObject from "../../../shared/js/utils/isObject";
+import differenceJS from "../../../shared/js/utils/differenceJS";
+import findWhereJs from "../../../shared/js/utils/findWhereJs";
+import {getLastPrintedExtent} from "../store/actionsPrintInitialization";
+import sortBy from "../../../shared/js/utils/sortBy";
+import store from "../../../app-store";
 import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList";
 import createStyle from "@masterportal/masterportalapi/src/vectorStyle/createStyle";
 import {getRulesForFeature} from "@masterportal/masterportalapi/src/vectorStyle/lib/getRuleForIndex";
-import StaticImageSource from "ol/source/ImageStatic.js";
+import layerCollection from "../../../core/layers/js/layerCollection";
+import {uniqueId} from "../../../shared/js/utils/uniqueId.js";
 
 const BuildSpecModel = {
     defaults: {
@@ -36,7 +37,6 @@ const BuildSpecModel = {
             scale: null
         }
     },
-
     /**
      * Fetches the metadata object and checks if object is from own request.
      * If so it removes the unique id from the unique id list.
@@ -50,22 +50,20 @@ const BuildSpecModel = {
             if (this.defaults.uniqueIdList.length === 0) {
                 const printJob = {
                     index: cswObj.index,
-                    payload: this.defaults,
+                    payload: encodeURIComponent(JSON.stringify(this.defaults)),
                     getResponse: cswObj.getResponse
                 };
 
-                store.dispatch("Tools/Print/createPrintJob", printJob);
+                store.dispatch("Modules/Print/createPrintJob", printJob);
             }
         }
     },
-
     setAttributes: function (attr) {
         this.defaults.attributes = attr.attributes;
         this.defaults.layout = attr.layout;
         this.defaults.outputFilename = attr.outputFilename;
         this.defaults.outputFormat = attr.outputFormat;
     },
-
     /**
      * Checks if csw request belongs to this model.
      * @param {String[]} uniqueIdList List of all metaRequest-ids belonging to this model.
@@ -75,7 +73,6 @@ const BuildSpecModel = {
     isOwnMetaRequest: function (uniqueIdList, uniqId) {
         return Array.isArray(uniqueIdList) && uniqueIdList.indexOf(uniqId) !== -1;
     },
-
     /**
      * Removes the uniqueId from the uniqueIdList, because the request returned something.
      * @param {String[]} uniqueIdList List of all metaRequest-ids belonging to this model.
@@ -85,7 +82,6 @@ const BuildSpecModel = {
     removeUniqueIdFromList: function (uniqueIdList, uniqId) {
         this.setUniqueIdList(differenceJS(uniqueIdList, [uniqId]));
     },
-
     /**
      * Updates the metadata from the metadata response.
      * @param {String} layerName name of layer.
@@ -105,7 +101,6 @@ const BuildSpecModel = {
             layer.metaUrl = parsedData?.url ? parsedData.url : "n.N.";
         }
     },
-
     /**
      * Parses the address object to a string.
      * @param {Object} addressObj Address Object
@@ -160,17 +155,14 @@ const BuildSpecModel = {
         }
         return addressString;
     },
-
     /**
      * Returns true, if the given string is not empty or undefined
-     * @param {string} string to check
-     * @returns {boolean} true, if string has content
+     * @param {String} string to check
+     * @returns {Boolean} true, if string has content
      */
     isFilled: function (string) {
         return string !== undefined && string.trim() !== "";
     },
-
-
     /**
      * Defines the layers attribute of the map spec
      * @param {ol.layer.Layer[]} layerList All visible layers on the map.
@@ -180,7 +172,7 @@ const BuildSpecModel = {
     buildLayers: async function (layerList, dpi) {
         const layers = [],
             attributes = this.defaults.attributes,
-            currentResolution = Radio.request("MapView", "getOptions")?.resolution,
+            currentResolution = store.getters["Maps/resolution"],
             visibleLayerIds = [];
 
         if (Array.isArray(layerList)) {
@@ -208,14 +200,13 @@ const BuildSpecModel = {
             }
         }
         this.setVisibleLayerIds(visibleLayerIds);
-        if (store.state.Tools.Print.printService === "plotservice") {
+        if (store.state.Modules.Print.printService === "plotservice") {
             attributes.map.layers = layers;
         }
         else {
             attributes.map.layers = layers.reverse();
         }
     },
-
     /**
      * Sorts the features of the draw layer by z-index and returns the vector object for mapfish-print-3
      * @param {ol.layer}  layer   ol.Layer with features.
@@ -230,7 +221,7 @@ const BuildSpecModel = {
                 }
                 return 0;
             }),
-            visibleFeatures = features.filter(feature => feature.get("isVisible"));
+            visibleFeatures = features.filter(feature => feature.get("isVisible") ?? feature.get("masterportal_attributes").isVisible);
 
         if (visibleFeatures.length > 0) {
             return this.buildVector(layer, visibleFeatures, extent);
@@ -238,7 +229,6 @@ const BuildSpecModel = {
 
         return undefined;
     },
-
     /**
      * Returns information about the layer depending on the layer type.
      *
@@ -249,7 +239,7 @@ const BuildSpecModel = {
      * @returns {Object} - LayerObject for MapFish print.
      */
     buildLayerType: async function (layer, currentResolution, dpi, scaleDoesNotMatter = false) {
-        const extent = store.getters["Maps/getCurrentExtent"],
+        const extent = store.getters["Maps/extent"],
             layerMinRes = typeof layer?.get === "function" ? layer.get("minResolution") : false,
             layerMaxRes = typeof layer?.get === "function" ? layer.get("maxResolution") : false,
             isInScaleRange = this.isInScaleRange(layerMinRes, layerMaxRes, currentResolution);
@@ -290,7 +280,6 @@ const BuildSpecModel = {
 
         return returnLayer;
     },
-
     /**
      * Checks if layer is in the visible resolution range.
      * @param {Number} layerMinRes Maximum resolution of layer.
@@ -307,7 +296,6 @@ const BuildSpecModel = {
 
         return isInScale;
     },
-
     /**
      * Builds the information needed for MapFish to print the given WMTS Layer.
      *
@@ -350,18 +338,17 @@ const BuildSpecModel = {
             requestEncoding: source.getRequestEncoding()
         };
     },
-
     /**
      * returns vector tile layer information
      * @param {ol.layer.VectorTile} layer vector tile layer with vector tile source
-     * @param {number} resolution print resolution
+     * @param {Number} resolution print resolution
      * @param {ol.Extent} extent printed extent
      * @returns {Object} - static image layer spec
      */
     buildVectorTile: async function (layer, resolution, extent) {
         MVTEncoder.useImmediateAPI = false;
-        const mapInfo = store.state.Tools.Print.layoutMapInfo,
-            targetDPI = store.state.Tools.Print.dpiForPdf,
+        const mapInfo = store.state.Modules.Print.layoutMapInfo,
+            targetDPI = store.state.Modules.Print.dpiForPdf,
             factor = targetDPI / 72,
             targetWidth = mapInfo[0] * factor,
             targetHeight = mapInfo[1] * factor,
@@ -400,25 +387,33 @@ const BuildSpecModel = {
      */
     buildTileWms: function (layer, dpi) {
         const source = layer.getSource(),
-            isPlotservice = store.state.Tools.Print.printService === "plotservice",
-            mapObject = {
-                baseURL: source.getUrls()[0],
-                opacity: layer.getOpacity(),
-                type: source.getParams().SINGLETILE || isPlotservice ? "WMS" : "tiledwms",
-                layers: source.getParams().LAYERS.split(","),
-                styles: source.getParams().STYLES ? source.getParams().STYLES.split(",") : undefined,
-                imageFormat: source.getParams().FORMAT,
-                customParams: {
-                    "TRANSPARENT": source.getParams().TRANSPARENT,
-                    "DPI": typeof dpi === "number" ? dpi : store.state.Tools.Print.dpiForPdf
-                }
-            };
+            isPlotservice = store.state.Modules.Print.printService === "plotservice";
+        let mapObject = null,
+            styles;
 
-        if (store.state.Tools.Print.printService === "plotservice") {
-            mapObject.title = layer.get("name");
+        if (source.getParams().STYLES) {
+            if (typeof source.getParams().STYLES === "string") {
+                styles = source.getParams().STYLES.split(",");
+            }
+            else if (Array.isArray(source.getParams().STYLES)) {
+                styles = source.getParams().STYLES;
+            }
         }
-        if (source.getParams().VERSION) {
-            mapObject.version = source.getParams().VERSION;
+        mapObject = {
+            baseURL: source.getUrls()[0],
+            opacity: layer.getOpacity(),
+            type: source.getParams().SINGLETILE || isPlotservice ? "WMS" : "tiledwms",
+            layers: source.getParams().LAYERS.split(","),
+            styles: styles,
+            imageFormat: source.getParams().FORMAT,
+            customParams: {
+                "TRANSPARENT": source.getParams().TRANSPARENT,
+                "DPI": typeof dpi === "number" ? dpi : store.state.Modules.Print.dpiForPdf
+            }
+        };
+
+        if (store.state.Modules.Print.printService === "plotservice") {
+            mapObject.title = layer.get("name");
         }
         if (!source.getParams().SINGLETILE) {
             mapObject.tileSize = [source.getParams().WIDTH, source.getParams().HEIGHT];
@@ -429,7 +424,6 @@ const BuildSpecModel = {
         }
         return mapObject;
     },
-
     /**
      * Returns image wms layer information
      * @param {ol.layer.Image} layer - image layer with image wms source
@@ -454,26 +448,25 @@ const BuildSpecModel = {
             mapObject.imageFormat = source.getParams().FORMAT;
             mapObject.customParams = {
                 "TRANSPARENT": source.getParams().TRANSPARENT,
-                "DPI": typeof dpi === "number" ? dpi : store.state.Tools.Print.dpiForPdf
+                "DPI": typeof dpi === "number" ? dpi : store.state.Modules.Print.dpiForPdf
             };
             if (source.getParams().VERSION) {
                 mapObject.version = source.getParams().VERSION;
             }
         }
 
-        if (store.state.Tools.Print.printService === "plotservice") {
+        if (store.state.Modules.Print.printService === "plotservice") {
             mapObject.title = layer.get("name");
         }
 
         return mapObject;
     },
-
     /**
      * returns vector layer information
      * @param {ol.layer.Vector} layer vector layer with vector source
      * @param {ol.feature[]} features vectorfeatures
      * @param {ol.extent} extent  Extent uses to filter the feature by extent.
-     * @returns {object} - geojson layer spec
+     * @returns {Object} - geojson layer spec
      */
     buildVector: function (layer, features, extent) {
         const geojsonList = [];
@@ -484,7 +477,6 @@ const BuildSpecModel = {
             geojson: geojsonList
         };
     },
-
     /**
      * Generates the style for mapfish print.
      * @param {ol.layer} layer ol-Layer with features.
@@ -503,9 +495,7 @@ const BuildSpecModel = {
         if (!layersToNotReverse.includes(layer.values_.id)) {
             features.reverse();
         }
-
         features.forEach(feature => {
-        // features.slice(0, 20).forEach(feature => {
             const foundFeature = featuresInExtent.find(featureInExtent => featureInExtent.ol_uid === feature.ol_uid),
                 styles = this.getFeatureStyle(feature, layer),
                 styleAttributes = this.getStyleAttributes(layer, feature);
@@ -522,17 +512,14 @@ const BuildSpecModel = {
                 styleGeometryFunction;
 
             styles.forEach((style, index) => {
-
                 if (style !== null) {
                     const styleObjectFromStyleList = styleList.returnStyleObject(layer.get("styleId"));
-
                     let limiter = ",",
                         styleFromStyleList = styleObjectFromStyleList ? createStyle.getGeometryStyle(feature, styleObjectFromStyleList.rules, false, Config.wfsImgPath) : undefined;
 
                     if (Array.isArray(styleFromStyleList)) {
                         styleFromStyleList = styleFromStyleList[0];
                     }
-
                     clonedFeature = feature.clone();
                     styleAttributes.forEach(attribute => {
                         const singleFeature = clonedFeature.get("features") ? clonedFeature.get("features")[0] : clonedFeature;
@@ -561,7 +548,7 @@ const BuildSpecModel = {
                             offsetStyle = styleObjectFromStyleList?.rules?.find(({style: {imageOffsetX, imageOffsetY}}) => imageOffsetX || imageOffsetY)?.style,
                             [posX, posY] = mapCollection.getMap("2D").getPixelFromCoordinate(coords),
                             [offsetX, offsetY] = [offsetStyle?.imageOffsetX ?? 0, offsetStyle?.imageOffsetY ?? 0],
-                            mapScaleFactor = store.state.Tools.Print.currentScale / store.state.Tools.Print.currentMapScale,
+                            mapScaleFactor = store.state.Modules.Print.currentScale / store.state.Modules.Print.currentMapScale,
                             transformedCoords = mapCollection.getMap("2D").getCoordinateFromPixel([posX - offsetX * mapScaleFactor, posY - offsetY * mapScaleFactor, 0]);
 
                         clonedFeature.getGeometry().setCoordinates(transformedCoords);
@@ -577,7 +564,7 @@ const BuildSpecModel = {
                         }
                     }
                     stylingRules = this.getStylingRules(layer, clonedFeature, styleAttributes, style);
-                    if (styleFromStyleList?.attributes?.labelField?.length > 0) {
+                    if (styleFromStyleList !== undefined && styleFromStyleList.attributes?.labelField && styleFromStyleList.attributes?.labelField.length > 0) {
                         stylingRules = stylingRules.replaceAll(limiter, " AND ");
                         limiter = " AND ";
                     }
@@ -627,19 +614,86 @@ const BuildSpecModel = {
                     if (style.getText() !== null && style.getText() !== undefined) {
                         styleObject.symbolizers.push(this.buildTextStyle(style.getText()));
                     }
-
                     if (stylingRules.includes("@Datastreams")) {
                         const newKey = stylingRules.replaceAll("@", "").replaceAll(".", "");
 
                         stylingRules = newKey;
                     }
+
                     mapfishStyleObject[stylingRules] = styleObject;
                 }
             });
         });
         return mapfishStyleObject;
     },
+    /**
+     * @param {ol.Feature} feature -
+     * @param {ol.layer.Vector} layer -
+     * @returns {ol.style.Style[]} returns or an array of styles
+     */
+    getFeatureStyle: function (feature, layer) {
+        let styles;
 
+        if (feature.getStyleFunction() !== undefined) {
+            try {
+                styles = feature.getStyleFunction().call(feature);
+            }
+            catch (e) {
+                styles = feature.getStyleFunction().call(this, feature);
+            }
+        }
+        else {
+            styles = layer.getStyleFunction().call(layer, feature);
+        }
+
+        return !Array.isArray(styles) ? [styles] : styles;
+    },
+    /**
+     * @param {ol.Layer} layer -
+     * @param {ol.feature} feature - the feature of current layer
+     * @returns {String[]} the attributes by whose value the feature is styled
+     */
+    getStyleAttributes: function (layer, feature) {
+        const layerId = layer.get("id"),
+            styleObject = this.getStyleObject(layer, layerId);
+        let styleFields = ["styleId"];
+
+        if (styleObject !== undefined) {
+            if (layer.get("styleId")) {
+                const featureRules = getRulesForFeature(styleObject, feature);
+
+                styleFields = featureRules?.[0]?.conditions ? Object.keys(featureRules[0].conditions.properties) : ["default"];
+            }
+            else {
+                styleFields = [styleObject.get("styleField")];
+            }
+        }
+
+        return styleFields;
+    },
+    /**
+     * Gets the style object for the given layer.
+     * @param {ol/layer} layer The layer.
+     * @param {String} layerId The layer id.
+     * @returns {Object} The style object.
+     */
+    getStyleObject (layer, layerId) {
+        const layerModel = layerCollection.getLayerById(layer.get("id"));
+        let foundChild;
+
+        if (typeof layerModel?.get === "function") {
+            if (layerModel.get("typ") === "GROUP") {
+                foundChild = layerModel.get("children").find(child => child.id === layerId);
+                if (foundChild) {
+                    return styleList.returnStyleObject(foundChild.styleId);
+                }
+            }
+            else {
+                return styleList.returnStyleObject(layerModel.get("styleId"));
+            }
+        }
+        return undefined;
+    },
     /**
      * The geometry of the feature is checked for not closed linearRing. Used for type Polygon.
      * If it is not closed, the coordinates are adapted.
@@ -662,471 +716,6 @@ const BuildSpecModel = {
         }
         return feature;
     },
-
-    /**
-     * Gets the style object for the given layer.
-     * @param {ol/layer} layer The layer.
-     * @param {String} layerId The layer id.
-     * @returns {Object} The style object.
-     */
-    getStyleObject (layer, layerId) {
-        const layerModel = Radio.request("ModelList", "getModelByAttributes", {id: layer?.get("id")});
-        let foundChild;
-
-        if (typeof layerModel?.get === "function") {
-            if (layerModel.get("typ") === "GROUP") {
-                foundChild = layerModel.get("children").find(child => child.id === layerId);
-                if (foundChild) {
-                    return styleList.returnStyleObject(foundChild.styleId);
-                }
-            }
-            else {
-                return styleList.returnStyleObject(layerModel.get("styleId"));
-            }
-        }
-        return undefined;
-    },
-
-    /**
-     * Unsets all properties of type string of the given feature.
-     * @param {ol.Feature} feature to unset properties of type string at
-     * @param {string} notToUnset key not to unset
-     * @returns {void}
-     */
-    unsetStringPropertiesOfFeature: function (feature, notToUnset) {
-        Object.keys(feature.getProperties()).forEach(key => {
-            const prop = feature.getProperties()[key];
-
-            if (!notToUnset.includes(key) && typeof prop === "string") {
-                feature.unset(key, {silent: true});
-            }
-        });
-    },
-
-    /**
-     * Generates the point Style
-     * @param {ol.style} style Style of layer.
-     * @param {ol.layer} layer Ol-layer.
-     * @returns {Object} - Point Style for mapfish print.
-     */
-    buildPointStyle: function (style, layer) {
-        if (style.getImage() instanceof CircleStyle) {
-            return this.buildPointStyleCircle(style.getImage());
-        }
-        else if (style.getImage() instanceof Icon && style.getImage().getScale() > 0) {
-            return this.buildPointStyleIcon(style.getImage(), layer);
-        }
-        return this.buildTextStyle(style.getText());
-    },
-
-    /**
-     * Generates the point Style for circle style
-     * @param {ol.style} style Style of layer.
-     * @returns {Object} - Circle Style for mapfish print.
-     */
-    buildPointStyleCircle: function (style) {
-        const fillStyle = style.getFill(),
-            strokeStyle = style.getStroke(),
-            obj = {
-                type: "point",
-                pointRadius: style.getRadius()
-            };
-
-        if (fillStyle !== null) {
-            this.buildFillStyle(fillStyle, obj);
-            this.buildStrokeStyle(fillStyle, obj);
-        }
-        if (strokeStyle !== null) {
-            this.buildStrokeStyle(strokeStyle, obj);
-        }
-        return obj;
-    },
-
-    /**
-     * Generates the point Style for icons
-     * @param {ol.style} style Style of layer.
-     * @param {ol.layer} layer Ol-layer.
-     * @returns {Object} - Icon Style for mapfish print.
-     */
-    buildPointStyleIcon: function (style, layer) {
-        return {
-            type: "point",
-            graphicWidth: style.getSize()[0] ? style.getSize()[0] * style.getScale() : 60,
-            graphicHeight: style.getSize()[1] ? style.getSize()[1] * style.getScale() : 60,
-            externalGraphic: this.buildGraphicPath(style.getSrc()),
-            graphicOpacity: layer.getOpacity()
-        };
-    },
-
-    /**
-     * derives the url of the image from the server the app is running on
-     * if the app is running on localhost the images from test.geoportal-hamburg.de are used
-     * @param {object} src the image source
-     * @return {String} path or url to image directory
-     */
-    buildGraphicPath: function (src) {
-        const origin = window.location.origin;
-        let url = Config.wfsImgPath + this.getImageName(src);
-
-        if (src.indexOf("http") === 0 && src.indexOf("localhost") === -1) {
-            url = src;
-        }
-        else if (src.charAt(0) === "/") {
-            url = origin + src;
-        }
-        else if (src.indexOf("../") === 0 || src.indexOf("./") === 0) {
-            url = new URL(src, window.location.href).href;
-        }
-        else if (src.indexOf("data:image/svg+xml;charset=utf-8") === 0) {
-            url = src;
-        }
-        else if (origin.indexOf("localhost") === -1) {
-            // backwards-compatibility:
-            url = origin + "/lgv-config/img/" + this.getImageName(src);
-        }
-
-        return url;
-    },
-
-    /**
-     * Generates the text Style
-     * @param {ol.style} style Style of layer.
-     * @see https://openlayers.org/en/latest/apidoc/module-ol_style_Text.html
-     * @returns {Object} - Text Style for mapfish print.
-     */
-    buildTextStyle: function (style) {
-        // use openlayers kml default font, if not set
-        const font = style.getFont() ? style.getFont() : "bold 16px Helvetica",
-            size = this.getFontSize(font),
-            isFontSizeInFont = size !== null,
-            textScale = style.getScale() ? style.getScale() : 1,
-            fontSize = isFontSizeInFont ? size : 10 * textScale,
-            fontFamily = isFontSizeInFont ? this.getFontFamily(font, fontSize) : font,
-            fontColor = style.getFill().getColor(),
-            stroke = style.getStroke() ? style.getStroke() : undefined;
-
-        return {
-            type: "text",
-            // tell MapFish that each feature has a property "_label" which contains the label-string
-            // it is necessary to "add/fill" the "_label"-property when we call convertFeatureToGeoJson()
-            // before we add it to the geoJSONList
-            label: "[_label]",
-            fontColor: convertColor(fontColor, "hex"),
-            fontOpacity: fontColor[0] !== "#" ? fontColor[3] : 1,
-            labelOutlineColor: stroke ? convertColor(stroke.getColor(), "hex") : undefined,
-            labelOutlineWidth: stroke ? stroke.getWidth() : undefined,
-            labelXOffset: style.getOffsetX(),
-            labelYOffset: -style.getOffsetY(),
-            fontSize: fontSize,
-            fontFamily: fontFamily,
-            labelAlign: this.getLabelAlign(style)
-        };
-    },
-
-    /**
-     * Inspects the given fontDef for family.
-     * @param {String} fontDef the defined font
-     * @param {String} fontSize the size incuding in the font
-     * @returns {String} the font-family or an empty String if not contained
-     */
-    getFontFamily: function (fontDef, fontSize) {
-        const index = fontDef ? fontDef.indexOf(" ", fontDef.indexOf(fontSize)) : -1;
-
-        if (index > -1) {
-            return fontDef.substring(index + 1);
-        }
-        return "";
-    },
-    /**
-     * Inspects the given fontDef for numbers (=size).
-     * @param {String} fontDef the defined font
-     * @returns {String} the font-size or null if not contained
-     */
-    getFontSize: function (fontDef) {
-        const size = fontDef ? fontDef.match(/\d/g) : null;
-
-        if (Array.isArray(size) && size.length > 0) {
-            return size.join("");
-        }
-        return null;
-    },
-
-    /**
-     * gets the indicator of how to align the text with respect to the geometry.
-     * this property must have 2 characters, the x-align and the y-align.
-     * @param {ol.style} style Style of layer.
-     * @returns {String} - placement indicator
-     */
-    getLabelAlign: function (style) {
-        const textAlign = style.getTextAlign();
-
-        if (textAlign === "left") {
-            // left bottom
-            return "lb";
-        }
-        else if (textAlign === "right") {
-            // right bottom
-            return "rb";
-        }
-        else if (textAlign === "center") {
-            // center middle
-            return "cm";
-        }
-        // center bottom
-        return "cb";
-    },
-
-    /**
-     * Generates the polygon Style
-     * @param {ol.style} style Style of layer.
-     * @param {ol.layer} layer Ol-layer.
-     * @returns {Object} - Polygon Style for mapfish print.
-     */
-    buildPolygonStyle: function (style, layer) {
-        const fillStyle = style.getFill(),
-            strokeStyle = style.getStroke(),
-            obj = {
-                type: "polygon",
-                fillOpacity: layer.getOpacity(),
-                strokeOpacity: layer.getOpacity()
-            };
-
-        if (fillStyle !== null) {
-            this.buildFillStyle(fillStyle, obj);
-        }
-        if (strokeStyle !== null) {
-            this.buildStrokeStyle(strokeStyle, obj);
-        }
-        return obj;
-    },
-
-
-    /**
-     * Generates the LineString Style
-     * @param {ol.style} style Style of layer.
-     * @param {ol.layer} layer Ol-layer.
-     * @returns {Object} - LineString Style for mapfish print.
-     */
-    buildLineStringStyle: function (style, layer) {
-        const strokeStyle = style.getStroke(),
-            obj = {
-                type: "line",
-                strokeOpacity: layer.getOpacity()
-            };
-
-        if (strokeStyle !== null) {
-            this.buildStrokeStyle(strokeStyle, obj);
-        }
-        return obj;
-    },
-
-
-    /**
-     * Generates the Fill Style
-     * @param {ol.style} style Style of layer.
-     * @param {Object} obj current style object .
-     * @returns {Object} - Fill Style for mapfish print.
-     */
-    buildFillStyle: function (style, obj) {
-        let fillColor = style.getColor();
-
-        if (typeof fillColor === "string") {
-            fillColor = this.colorStringToRgbArray(fillColor);
-        }
-        else if (fillColor instanceof CanvasPattern) {
-            fillColor = [0, 0, 0, 0];
-        }
-
-        obj.fillColor = convertColor(fillColor, "hex");
-        obj.fillOpacity = fillColor[3];
-
-        return obj;
-    },
-
-    /**
-     * Checks if colorString starts with "rgb" then calls a parsing function.
-     * @param {String} colorString rgb or rgba string
-     * @returns {Number[] | String} - parsed rgb-string as number array
-     */
-    colorStringToRgbArray: function (colorString) {
-        const parsedString = colorString;
-        let parsedArray;
-
-        if (parsedString.match(/^(rgb)/)) {
-            parsedArray = this.rgbStringToRgbArray(parsedString);
-        }
-        return parsedArray;
-    },
-
-    /**
-     * Parses a given rgb- or rgba-string to an numbers array.
-     * @param {String} colorString rgb or rgba string
-     * @returns {Number[]} - parsed rgb-string as number array
-     */
-    rgbStringToRgbArray: function (colorString) {
-        const indexOpenBracket = colorString.indexOf("(") + 1,
-            indexCloseBracket = colorString.indexOf(")"),
-            length = indexCloseBracket - indexOpenBracket,
-            valuesString = colorString.substr(indexOpenBracket, length),
-            rgbaStringArray = valuesString.split(","),
-            rgbaArray = [];
-
-        rgbaStringArray.forEach(function (colorValue) {
-            colorValue.trim();
-            rgbaArray.push(parseFloat(colorValue));
-        });
-
-        return rgbaArray;
-    },
-
-    /**
-     * Generates the Stroke Style
-     * @param {ol.style} style Style of layer.
-     * @param {Object} obj Style object for mapfish print.
-     * @returns {Object} - LineString Style for mapfish print.
-     */
-    buildStrokeStyle: function (style, obj) {
-        const strokeColor = style.getColor();
-
-        obj.strokeColor = convertColor(strokeColor, "hex");
-        if (Array.isArray(strokeColor) && strokeColor[3] !== undefined) {
-            obj.strokeOpacity = strokeColor[3];
-        }
-        if (typeof style.getWidth === "function" && style.getWidth() !== undefined) {
-            obj.strokeWidth = style.getWidth();
-        }
-        if (typeof style.getLineDash === "function" && style.getLineDash()) {
-            obj.strokeLinecap = style.getLineCap();
-            if (style.getLineDash().length > 1) {
-                obj.strokeDashstyle = style.getLineDash().join(" ");
-            }
-            else {
-                obj.strokeDashstyle = style.getLineDash()[0] + " " + style.getLineDash()[0];
-            }
-
-            obj.strokeDashOffset = style.getLineDashOffset();
-        }
-
-        return obj;
-    },
-
-    /**
-     * Returns the image name of the src url.
-     * @param {String} imageSrc Url of image source
-     * @returns {String} - Image name.
-     */
-    getImageName: function (imageSrc) {
-        const start = imageSrc.lastIndexOf("/");
-
-        return imageSrc.indexOf("/") !== -1 ? imageSrc.substr(start + 1) : "/" + imageSrc;
-    },
-
-    /**
-     * adds the feature to the geojson list
-     * @param {ol.Feature} feature - the feature can be clustered
-     * @param {GeoJSON[]} geojsonList -
-     * @param {ol.style.Style[]} style - the feature-style
-     * @returns {void}
-     */
-    addFeatureToGeoJsonList: function (feature, geojsonList, style) {
-        let convertedFeature;
-
-        if (feature.get("features") && feature.get("features").length === 1) {
-            feature.get("features").forEach((clusteredFeature) => {
-                if (feature.getKeys().find(element => element === "default")) {
-                    clusteredFeature.setProperties({"default": feature.get("default")});
-                    clusteredFeature.setId(feature.getId());
-                }
-                convertedFeature = this.convertFeatureToGeoJson(clusteredFeature, style);
-
-                if (convertedFeature) {
-                    geojsonList.push(convertedFeature);
-                }
-            });
-        }
-        else {
-            convertedFeature = this.convertFeatureToGeoJson(feature, style);
-
-            if (convertedFeature) {
-                geojsonList.push(convertedFeature);
-            }
-        }
-    },
-
-    /**
-     * converts an openlayers feature to a GeoJSON feature object
-     * @param {ol.Feature} feature - the feature to convert
-     * @param {ol.style.Style[]} style - the feature-style
-     * @returns {object} GeoJSON object
-     */
-    convertFeatureToGeoJson: function (feature, style) {
-        const clonedFeature = feature.clone(),
-            geojsonFormat = new GeoJSON(),
-            labelText = style.getText()?.getText() || "";
-        let convertedFeature;
-
-        // remove all object and array properties except geometry. Otherwise mapfish runs into an error
-        Object.keys(clonedFeature.getProperties()).forEach(property => {
-            if (isObject(clonedFeature.get(property)) && !(clonedFeature.get(property) instanceof Geometry) || Array.isArray(clonedFeature.get(property))) {
-                clonedFeature.unset(property);
-            }
-        });
-
-        // take over id from feature because the feature id is not set in the clone.
-        clonedFeature.setId(clonedFeature.ol_uid);
-        // set "_label"-Propterty.
-        // This is necessary because the *label* of the *text-Style* (buildTextStyle()) now referrs to it.
-        clonedFeature.set("_label", labelText);
-        // circle is not suppported by geojson
-        if (clonedFeature.getGeometry().getType() === "Circle") {
-            clonedFeature.setGeometry(fromCircle(clonedFeature.getGeometry(), 100));
-        }
-        Object.keys(clonedFeature.getProperties()).filter(key => {
-            if (key.includes("@Datastreams")) {
-                const newKey = key.replaceAll("@", "").replaceAll(".", "");
-
-                clonedFeature.set(newKey, clonedFeature.getProperties()[key]);
-                clonedFeature.unset(key, {silent: true});
-            }
-            return false;
-        });
-        // Removing "Datastreams" attribute because it might overload the server as happened for some sensors.
-        clonedFeature.unset("Datastreams", {silent: true});
-
-        convertedFeature = geojsonFormat.writeFeatureObject(clonedFeature);
-        if (clonedFeature.getGeometry().getCoordinates().length === 0) {
-            convertedFeature = undefined;
-        }
-        // if its a cluster remove property features
-        if (convertedFeature?.properties && Object.prototype.hasOwnProperty.call(convertedFeature.properties, "features")) {
-            delete convertedFeature.properties.features;
-        }
-
-        return convertedFeature;
-    },
-
-    /**
-     * @param {ol.Feature} feature -
-     * @param {ol.layer.Vector} layer -
-     * @returns {ol.style.Style[]} returns or an array of styles
-     */
-    getFeatureStyle: function (feature, layer) {
-        let styles;
-
-        if (feature.getStyleFunction() !== undefined) {
-            try {
-                styles = feature.getStyleFunction().call(feature);
-            }
-            catch (e) {
-                styles = feature.getStyleFunction().call(this, feature);
-            }
-        }
-        else {
-            styles = layer.getStyleFunction().call(layer, feature);
-        }
-        return !Array.isArray(styles) ? [styles] : styles;
-    },
-
     /**
      * Returns the rules for styling of a feature
      *
@@ -1135,12 +724,18 @@ const BuildSpecModel = {
      * @param {String[]} styleAttributes The attribute by whose value the feature is styled.
      * @param {ol.style.Style} style style
      * @param {Number} styleIndex The style index.
-     * @returns {string} an ECQL Expression
+     * @returns {String} an ECQL Expression
      */
     getStylingRules: function (layer, feature, styleAttributes, style, styleIndex) {
-        const styleAttr = feature.get("styleId") ? "styleId" : styleAttributes,
-            styleObjectFromStyleList = styleList.returnStyleObject(layer.get("styleId")),
+        const styleObjectFromStyleList = styleList.returnStyleObject(layer.get("styleId")),
             styleFromStyleList = styleObjectFromStyleList ? createStyle.getGeometryStyle(feature, styleObjectFromStyleList.rules, false, Config.wfsImgPath) : undefined;
+        let styleAttr = "";
+
+        if (Object.prototype.hasOwnProperty.call(feature.getProperties(), "masterportal_attributes") && feature.get("masterportal_attributes").styleId) {
+            feature.set("styleId", feature.get("masterportal_attributes").styleId);
+        }
+
+        styleAttr = feature.get("styleId") ? "styleId" : styleAttributes;
 
         if (styleAttr.length === 1 && styleAttr[0] === "") {
             if (feature.get("features") && feature.get("features").length === 1) {
@@ -1207,9 +802,8 @@ const BuildSpecModel = {
                 return acc + `${curr}='${value}',`;
             }, "[").slice(0, -1) + "]";
         }
-
         // feature with geometry style and label style
-        if (styleFromStyleList !== undefined && styleFromStyleList.attributes?.labelField && styleFromStyleList.attributes?.labelField.length > 0) {
+        if (styleFromStyleList !== undefined && styleFromStyleList.attributes.labelField && styleFromStyleList.attributes.labelField.length > 0) {
             const labelField = styleFromStyleList.attributes.labelField;
 
             return styleAttr.reduce((acc, curr) => acc + `${curr}='${feature.get(curr)}' AND ${labelField}='${feature.get(labelField)}',`, "[").slice(0, -1)
@@ -1223,50 +817,462 @@ const BuildSpecModel = {
 
         return "[" + styleAttr + "='" + feature.get(styleAttr) + "']";
     },
-
     /**
-     * @param {ol.Layer} layer -
-     * @param {ol.feature} feature - the feature of current layer
-     * @returns {String[]} the attributes by whose value the feature is styled
+     * Unsets all properties of type string of the given feature.
+     * @param {ol.Feature} feature to unset properties of type string at
+     * @param {String} notToUnset key not to unset
+     * @returns {void}
      */
-    getStyleAttributes: function (layer, feature) {
-        const layerId = layer.get("id"),
-            styleObject = this.getStyleObject(layer, layerId);
-        let styleFields = ["styleId"],
-            layerModel = Radio.request("ModelList", "getModelByAttributes", {id: layer.get("id")});
+    unsetStringPropertiesOfFeature: function (feature, notToUnset) {
+        Object.keys(feature.getProperties()).forEach(key => {
+            const prop = feature.getProperties()[key];
 
-        if (styleObject !== undefined) {
-            layerModel = this.getChildModelIfGroupLayer(layerModel, layerId);
+            if (!notToUnset.includes(key) && typeof prop === "string") {
+                feature.unset(key, {silent: true});
+            }
+        });
+    },
+    /**
+     * adds the feature to the geojson list
+     * @param {ol.FeaturebuildPointStyle} feature - the feature can be clustered
+     * @param {GeoJSON[]} geojsonList -
+     * @param {ol.style.Style[]} style - the feature-style
+     * @returns {void}
+     */
+    addFeatureToGeoJsonList: function (feature, geojsonList, style) {
+        let convertedFeature;
 
-            if (layerModel.get("styleId")) {
-                const featureRules = getRulesForFeature(styleObject, feature);
+        if (feature.get("features") && feature.get("features").length === 1) {
+            feature.get("features").forEach((clusteredFeature) => {
+                if (feature.getKeys().find(element => element === "default")) {
+                    clusteredFeature.setProperties({"default": feature.get("default")});
+                    clusteredFeature.setId(feature.getId());
+                }
+                convertedFeature = this.convertFeatureToGeoJson(clusteredFeature, style);
 
-                styleFields = featureRules?.[0]?.conditions ? Object.keys(featureRules[0].conditions.properties) : ["default"];
+                if (convertedFeature) {
+                    geojsonList.push(convertedFeature);
+                }
+            });
+        }
+        else {
+            convertedFeature = this.convertFeatureToGeoJson(feature, style);
+
+            if (convertedFeature) {
+                geojsonList.push(convertedFeature);
+            }
+        }
+    },
+    /**
+     * converts an openlayers feature to a GeoJSON feature object
+     * @param {ol.Feature} feature - the feature to convert
+     * @param {ol.style.Style[]} style - the feature-style
+     * @returns {Object} GeoJSON object
+     */
+    convertFeatureToGeoJson: function (feature, style) {
+        const clonedFeature = feature.clone(),
+            geojsonFormat = new GeoJSON(),
+            labelText = style.getText()?.getText() || "";
+        let convertedFeature;
+
+        // masterportal_attributes have been set by the draw tool in this property but shall be sent to the print service
+        // if they remain in the masterportal_attributes-property they will be removed in the next step or cause a mapfish-error
+        if (Object.prototype.hasOwnProperty.call(clonedFeature.getProperties(), "masterportal_attributes")) {
+            Object.keys(clonedFeature.get("masterportal_attributes")).forEach(key => {
+                clonedFeature.set(key, clonedFeature.get("masterportal_attributes")[key]);
+            });
+        }
+        // remove all object and array properties except geometry. Otherwise mapfish runs into an error
+        Object.keys(clonedFeature.getProperties()).forEach(property => {
+            if (isObject(clonedFeature.get(property)) && !(clonedFeature.get(property) instanceof Geometry) || Array.isArray(clonedFeature.get(property))) {
+                clonedFeature.unset(property);
+            }
+        });
+
+        // take over id from feature because the feature id is not set in the clone.
+        clonedFeature.setId(clonedFeature.ol_uid);
+        // set "_label"-Propterty.
+        // This is necessary because the *label* of the *text-Style* (buildTextStyle()) now referrs to it.
+        clonedFeature.set("_label", labelText);
+        // circle is not suppported by geojson
+        if (clonedFeature.getGeometry().getType() === "Circle") {
+            clonedFeature.setGeometry(fromCircle(clonedFeature.getGeometry(), 100));
+        }
+        Object.keys(clonedFeature.getProperties()).filter(key => {
+            if (key.includes("@Datastreams")) {
+                const newKey = key.replaceAll("@", "").replaceAll(".", "");
+
+                clonedFeature.set(newKey, clonedFeature.getProperties()[key]);
+                clonedFeature.unset(key, {silent: true});
+            }
+            return false;
+        });
+        // Removing "Datastreams" attribute because it might overload the server as happened for some sensors.
+        clonedFeature.unset("Datastreams", {silent: true});
+
+        convertedFeature = geojsonFormat.writeFeatureObject(clonedFeature);
+        if (clonedFeature.getGeometry().getCoordinates().length === 0) {
+            convertedFeature = undefined;
+        }
+        // if its a cluster remove property features
+        if (convertedFeature?.properties && Object.prototype.hasOwnProperty.call(convertedFeature.properties, "features")) {
+            delete convertedFeature.properties.features;
+        }
+        return convertedFeature;
+    },
+    /**
+     * Generates the point Style
+     * @param {ol.style} style Style of layer.
+     * @param {ol.layer} layer Ol-layer.
+     * @returns {Object} - Point Style for mapfish print.
+     */
+    buildPointStyle: function (style, layer) {
+        if (style.getImage() instanceof CircleStyle) {
+            return this.buildPointStyleCircle(style.getImage());
+        }
+        else if (style.getImage() instanceof Icon && style.getImage().getScale() > 0) {
+            return this.buildPointStyleIcon(style.getImage(), layer);
+        }
+        return this.buildTextStyle(style.getText());
+    },
+    /**
+     * Generates the point Style for circle style
+     * @param {ol.style} style Style of layer.
+     * @returns {Object} - Circle Style for mapfish print.
+     */
+    buildPointStyleCircle: function (style) {
+        const fillStyle = style.getFill(),
+            strokeStyle = style.getStroke(),
+            obj = {
+                type: "point",
+                pointRadius: style.getRadius()
+            };
+
+        if (fillStyle !== null) {
+            this.buildFillStyle(fillStyle, obj);
+            this.buildStrokeStyle(fillStyle, obj);
+        }
+        if (strokeStyle !== null) {
+            this.buildStrokeStyle(strokeStyle, obj);
+        }
+        return obj;
+    },
+    /**
+     * Generates the Fill Style
+     * @param {ol.style} style Style of layer.
+     * @param {Object} obj current style object .
+     * @returns {Object} - Fill Style for mapfish print.
+     */
+    buildFillStyle: function (style, obj) {
+        let fillColor = style.getColor();
+
+        if (fillColor instanceof CanvasPattern) {
+            fillColor = [0, 0, 0, 0];
+        }
+
+        if (fillColor[0] === "#") {
+            obj.fillColor = fillColor;
+            obj.fillOpacity = 1;
+        }
+        else {
+            obj.fillColor = convertColor(fillColor, "hex");
+            obj.fillOpacity = fillColor[3];
+        }
+
+        return obj;
+    },
+    /**
+     * Generates the Stroke Style
+     * @param {ol.style} style Style of layer.
+     * @param {Object} obj Style object for mapfish print.
+     * @returns {Object} - LineString Style for mapfish print.
+     */
+    buildStrokeStyle: function (style, obj) {
+        const strokeColor = style.getColor();
+
+        obj.strokeColor = convertColor(strokeColor, "hex");
+        if (Array.isArray(strokeColor) && strokeColor[3] !== undefined) {
+            obj.strokeOpacity = strokeColor[3];
+        }
+        if (typeof style.getWidth === "function" && style.getWidth() !== undefined) {
+            obj.strokeWidth = style.getWidth();
+        }
+        if (typeof style.getLineDash === "function" && style.getLineDash()) {
+            obj.strokeLinecap = style.getLineCap();
+            if (style.getLineDash().length > 1) {
+                obj.strokeDashstyle = style.getLineDash().join(" ");
             }
             else {
-                styleFields = [styleObject.get("styleField")];
+                obj.strokeDashstyle = style.getLineDash()[0] + " " + style.getLineDash()[0];
             }
+
+            obj.strokeDashOffset = style.getLineDashOffset();
         }
-        return styleFields;
+
+        return obj;
     },
-
     /**
-     * Checks if model is a Group Model.
-     * If so, then the child model corresponding to layerId is returned.
-     * Otherwise the model is returned
-     * @param  {Backbone.Model} model Layer model from ModelList
-     * @param  {String} layerId Id of layer model to return
-     * @return {Backbone.Model} found layer model
+     * Generates the point Style for icons
+     * @param {ol.style} style Style of layer.
+     * @param {ol.layer} layer Ol-layer.
+     * @returns {Object} - Icon Style for mapfish print.
      */
-    getChildModelIfGroupLayer: function (model, layerId) {
-        let layerModel = model;
+    buildPointStyleIcon: function (style, layer) {
+        return {
+            type: "point",
+            graphicWidth: style.getSize()[0] ? style.getSize()[0] * style.getScale() : 60,
+            graphicHeight: style.getSize()[1] ? style.getSize()[1] * style.getScale() : 60,
+            externalGraphic: this.buildGraphicPath(style.getSrc()),
+            graphicOpacity: layer.getOpacity()
+        };
+    },
+    /**
+     * derives the url of the image from the server the app is running on
+     * if the app is running on localhost the images from test.geoportal-hamburg.de are used
+     * @param {Object} src the image source
+     * @return {String} path or url to image directory
+     */
+    buildGraphicPath: function (src) {
+        const origin = window.location.origin;
+        let url = Config.wfsImgPath + this.getImageName(src);
 
-        if (layerModel.get("typ") === "GROUP") {
-            layerModel = layerModel.get("layerSource").filter(childLayer => {
-                return childLayer.get("id") === layerId;
-            })[0];
+        if (src.indexOf("http") === 0 && src.indexOf("localhost") === -1) {
+            url = src;
         }
-        return layerModel;
+        else if (src.charAt(0) === "/") {
+            url = origin + src;
+        }
+        else if (src.indexOf("../") === 0 || src.indexOf("./") === 0) {
+            url = new URL(src, window.location.href).href;
+        }
+        else if (src.indexOf("data:image/svg+xml;charset=utf-8") === 0) {
+            url = src;
+        }
+        else if (origin.indexOf("localhost") === -1) {
+            // backwards-compatibility:
+            url = origin + "/lgv-config/img/" + this.getImageName(src);
+        }
+
+        return url;
+    },
+    /**
+     * Returns the image name of the src url.
+     * @param {String} imageSrc Url of image source
+     * @returns {String} - Image name.
+     */
+    getImageName: function (imageSrc) {
+        const start = imageSrc.lastIndexOf("/");
+
+        return imageSrc.indexOf("/") !== -1 ? imageSrc.substring(start + 1) : "/" + imageSrc;
+    },
+    /**
+     * Generates the text Style
+     * @param {ol.style} style Style of layer.
+     * @see https://openlayers.org/en/latest/apidoc/module-ol_style_Text.html
+     * @returns {Object} - Text Style for mapfish print.
+     */
+    buildTextStyle: function (style) {
+        // use openlayers kml default font, if not set
+        const font = style.getFont() ? style.getFont() : "bold 16px Helvetica",
+            size = this.getFontSize(font),
+            isFontSizeInFont = size !== null,
+            textScale = style.getScale() ? style.getScale() : 1,
+            fontSize = isFontSizeInFont ? size : 10 * textScale,
+            fontFamily = isFontSizeInFont ? this.getFontFamily(font, fontSize) : font,
+            fontColor = style.getFill().getColor(),
+            stroke = style.getStroke() ? style.getStroke() : undefined;
+
+        return {
+            type: "text",
+            // tell MapFish that each feature has a property "_label" which contains the label-string
+            // it is necessary to "add/fill" the "_label"-property when we call convertFeatureToGeoJson()
+            // before we add it to the geoJSONList
+            label: "[_label]",
+            fontColor: convertColor(fontColor, "hex"),
+            fontOpacity: fontColor[0] !== "#" ? fontColor[3] : 1,
+            labelOutlineColor: stroke ? convertColor(stroke.getColor(), "hex") : undefined,
+            labelOutlineWidth: stroke ? stroke.getWidth() : undefined,
+            labelXOffset: style.getOffsetX(),
+            labelYOffset: -style.getOffsetY(),
+            fontSize: fontSize,
+            fontFamily: fontFamily,
+            labelAlign: this.getLabelAlign(style)
+        };
+    },
+    /**
+     * Inspects the given fontDef for numbers (=size).
+     * @param {String} fontDef the defined font
+     * @returns {String} the font-size or null if not contained
+     */
+    getFontSize: function (fontDef) {
+        const size = fontDef ? fontDef.match(/\d/g) : null;
+
+        if (Array.isArray(size) && size.length > 0) {
+            return size.join("");
+        }
+        return null;
+    },
+    /**
+     * Inspects the given fontDef for family.
+     * @param {String} fontDef the defined font
+     * @param {String} fontSize the size incuding in the font
+     * @returns {String} the font-family or an empty String if not contained
+     */
+    getFontFamily: function (fontDef, fontSize) {
+        const index = fontDef ? fontDef.indexOf(" ", fontDef.indexOf(fontSize)) : -1;
+
+        if (index > -1) {
+            return fontDef.substring(index + 1);
+        }
+        return "";
+    },
+    /**
+     * gets the indicator of how to align the text with respect to the geometry.
+     * this property must have 2 characters, the x-align and the y-align.
+     * @param {ol.style} style Style of layer.
+     * @returns {String} - placement indicator
+     */
+    getLabelAlign: function (style) {
+        const textAlign = style.getTextAlign();
+
+        if (textAlign === "left") {
+            // left bottom
+            return "lb";
+        }
+        else if (textAlign === "right") {
+            // right bottom
+            return "rb";
+        }
+        else if (textAlign === "center") {
+            // center middle
+            return "cm";
+        }
+        // center bottom
+        return "cb";
+    },
+    /**
+     * Generates the polygon Style
+     * @param {ol.style} style Style of layer.
+     * @param {ol.layer} layer Ol-layer.
+     * @returns {Object} - Polygon Style for mapfish print.
+     */
+    buildPolygonStyle: function (style, layer) {
+        const fillStyle = style.getFill(),
+            strokeStyle = style.getStroke(),
+            obj = {
+                type: "polygon",
+                fillOpacity: layer.getOpacity(),
+                strokeOpacity: layer.getOpacity()
+            };
+
+        if (fillStyle !== null) {
+            this.buildFillStyle(fillStyle, obj);
+        }
+        if (strokeStyle !== null) {
+            this.buildStrokeStyle(strokeStyle, obj);
+        }
+        return obj;
+    },
+    /**
+     * Generates the LineString Style
+     * @param {ol.style} style Style of layer.
+     * @param {ol.layer} layer Ol-layer.
+     * @returns {Object} - LineString Style for mapfish print.
+     */
+    buildLineStringStyle: function (style, layer) {
+        const strokeStyle = style.getStroke(),
+            obj = {
+                type: "line",
+                strokeOpacity: layer.getOpacity()
+            };
+
+        if (strokeStyle !== null) {
+            this.buildStrokeStyle(strokeStyle, obj);
+        }
+        return obj;
+    },
+    /**
+     * gets array with [GfiContent, layername, coordinates] of actual gfi
+     * empty array if gfi is not active.
+     * coordinates not needed, yet.
+     * @param {Boolean} isGfiSelected flag if gfi has to be printed
+     * @param  {Array} gfiArray array
+     * @return {void}
+     */
+    buildGfi: function (isGfiSelected, gfiArray) {
+        const gfiObject = {};
+        let gfiAttributes,
+            layerName;
+
+        if (isGfiSelected) {
+            if (gfiArray.length > 0) {
+                gfiObject.layers = [];
+                gfiAttributes = gfiArray[0];
+                layerName = gfiArray[1];
+
+                gfiObject.layers.push({
+                    layerName: layerName.startsWith("common:") ? i18next.t(layerName) : layerName,
+                    values: this.prepareGfiAttributes(gfiAttributes)
+                });
+
+            }
+            this.addGfiFeature(this.defaults.attributes.map.layers, gfiArray[2]);
+        }
+        this.setShowGfi(isGfiSelected);
+        this.setGfi(gfiObject);
+    },
+    /**
+     * @param {Object[]} layers - layers attribute of the map spec
+     * @param {Number[]} coordinates - the coordinates of the gfi
+     * @returns {void}
+     */
+    addGfiFeature: function (layers, coordinates) {
+        const geojsonFormat = new GeoJSON(),
+            gfiFeature = new Feature({
+                geometry: new Point(coordinates),
+                name: "GFI Point"
+            });
+
+        layers.splice(0, 0, {
+            type: "geojson",
+            geojson: [geojsonFormat.writeFeatureObject(gfiFeature)],
+            style: {
+                version: "2",
+                "[name='GFI Point']": {
+                    symbolizers: [{
+                        fillOpacity: 0,
+                        pointRadius: 18,
+                        strokeColor: "#e10019",
+                        strokeWidth: 3,
+                        type: "point"
+                    },
+                    {
+                        fillColor: "#e10019",
+                        pointRadius: 4,
+                        strokeOpacity: 0,
+                        type: "point"
+                    }]
+                }
+            }
+        });
+    },
+    /**
+     * parses gfiAttributes object with key value pairs into array[objects] with attributes key and value
+     * @param  {Object} gfiAttributes gfi Mapping attributes
+     * @return {Object[]} parsed array[objects] with key- and value attributes
+     */
+    prepareGfiAttributes: function (gfiAttributes) {
+        const valuesArray = [];
+        let key;
+
+        for (key in gfiAttributes) {
+            valuesArray.push({
+                key: key,
+                value: gfiAttributes[key]
+            });
+        }
+
+        return valuesArray;
     },
     /**
      * Gets legend from legend vue store and builds legend object for mapfish print
@@ -1281,13 +1287,13 @@ const BuildSpecModel = {
     buildLegend: function (isLegendSelected, isMetaDataAvailable, getResponse, index) {
         const legendObject = {},
             metaDataLayerList = [],
-            legends = store.state.Legend.legends;
+            legends = store.getters["Modules/Legend/legends"];
 
         if (isLegendSelected && legends.length > 0) {
             legendObject.layers = [];
             legends.forEach(legendObj => {
-                if (Radio.request("ModelList", "getModelByAttributes", {id: legendObj.id}).get("children")?.length > 0) {
-                    legendObj.id = Radio.request("ModelList", "getModelByAttributes", {id: legendObj.id}).get("children")[0].id;
+                if (layerCollection.getLayerById(legendObj.id)?.get("children")?.length > 0) {
+                    legendObj.id = layerCollection.getLayerById(legendObj.id).get("children")[0].id;
                 }
 
                 if (this.defaults.visibleLayerIds.includes(legendObj.id)) {
@@ -1298,7 +1304,7 @@ const BuildSpecModel = {
                     }
                     if (legendContainsPdf) {
                         store.dispatch("Alerting/addSingleAlert", {
-                            category: i18next.t("common:modules.alerting.categories.info"),
+                            category: "info",
                             content: "<b>The layer \"" + legendObj.name + "\" contains a pre-defined Legend. " +
                             "This legens cannot be added to the print.</b><br>" +
                             "You can download the pre-defined legend from the download menu seperately.",
@@ -1309,7 +1315,7 @@ const BuildSpecModel = {
                     else {
                         legendObject.layers.push({
                             layerName: legendObj.name,
-                            values: this.prepareLegendAttributes(legendObj.legend, store.state.Legend.sldVersion)
+                            values: this.prepareLegendAttributes(legendObj.legend, store.getters["Modules/Legend/sldVersion"])
                         });
                     }
                 }
@@ -1329,10 +1335,14 @@ const BuildSpecModel = {
                 getResponse: getResponse
             };
 
-            store.dispatch("Tools/Print/createPrintJob", printJob);
+            store.dispatch("Modules/Print/createPrintJob", printJob);
         }
     },
-
+    /**
+     * Checks if the legend url is a pdf.
+     * @param {String} legend contains the legend url
+     * @return {Boolean} true if legend url ends with pdf
+     */
     legendContainsPdf: function (legend) {
         return legend.some(legendPart => {
             let isPdf = false;
@@ -1349,39 +1359,10 @@ const BuildSpecModel = {
             return isPdf;
         });
     },
-
-    /**
-     * Requests the metadata for given layer name
-     * @param {String} layerName name of current layer
-     * @param {Function} getResponse the function to start axios request
-     * @param {Number} index The print index
-     * @fires CswParser#RadioTriggerCswParserGetMetaData
-     * @returns {void}
-     */
-    getMetaData: function (layerName, getResponse, index) {
-        const layer = Radio.request("ModelList", "getModelByAttributes", {name: layerName}),
-            metaId = layer.get("datasets") && layer.get("datasets")[0] ? layer.get("datasets")[0].md_id : null,
-            uniqueIdRes = uniqueId(),
-            cswObj = {};
-
-        if (metaId !== null) {
-            this.defaults.uniqueIdList.push(uniqueIdRes);
-            cswObj.layerName = layerName;
-            cswObj.metaId = metaId;
-            cswObj.keyList = ["date", "orgaOwner", "address", "email", "tel", "url"];
-            cswObj.uniqueId = uniqueIdRes;
-            cswObj.layer = layer;
-            cswObj.getResponse = getResponse;
-            cswObj.index = index;
-
-            store.dispatch("Tools/Print/getMetaDataForPrint", cswObj);
-        }
-    },
-
     /**
      * Prepares Attributes for legend in mapfish-print template
      * @param {Object} legend Legend of layer.
-     * @param {String} sldVersion [sldVersion=""] sld version for GetLegendGraphic Requests
+     * @param {String} sldVersion sld version for GetLegendGraphic Requests
      * @returns {Object[]} - prepared legend attributes.
      */
     prepareLegendAttributes: function (legend, sldVersion = "") {
@@ -1429,7 +1410,107 @@ const BuildSpecModel = {
 
         return [].concat(...valuesArray);
     },
+    /**
+     * Requests the metadata for given layer name
+     * @param {String} layerName name of current layer
+     * @param {Function} getResponse the function to start axios request
+     * @param {Number} index The print index
+     * @returns {void}
+     */
+    getMetaData: function (layerName, getResponse, index) {
+        const metadataLayer = layerCollection.find(layer => layer.attributes.name === layerName),
+            metaId = metadataLayer.datasets && metadataLayer.datasets[0] ? metadataLayer.datasets[0].md_id : null,
+            uniqueIdRes = uniqueId(),
+            cswObj = {};
 
+        if (metaId !== null) {
+            this.defaults.uniqueIdList.push(uniqueIdRes);
+            cswObj.layerName = layerName;
+            cswObj.metaId = metaId;
+            cswObj.keyList = ["date", "orgaOwner", "address", "email", "tel", "url"];
+            cswObj.uniqueId = uniqueIdRes;
+            cswObj.layer = metadataLayer;
+            cswObj.getResponse = getResponse;
+            cswObj.index = index;
+
+            store.dispatch("Modules/Print/getMetaDataForPrint", cswObj);
+        }
+    },
+    /**
+     * Creates the scale string.
+     * @param {String} scale Scale of map.
+     * @returns {void}
+     */
+    buildScale: function (scale) {
+        const scaleText = "1:" + scale;
+
+        this.setScale(scaleText);
+    },
+    /**
+     * Setter for Metadata
+     * @param {String} value Value
+     * @returns {void}
+     */
+    setMetadata: function (value) {
+        this.defaults.attributes.metadata = value;
+    },
+    /**
+     * Setter for showLegend
+     * @param {Boolean} value Value
+     * @returns {void}
+     */
+    setShowLegend: function (value) {
+        this.defaults.attributes.showLegend = value;
+    },
+    /**
+     * Setter for Legend
+     * @param {String} value Value
+     * @returns {void}
+     */
+    setLegend: function (value) {
+        this.defaults.attributes.legend = value;
+    },
+
+    /**
+     * Setter for showGfi
+     * @param {Boolean} value Value
+     * @returns {void}
+     */
+    setShowGfi: function (value) {
+        this.defaults.attributes.showGfi = value;
+    },
+    /**
+     * Setter for gfi
+     * @param {String} value Value
+     * @returns {void}
+     */
+    setGfi: function (value) {
+        this.defaults.attributes.gfi = value;
+    },
+    /**
+     * Setter for scale
+     * @param {String} value Value
+     * @returns {void}
+     */
+    setScale: function (value) {
+        this.defaults.attributes.scale = value;
+    },
+    /**
+     * Setter for uniqueIdList
+     * @param {String} value Value
+     * @returns {void}
+     */
+    setUniqueIdList: function (value) {
+        this.defaults.uniqueIdList = value;
+    },
+    /**
+     * Setter for visibleLayerIds
+     * @param {String} value visibleLayerIds
+     * @returns {void}
+     */
+    setVisibleLayerIds: function (value) {
+        this.defaults.visibleLayerIds = value;
+    },
     /**
      * Returns geometry type from SVG.
      * @param {String} svgString String of SVG.
@@ -1444,13 +1525,12 @@ const BuildSpecModel = {
         if (svgString.includes("<polygon")) {
             geometryType = "polygon";
         }
-
         return geometryType;
     },
-
     /**
      * Returns Fill color from SVG as hex.
      * @param {String} svgString String of SVG.
+     * @returns {String} - Fill color from SVG.
      * @returns {String} - Fill color from SVG.
      */
     getFillColorFromSVG: function (svgString) {
@@ -1462,10 +1542,8 @@ const BuildSpecModel = {
         if (color.startsWith("rgb(") && (svgString.split(/fill-opacity:(.+)/)[1]?.split(/;(.+)/)[0] || svgString.split("fill-opacity='")[1])) {
             color = `rgba(${color.split(")")[0].split("(")[1]}, ${svgString.split(/fill-opacity:(.+)/)[1]?.split(/;(.+)/)[0] || svgString.split(/fill-opacity=(.+)/)[1]?.split("'")[1]})`;
         }
-
         return color;
     },
-
     /**
      * Sest stroke styles to the legenedObj
      * @param {String} svgString String of SVG.
@@ -1485,175 +1563,6 @@ const BuildSpecModel = {
         if (svgString.split(/stroke-dasharray:(.+)/)[1] && !svgString.split(/stroke-dasharray:(.+)/)[1]?.startsWith(";")) {
             legendObj.strokeStyle = "Dashed";
         }
-    },
-
-    /**
-     * gets array with [GfiContent, layername, coordinates] of actual gfi
-     * empty array if gfi is not active.
-     * coordinates not needed, yet.
-     * @param {boolean} isGfiSelected flag if gfi has to be printed
-     * @param  {Array} gfiArray array
-     * @return {void}
-     */
-    buildGfi: function (isGfiSelected, gfiArray) {
-        const gfiObject = {};
-        let gfiAttributes,
-            layerName;
-
-        if (isGfiSelected) {
-            if (gfiArray.length > 0) {
-                gfiObject.layers = [];
-                gfiAttributes = gfiArray[0];
-                layerName = gfiArray[1];
-
-                gfiObject.layers.push({
-                    layerName: layerName,
-                    values: this.prepareGfiAttributes(gfiAttributes)
-                });
-
-            }
-            this.addGfiFeature(this.defaults.attributes.map.layers, gfiArray[2]);
-        }
-        this.setShowGfi(isGfiSelected);
-        this.setGfi(gfiObject);
-    },
-
-    /**
-     * @param {Object[]} layers - layers attribute of the map spec
-     * @param {number[]} coordinates - the coordinates of the gfi
-     * @returns {void}
-     */
-    addGfiFeature: function (layers, coordinates) {
-        const geojsonFormat = new GeoJSON(),
-            gfiFeature = new Feature({
-                geometry: new Point(coordinates),
-                name: "GFI Point"
-            });
-
-        layers.splice(0, 0, {
-            type: "geojson",
-            geojson: [geojsonFormat.writeFeatureObject(gfiFeature)],
-            style: {
-                version: "2",
-                "[name='GFI Point']": {
-                    symbolizers: [{
-                        fillOpacity: 0,
-                        pointRadius: 18,
-                        strokeColor: "#e10019",
-                        strokeWidth: 3,
-                        type: "point"
-                    },
-                    {
-                        fillColor: "#e10019",
-                        pointRadius: 4,
-                        strokeOpacity: 0,
-                        type: "point"
-                    }]
-                }
-            }
-        });
-    },
-
-    /**
-     * parses gfiAttributes object with key value pairs into array[objects] with attributes key and value
-     * @param  {Object} gfiAttributes gfi Mapping attributes
-     * @return {Object[]} parsed array[objects] with key- and value attributes
-     */
-    prepareGfiAttributes: function (gfiAttributes) {
-        const valuesArray = [];
-        let key;
-
-        for (key in gfiAttributes) {
-            valuesArray.push({
-                key: key,
-                value: gfiAttributes[key]
-            });
-        }
-
-        return valuesArray;
-    },
-
-    /**
-     * Creates the scale string.
-     * @param {String} scale Scale of map.
-     * @returns {void}
-     */
-    buildScale: function (scale) {
-        const scaleText = "1:" + scale;
-
-        this.setScale(scaleText);
-    },
-
-    /**
-     * Setter for Metadata
-     * @param {String} value Value
-     * @returns {void}
-     */
-    setMetadata: function (value) {
-        this.defaults.attributes.metadata = value;
-    },
-
-    /**
-     * Setter for showLegend
-     * @param {Boolean} value Value
-     * @returns {void}
-     */
-    setShowLegend: function (value) {
-        this.defaults.attributes.showLegend = value;
-    },
-
-    /**
-     * Setter for Legend
-     * @param {String} value Value
-     * @returns {void}
-     */
-    setLegend: function (value) {
-        this.defaults.attributes.legend = value;
-    },
-
-    /**
-     * Setter for showGfi
-     * @param {Boolean} value Value
-     * @returns {void}
-     */
-    setShowGfi: function (value) {
-        this.defaults.attributes.showGfi = value;
-    },
-
-    /**
-     * Setter for gfi
-     * @param {String} value Value
-     * @returns {void}
-     */
-    setGfi: function (value) {
-        this.defaults.attributes.gfi = value;
-    },
-
-    /**
-     * Setter for scale
-     * @param {String} value Value
-     * @returns {void}
-     */
-    setScale: function (value) {
-        this.defaults.attributes.scale = value;
-    },
-
-    /**
-     * Setter for uniqueIdList
-     * @param {String} value Value
-     * @returns {void}
-     */
-    setUniqueIdList: function (value) {
-        this.defaults.uniqueIdList = value;
-    },
-
-    /**
-     * Setter for visibleLayerIds
-     * @param {String} value visibleLayerIds
-     * @returns {void}
-     */
-    setVisibleLayerIds: function (value) {
-        this.defaults.visibleLayerIds = value;
     }
 };
 

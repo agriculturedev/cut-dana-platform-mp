@@ -3,9 +3,9 @@ import Feature from "ol/Feature.js";
 
 import {expect} from "chai";
 
-import {calculateLineLengths, calculatePolygonAreas} from "../../../utils/measureCalculation";
+import {calculateLineLengths, calculatePolygonAreas} from "../../../js/measureCalculation";
 
-describe("tools/measure/utils/measureCalculation", function () {
+describe("src/modules/measure/js/measureCalculation", function () {
     describe("calculateLineLengths", function () {
         it("should format measured linestring(s) in m/km/nm correctly", function () {
             const feature = new Feature({
@@ -28,7 +28,6 @@ describe("tools/measure/utils/measureCalculation", function () {
             result = calculateLineLengths("EPSG:4326", {a: feature}, 6378137, "meter", "0", "LineString", ["nm"]);
             expect(result).to.deep.equal({a: "85 nm"});
         });
-
         it("should not format measured linestrings", function () {
             const feature = new Feature({
                     geometry: new LineString([[0, 0], [1, 1]])

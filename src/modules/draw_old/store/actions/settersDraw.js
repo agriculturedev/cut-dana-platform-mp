@@ -11,96 +11,25 @@ function setStyleSettings ({getters, commit}, styleSettings) {
 
     commit(mutationKey, styleSettings);
 }
-
 /**
- * Sets the active property of the state to the given value.
- * Also starts processes if the tool is activated (active === true).
+ * Starts the interactions when the tool becomes visible.
  *
  * @param {Object} context actions context object.
- * @param {Boolean} active Value deciding whether the tool gets activated or deactivated.
  * @returns {void}
  */
-async function setActive ({state, commit, dispatch, rootState}, active) {
-    commit("setActive", active);
+async function startInteractions ({state, commit, dispatch, rootState}) {
+    commit("setSymbol", state.iconList[0]);
+    commit("setImgPath", rootState?.configJs?.wfsImgPath);
+    dispatch("createDrawInteractionAndAddToMap", {active: state.currentInteraction === "draw"});
+    dispatch("createSelectInteractionAndAddToMap", state.currentInteraction === "delete");
+    dispatch("createModifyInteractionAndAddToMap", state.currentInteraction === "modify");
+    dispatch("createModifyAttributesInteractionAndAddToMap", state.currentInteraction === "modifyAttributes");
+    dispatch("updateDrawLayerVisible", true);
 
-    if (active) {
-        commit("setSymbol", state.iconList[0]);
-        commit("setLayer", await dispatch("Maps/addNewLayerIfNotExists", {layerName: "importDrawLayer"}, {root: true}));
-        commit("setImgPath", rootState?.configJs?.wfsImgPath);
-        dispatch("createDrawInteractionAndAddToMap", {active: state.currentInteraction === "draw"});
-        dispatch("createSelectInteractionAndAddToMap", state.currentInteraction === "delete");
-        dispatch("createModifyInteractionAndAddToMap", state.currentInteraction === "modify");
-        dispatch("createModifyAttributesInteractionAndAddToMap", state.currentInteraction === "modifyAttributes");
-        dispatch("setDrawLayerVisible", true);
-
-        if (state.withoutGUI) {
-            dispatch("toggleInteraction", "draw");
-        }
+    if (state.withoutGUI) {
+        dispatch("toggleInteraction", "draw");
     }
 }
-
-/**
- * Sets the length of the current drawType.
- * @info the internal representation of length is always in meters
- * @param {Object} context actions context object.
- * @param {Number} length the length in meters
- * @returns {void}
- */
-function setLength ({getters, commit}, length) {
-    const {styleSettings} = getters;
-
-    styleSettings.length = length;
-
-    setStyleSettings({getters, commit}, styleSettings);
-}
-
-/**
- * Sets the area of the current drawType.
- * @info the internal representation of area is always in meters
- * @param {Object} context actions context object.
- * @param {Number} area the area of the geometry in meters
- * @returns {void}
- */
-function setArea ({getters, commit}, area) {
-    const {styleSettings} = getters;
-
-    styleSettings.area = area;
-
-    setStyleSettings({getters, commit}, styleSettings);
-}
-
-/**
- * Sets the area of the current drawType.
- * @info the internal representation of squareArea is always in meters
- * @param {Object} context actions context object.
- * @param {Number} area the area of the square in meters
- * @returns {void}
- */
-function setSquareArea ({getters, commit}, area) {
-    const {styleSettings} = getters;
-
-    styleSettings.squareArea = area;
-
-    setStyleSettings({getters, commit}, styleSettings);
-}
-
-/**
- * Sets the method for drawing a square of the current drawType.
- *
- * @param {Object} context actions context object.
- * @param {Event} event event fired by changing the input for the squareMethod.
- * @param {HTMLSelectElement} event.target The HTML select element for the squareMethod.
- * @returns {void}
- */
-function setSquareMethod ({getters, commit}, {target}) {
-    const squareMethod = target.options[target.selectedIndex].value,
-        {styleSettings} = getters;
-
-    styleSettings.squareMethod = squareMethod;
-
-    setStyleSettings({getters, commit}, styleSettings);
-}
-
 /**
  * Sets the inner radius for the circle of the current drawType.
  * @info the internal representation of circleRadius is always in meters
@@ -116,7 +45,6 @@ function setCircleRadius ({getters, commit, dispatch}, radius) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateCircleRadiusDuringModify", radius);
 }
-
 /**
  * Sets the method for drawing a circle of the current drawType.
  *
@@ -133,7 +61,6 @@ function setCircleMethod ({getters, commit}, {target}) {
 
     setStyleSettings({getters, commit}, styleSettings);
 }
-
 /**
  * Sets the outer radius for the circle of the current drawType.
  * @info the internal representation of circleOuterRadius is always in meters
@@ -149,7 +76,6 @@ function setCircleOuterRadius ({getters, commit, dispatch}, radius) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateCircleRadiusDuringModify", radius);
 }
-
 /**
  * Sets the color of the current drawType.
  *
@@ -173,7 +99,6 @@ function setColor ({getters, commit, dispatch}, {target}) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the color of the contours of the current drawType.
  *
@@ -220,7 +145,6 @@ function setOuterColorContour ({getters, commit, dispatch}, {target}) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Adds another symbol if it doesn't exist already.
  *
@@ -235,7 +159,6 @@ function addSymbolIfNotExists ({state, commit}, symbol) {
         commit("addSymbol", symbol);
     }
 }
-
 /**
 /**
  * Sets the drawType and triggers other methods to add the new interactions
@@ -254,7 +177,6 @@ function setDrawType ({commit, dispatch}, {target}) {
 
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the font for the text of the current drawType.
  *
@@ -272,7 +194,6 @@ function setFont ({getters, commit, dispatch}, {target}) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the font size for the text of the current drawType.
  *
@@ -290,7 +211,6 @@ function setFontSize ({getters, commit, dispatch}, {target}) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the opacity of the current drawType.
  *
@@ -309,7 +229,6 @@ function setOpacity ({getters, commit, dispatch}, {target}) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the opacity for the contours of the current drawType.
  *
@@ -328,7 +247,6 @@ function setOpacityContour ({getters, commit, dispatch}, {target}) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the size of the point.
  *
@@ -343,7 +261,6 @@ function setPointSize ({commit, dispatch}, {target}) {
     commit("setPointSize", parseInt(selectedElement.value, 10));
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the strokwidth of the current drawType.
  *
@@ -361,7 +278,6 @@ function setStrokeWidth ({getters, commit, dispatch}, {target}) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the symbol.
  *
@@ -372,14 +288,12 @@ function setStrokeWidth ({getters, commit, dispatch}, {target}) {
  */
 function setSymbol ({state, commit, dispatch}, {target}) {
     const selectedElement = target.options[target.selectedIndex],
-        iconList = Object.values(state.iconList);
+        iconList = Object.values(state.iconList),
+        symbol = iconList.filter(icon => icon.id === selectedElement.value)[0];
 
-    // Find the correct symbol
-    // NOTE: caption is deprecated in 3.0.0
-    commit("setSymbol", iconList.filter(icon => icon.id ? icon.id === selectedElement.value : icon.caption === selectedElement.value)[0]);
+    commit("setSymbol", symbol);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the text of the current drawType.
  *
@@ -397,7 +311,6 @@ function setText ({getters, commit, dispatch}, {target}) {
     setStyleSettings({getters, commit}, styleSettings);
     dispatch("updateDrawInteraction");
 }
-
 /**
  * Sets the unit for the radius of the circle of the current drawType.
  *
@@ -416,37 +329,9 @@ function setUnit ({getters, commit, dispatch}, {target}) {
     dispatch("updateDrawInteraction");
 }
 
-/**
- * Sets drawLayervisible and let layer and interactions react in a logic way.
- *
- * @param {Object} context Actions context object.
- * @param {Boolean} value The value to set.
- * @returns {void}
- */
-function setDrawLayerVisible ({getters, commit, dispatch}, value) {
-    if (typeof getters?.layer?.setVisible === "function") {
-        getters.layer.setVisible(value);
-    }
-
-    if (value) {
-        if (getters.formerInteraction) {
-            dispatch("toggleInteraction", getters.formerInteraction);
-        }
-    }
-    else {
-        commit("setFormerInteraction", getters.currentInteraction);
-        dispatch("toggleInteraction", "none");
-    }
-    commit("setDrawLayerVisible", value);
-}
-
 export {
     setStyleSettings,
-    setActive,
-    setLength,
-    setArea,
-    setSquareArea,
-    setSquareMethod,
+    startInteractions,
     setCircleRadius,
     setCircleMethod,
     setCircleOuterRadius,
@@ -463,6 +348,5 @@ export {
     setSymbol,
     addSymbolIfNotExists,
     setText,
-    setUnit,
-    setDrawLayerVisible
+    setUnit
 };
