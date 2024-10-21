@@ -1,11 +1,24 @@
 <script>
-import ExportButtonCSV from "../../../../share-components/exportButton/components/ExportButtonCSV.vue";
-import ExportButtonGeoJSON from "../../../../share-components/exportButton/components/ExportButtonGeoJSON.vue";
-import openlayerFunctions from "../utils/openlayerFunctions.js";
-import isObject from "../../../../utils/isObject";
+import ExportButtonCSV from "../../../shared/modules/buttons/components/ExportButtonCSV.vue";
+import ExportButtonGeoJSON from "../../../shared/modules/buttons/components/ExportButtonGeoJSON.vue";
+import openlayerFunctions from "../utils/openlayerFunctions";
+import isObject from "../../../shared/js/utils/isObject";
 import {GeoJSON} from "ol/format.js";
 import Feature from "ol/Feature";
 
+/**
+* Snippet Download
+* @module modules/SnippetDownload
+* @vue-prop {Array} filteredItems - The lost of filtered items.
+* @vue-prop {String} layerId - The layer id.
+*
+* @vue-data {Boolean} enableFileDownload - Shows if file download is enabled.
+* @vue-data {Boolean} showDownload - Shows if download is visible.
+* @vue-data {Array} formats - List of availabe formats.
+* @vue-data {String} selectedFormat - The selected format.
+* @vue-data {String} filename - The chosen filename.
+* @vue-data {String} json - The json data for the geoJSON export.
+*/
 export default {
     name: "SnippetDownload",
     components: {
@@ -26,15 +39,11 @@ export default {
         return {
             enableFileDownload: false,
             showDownload: false,
+            formats: ["CSV", "GeoJSON"],
             selectedFormat: "",
             filename: "",
             json: ""
         };
-    },
-    computed: {
-        formats () {
-            return this.filteredItems[0] instanceof Feature === false ? ["CSV"] : ["CSV", "GeoJSON"];
-        }
     },
     methods: {
         /**
@@ -63,7 +72,7 @@ export default {
                 this.selectedFormat !== "none" &&
                 Array.isArray(this.filteredItems) &&
                 this.filteredItems.length > 0) {
-                if (this.selectedFormat === "GeoJSON") {
+                if (this.selectedFormat === "GeoJSON" && this.filteredItems[0] instanceof Feature === true) {
                     const parser = new GeoJSON({
                         dataProjection: "EPSG:4326",
                         featureProjection: mapCollection.getMapView("2D").getProjection().getCode()
@@ -114,7 +123,7 @@ export default {
                     item.getGeometry().getType() === "Point" &&
                     typeof item.getGeometry().getCoordinates()[0] !== "undefined" &&
                     typeof item.getGeometry().getCoordinates()[1] !== "undefined") {
-                    const map = Radio.request("Map", "getMap"),
+                    const map = mapCollection.getMap("2D"),
                         view = typeof map?.getView === "function" ? map.getView() : undefined,
                         projection = typeof view?.getProjection === "function" ? view.getProjection() : undefined,
                         code = typeof projection?.getCode === "function" ? projection.getCode() + " | " : "";
@@ -146,7 +155,7 @@ export default {
                     class="col-md-6 col-form-label"
                     for="tool-filter-download-box"
                 >
-                    {{ $t("common:modules.tools.filter.download.label") }}
+                    {{ $t("common:modules.filter.download.label") }}
                 </label>
             </div>
         </div>
@@ -156,7 +165,7 @@ export default {
                     class="col-md-5 col-form-label"
                     for="tool-filter-download-format"
                 >
-                    {{ $t("common:modules.tools.draw.download.format") }}
+                    {{ $t("common:modules.filter.download.format") }}
                 </label>
                 <div class="col-md-7">
                     <select
@@ -165,7 +174,7 @@ export default {
                         @change="setDownloadSelectedFormat($event.target.value)"
                     >
                         <option value="none">
-                            {{ $t("common:modules.tools.draw.download.pleaseChoose") }}
+                            {{ $t("common:modules.filter.download.pleaseChoose") }}
                         </option>
                         <option
                             v-for="format in formats"
@@ -183,7 +192,7 @@ export default {
                     class="col-md-5 col-form-label"
                     for="tool-filter-download-filename"
                 >
-                    {{ $t("common:modules.tools.draw.download.filename") }}
+                    {{ $t("common:modules.filter.download.filename") }}
                 </label>
                 <div class="col-md-7">
                     <input
@@ -191,7 +200,7 @@ export default {
                         v-model="filename"
                         type="text"
                         class="form-control form-control-sm"
-                        :placeholder="$t('common:modules.tools.draw.download.enterFilename')"
+                        :placeholder="$t('common:modules.filter.download.enterFilename')"
                         @keyup="enableDownloadBtn"
                     >
                 </div>
@@ -202,13 +211,13 @@ export default {
                     :filename="filename"
                     :handler="getDownloadHandler"
                     :use-semicolon="true"
-                    :title="$t('modules.tools.filter.download.labelBtn')"
+                    :title="$t('common:modules.filter.download.labelBtn')"
                     postfix-format=""
                 />
             </div>
             <div v-if="enableFileDownload && selectedFormat==='GeoJSON'">
                 <ExportButtonGeoJSON
-                    :title="$t('modules.tools.filter.download.labelBtn')"
+                    :title="$t('common:modules.filter.download.labelBtn')"
                     :data="json"
                     :filename="filename"
                     postfix-format=""

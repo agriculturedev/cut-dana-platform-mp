@@ -1,23 +1,23 @@
 <script>
-import {mapGetters, mapMutations} from "vuex";
-import getters from "../store/gettersAddWMS";
-import {getComponent} from "../../../../utils/getComponent";
-import ToolTemplate from "../../ToolTemplate.vue";
-import mutations from "../store/mutationsAddWMS";
+import {mapGetters, mapActions} from "vuex";
 import {WMSCapabilities} from "ol/format.js";
 import {intersects} from "ol/extent";
 import crs from "@masterportal/masterportalapi/src/crs";
 import axios from "axios";
-import LoaderOverlay from "../../../../utils/loaderOverlay";
+import {treeSubjectsKey} from "../../../shared/js/utils/constants";
 
+/**
+ * Adds WMS
+ * @module modules/AddWMS
+ * @vue-data {Number} uniqueId - Current unique id.
+ * @vue-data {Boolean} invalidUrl - Shows if Url is invalid.
+ * @vue-data {String} wmsUrl - Current wms url.
+ * @vue-data {String} version - Current version.
+ */
 export default {
     name: "AddWMS",
-    components: {
-        ToolTemplate
-    },
-    data: function () {
+    data () {
         return {
-            treeTyp: Radio.request("Parser", "getTreeType"),
             uniqueId: 100,
             invalidUrl: false,
             wmsUrl: "",
@@ -25,31 +25,15 @@ export default {
         };
     },
     computed: {
-        ...mapGetters("Tools/AddWMS", Object.keys(getters)),
-        ...mapGetters("Maps", ["projection"])
+        ...mapGetters(["mapViewSettings"]),
+        ...mapGetters("Maps", ["projection", "mode"])
     },
-    watch: {
-        /**
-         * Listens to the active property change.
-         * @param {Boolean} isActive Value deciding whether the tool gets activated or deactivated.
-         * @returns {void}
-         */
-        active (isActive) {
-            if (isActive) {
-                this.setFocusToFirstControl();
-            }
-        }
-    },
-    created () {
-        this.$on("close", this.close);
-
-        if (!["custom", "default"].includes(this.treeTyp)) {
-            console.error("The addWMS tool is currently only supported for the custom and default theme trees!");
-            this.close();
-        }
+    mounted () {
+        this.setFocusToFirstControl();
     },
     methods: {
-        ...mapMutations("Tools/AddWMS", Object.keys(mutations)),
+        ...mapActions(["addLayerToLayerConfig"]),
+        ...mapActions("Alerting", ["addSingleAlert"]),
 
         /**
          * Sets the focus to the first control
@@ -62,20 +46,6 @@ export default {
                 }
             });
         },
-        /**
-         * Closes this tool window by setting active to false
-         * @returns {void}
-         */
-        close () {
-            this.setActive(false);
-            // The value "isActive" of the Backbone model is also set to false to change the CSS class in the menu (menu/desktop/tool/view.toggleIsActiveClass)
-            const model = getComponent(this.id);
-
-            if (model) {
-                model.set("isActive", false);
-            }
-        },
-
         /**
          * Send via Enter key.
          * @param {Event} event - Key event.
@@ -90,39 +60,57 @@ export default {
         },
 
         /**
+         * Creates the url with the given params and checks if it is valid
+         * @param {String} serviceUrl inserted url by user
+         * @returns {String} the url.href
+        */
+        getUrl: function (serviceUrl) {
+            let url;
+
+            this.invalidUrl = false;
+            try {
+                url = new URL(serviceUrl);
+            }
+            catch (e) {
+                this.invalidUrl = true;
+                this.displayErrorMessage();
+            }
+            if (url.href.includes("http:")) {
+                this.addSingleAlert({
+                    content: this.$t("common:modules.addWMS.errorHttpsMessage"),
+                    category: "error",
+                    title: this.$t("common:modules.addWMS.errorTitle")});
+            }
+            else {
+                url.searchParams.set("request", "GetCapabilities");
+                url.searchParams.set("service", "WMS");
+            }
+            return url.href;
+        },
+        /**
          * Importing the external wms layers
-         * @fires Core.ModelList#RadioTriggerModelListRenderTree
-         * @fires Core.ConfigLoader#RadioTriggerParserAddFolder
          * @returns {void}
          */
         importLayers: function () {
-            const url = this.$el.querySelector("#wmsUrl").value.trim();
+            const serviceUrl = this.$el.querySelector("#wmsUrl").value.trim(),
+                url = this.getUrl(serviceUrl);
 
-            this.invalidUrl = false;
-            if (url === "") {
-                this.invalidUrl = true;
+            if (this.invalidUrl === true || url.includes("http:") || url.length === 0) {
                 return;
             }
-            else if (url.includes("http:")) {
-                this.$store.dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.addWMS.errorHttpsMessage"));
-                return;
-            }
-            LoaderOverlay.show();
+
             axios({
                 timeout: 4000,
-                url: url + "?request=GetCapabilities&service=WMS"
+                url: url
             })
                 .then(response => response.data)
                 .then((data) => {
-                    LoaderOverlay.hide();
                     try {
                         const parser = new WMSCapabilities(),
-                            uniqId = this.getAddWmsUniqueId(),
                             capability = parser.read(data),
                             version = capability?.version,
                             checkVersion = this.isVersionEnabled(version),
-                            currentExtent = Radio.request("Parser", "getPortalConfig")?.mapView?.extent;
-
+                            currentExtent = this.mapViewSettings?.extent;
                         let checkExtent = this.getIfInExtent(capability, currentExtent),
                             finalCapability = capability;
 
@@ -134,32 +122,25 @@ export default {
                         }
 
                         if (!checkExtent) {
-                            this.$store.dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.addWMS.ifInExtent"));
+                            this.addSingleAlert({
+                                content: this.$t("common:modules.addWMS.ifInExtent"),
+                                category: "error",
+                                title: this.$t("common:modules.addWMS.errorTitle")
+                            });
                             return;
                         }
 
                         this.version = version;
                         this.wmsUrl = url;
 
-                        if (Radio.request("Parser", "getItemByAttributes", {id: "ExternalLayer"}) === undefined) {
-                            Radio.trigger("Parser", "addFolder", "Externe Fachdaten", "ExternalLayer", "tree", 0);
-                            Radio.trigger("ModelList", "renderTree");
-                            $("#Overlayer").parent().after($("#ExternalLayer").parent());
-                        }
-                        Radio.trigger("Parser", "addFolder", finalCapability.Service.Title, uniqId, "ExternalLayer", 0);
                         finalCapability.Capability.Layer.Layer.forEach(layer => {
-                            this.parseLayer(layer, uniqId, 1);
+                            this.parseLayer(layer, 1);
                         });
-                        Radio.trigger("ModelList", "closeAllExpandedFolder");
-
-                        this.$store.dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.addWMS.completeMessage"));
-
                     }
                     catch (e) {
                         this.displayErrorMessage();
                     }
                 }, () => {
-                    LoaderOverlay.hide();
                     this.displayErrorMessage();
                 });
         },
@@ -183,49 +164,70 @@ export default {
          * @returns {void}
          */
         displayErrorMessage: function () {
-            this.$store.dispatch("Alerting/addSingleAlert", i18next.t("common:modules.tools.addWMS.errorMessage"));
+            this.addSingleAlert({
+                content: this.$t("common:modules.addWMS.errorMessage"),
+                category: "error",
+                title: this.$t("common:modules.addWMS.errorTitle")
+            });
         },
 
         /**
-         * Appending folders and layers to the menu based on the given layer object
+         * Creates a new layer and adds it to layerConfigs.
          * @info recursive function
-         * @param {Object} object the ol layer to hang into the menu as new folder or new layer
-         * @param {String} parentId the id of the parent object in the menu
+         * @param {Object} object the layer object to add
          * @param {Number} level the depth of the recursion
-         * @fires Core.ConfigLoader#RadioTriggerParserAddFolder
-         * @fires Core.ConfigLoader#RadioTriggerParserAddLayer
          * @return {void}
          */
-        parseLayer: function (object, parentId, level) {
+        parseLayer: function (object, level) {
             if (Object.prototype.hasOwnProperty.call(object, "Layer")) {
-                const uniqId = this.getAddWmsUniqueId();
-
-                Radio.trigger("Parser", "addFolder", object.Title, uniqId, parentId, level, false, false, object.invertLayerOrder);
                 object.Layer.forEach(layer => {
-                    this.parseLayer(layer, uniqId, level + 1);
+                    this.parseLayer(layer, level + 1);
                 });
             }
             else {
-                const datasets = [],
-                    metadataSource = object?.MetadataURL?.[0];
+                const datasets = [];
+                let layerObject = {};
 
-                if (metadataSource) {
-                    const {OnlineResource: csw_url} = metadataSource,
-                        md_id = new URLSearchParams(new URL(csw_url.toLowerCase()).search).get("id");
-
+                if (object?.MetadataURL?.[0].OnlineResource) {
                     datasets.push({
                         customMetadata: true,
-                        csw_url: csw_url,
-                        attributes: {},
-                        md_id: md_id
+                        csw_url: object.MetadataURL[0].OnlineResource,
+                        attributes: {}
                     });
                 }
-                Radio.trigger("Parser", "addLayer", object.Title, this.getParsedTitle(object.Title), parentId, level, object.Name, this.wmsUrl, this.version, {
+                layerObject = {
+                    id: this.getParsedTitle(object.Title),
+                    name: object.Title,
+                    typ: "WMS",
+                    layers: [object.Name],
+                    url: this.wmsUrl,
+                    version: this.version,
+                    visibility: true,
+                    type: "layer",
+                    showInLayerTree: true,
                     maxScale: object?.MaxScaleDenominator?.toString(),
                     minScale: object?.MinScaleDenominator?.toString(),
                     legendURL: object?.Style?.[0].LegendURL?.[0].OnlineResource?.toString(),
                     datasets
+                };
+
+                this.addLayerToLayerConfig({layerConfig: layerObject, parentKey: treeSubjectsKey}).then((addedLayer) => {
+                    if (addedLayer) {
+                        this.addSingleAlert({
+                            content: this.$t("common:modules.addWMS.completeMessage"),
+                            category: "success",
+                            title: this.$t("common:modules.addWMS.alertTitleSuccess")});
+                        this.$refs.wmsUrl.value = "";
+                    }
+                    else {
+                        this.addSingleAlert({
+                            content: this.$t("common:modules.addWMS.alreadyAdded"),
+                            category: "warning",
+                            title: this.$t("common:modules.addWMS.errorTitle")});
+                        this.$refs.wmsUrl.value = "";
+                    }
                 });
+
             }
         },
 
@@ -312,87 +314,56 @@ export default {
         },
 
         /**
-         * Getter for addWMS UniqueId.
-         * Counts the uniqueId 1 up.
-         * @returns {String} uniqueId - The unique id for addWMS.
-         */
-        getAddWmsUniqueId: function () {
-            const uniqueId = this.uniqueId;
-
-            this.uniqueId = uniqueId + 1;
-            return "external_" + uniqueId;
-        },
-
-        /**
          * Getter for parsed title without space and slash
          * It will be used as id later in template
          * @param {String} title - the title of current layer
          * @returns {String} parsedTitle - The parsed title
          */
         getParsedTitle: function (title) {
-            return String(title).replace(/\s+/g, "-").replace(/\//g, "-");
+            return String(title).replace(/\s+/g, "-").replace(/\//g, "-").replace(/[():]/g, "-");
         }
     }
 };
 </script>
 
 <template>
-    <ToolTemplate
-        :title="$t(name)"
-        :icon="icon"
-        :active="active"
-        :render-to-window="renderToWindow"
-        :resizable-window="resizableWindow"
-        :deactivate-gfi="deactivateGFI"
+    <div
+        id="addWMS"
+        class="row"
     >
-        <template #toolBody>
-            <div
-                v-if="active"
-                id="add-wms"
-                class="addWMS win-body"
+        <div>
+            <input
+                id="wmsUrl"
+                ref="wmsUrl"
+                aria-label="WMS-Url"
+                type="text"
+                class="form-control wmsUrlsChanged"
+                :placeholder="$t('common:modules.addWMS.placeholder')"
+                @keydown.enter="inputUrl"
             >
-                <div
-                    v-if="invalidUrl"
-                    class="addwms_error"
+            <button
+                id="addWMSButton"
+                type="button"
+                class="btn btn-primary"
+                @click="importLayers"
+            >
+                <span
+                    class=""
+                    aria-hidden="true"
+                >{{ $t('common:modules.addWMS.textLoadLayer') }}</span>
+                <span
+                    class="bootstrap-icon"
+                    aria-hidden="true"
                 >
-                    {{ $t('common:modules.tools.addWMS.errorEmptyUrl') }}
-                </div>
-                <input
-                    id="wmsUrl"
-                    ref="wmsUrl"
-                    aria-label="WMS-Url"
-                    type="text"
-                    class="form-control wmsUrlsChanged"
-                    :placeholder="$t('common:modules.tools.addWMS.placeholder')"
-                    @keydown.enter="inputUrl"
-                >
-                <button
-                    id="addWMSButton"
-                    type="button"
-                    class="btn btn-primary"
-                    @click="importLayers"
-                >
-                    <span
-                        class=""
-                        aria-hidden="true"
-                    >{{ $t('common:modules.tools.addWMS.textLoadLayer') }}</span>
-                    <span
-                        class="bootstrap-icon"
-                        aria-hidden="true"
-                    >
-                        <i class="bi-check-lg" />
-                    </span>
-                </button>
-            </div>
-        </template>
-    </ToolTemplate>
+                    <i class="bi-check-lg" />
+                </span>
+            </button>
+        </div>
+    </div>
 </template>
 
 <style lang="scss" scoped>
     @import "~variables";
-    .addWMS {
-        min-width: 400px;
-    }
     .WMS_example_text {
         margin-top: 10px;
         color: $light_grey;

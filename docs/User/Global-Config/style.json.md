@@ -686,6 +686,56 @@ You may also use [rect](https://developer.mozilla.org/en-US/docs/Web/API/CanvasR
 ]}
 ```
 
+### Cesium
+
+|Name|Required|Type|Default|Description|
+|----|--------|----|-------|-----------|
+|color||String||Color as rgb(a) string|
+
+#### 3DTileSets example
+
+```json
+{
+    "styleId": "3DTileSetStyle",
+    "rules": [
+        {
+            "conditions": {
+                "attr3": [15, 17],
+                "attr4": "abc"
+            },
+            "style": {
+                "type": "cesium",
+                "color": "rgba(0, 0, 255, 0.5)"
+            }
+        },
+        {
+            "conditions": {
+                "attr2": [0, 10]
+            },
+            "style": {
+                "type": "cesium",
+                "color": "rgba(0, 255, 0, 0.5)"
+            }
+        },
+        {
+            "conditions": {
+                "attr1": 50.5
+            },
+            "style": {
+                "type": "cesium",
+                "color": "rgb(255, 0, 0)"
+            }
+        },
+        {
+            "style": {
+                "type": "cesium",
+                "color": "rgba(150, 150, 150, 0.5)"
+            }
+        }
+    ]
+}
+```
+
 ### Text
 
 Please see the [OpenLayers Text documentation](https://openlayers.org/en/latest/apidoc/module-ol_style_Text-Text.html "OpenLayers Text documentation") for additional details.

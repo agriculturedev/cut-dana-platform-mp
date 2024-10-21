@@ -1,22 +1,19 @@
 <script>
-import {mapActions, mapGetters, mapMutations} from "vuex";
-import actions from "../store/actionsWfsSearch";
-import getters from "../store/gettersWfsSearch";
-import mutations from "../store/mutationsWfsSearch";
-import isObject from "../../../../utils/isObject";
-import {buildXmlFilter} from "../utils/buildFilter";
-import {fieldValueChanged} from "../utils/literalFunctions";
-import {buildPath, getOptions, prepareOptionsWithId} from "../utils/pathFunctions";
-import requestProvider from "../utils/requests";
+import {mapGetters, mapMutations} from "vuex";
+import isObject from "../../../shared/js/utils/isObject";
+import {buildXmlFilter} from "../js/buildFilter";
+import {fieldValueChanged} from "../js/literalFunctions";
+import {buildPath, getOptions, prepareOptionsWithId} from "../js/pathFunctions";
+import requestProvider from "../js/requests";
 
 /**
  * Validates that the prop for the type is correct.
  *
- * @param {String} type The type to be validated.
+ * @param {String} queryType The type to be validated.
  * @returns {Boolean} Whether a correct type was given or not.
  */
-function validate (type) {
-    return ["equal", "like"].indexOf(type) !== -1;
+function validate (queryType) {
+    return ["equal", "like"].indexOf(queryType) !== -1;
 }
 
 export default {
@@ -62,7 +59,7 @@ export default {
             type: [Object, Array],
             default: undefined
         },
-        type: {
+        queryType: {
             type: [String, Array],
             default: "equal",
             validator: function (type) {
@@ -70,9 +67,22 @@ export default {
             }
         }
     },
-    data: () => ({parameterIndex: 0, showLoader: false, suggestions: [], value: ""}),
+    data: () => ({
+        parameterIndex: 0,
+        showLoader: false,
+        suggestions: [],
+        value: ""
+    }),
     computed: {
-        ...mapGetters("Tools/WfsSearch", Object.keys(getters)),
+        ...mapGetters("Modules/WfsSearch", [
+            "parsedSource",
+            "requiredValues",
+            "selectedOptions",
+            "service",
+            "valuesReset",
+            "currentInstance",
+            "currentInstanceIndex"
+        ]),
         selectableParameters () {
             // This could be checked with any required value
             if (Array.isArray(this.fieldName)) {
@@ -88,7 +98,7 @@ export default {
                     options: Array.isArray(this.options) && !isObject(this.options[0]) ? this.options[this.parameterIndex] : this.options,
                     required: this.multipleValues(this.required),
                     suggestionsConfig: this.multipleValues(this.suggestionsConfig),
-                    type: this.multipleValues(this.type)
+                    queryType: this.multipleValues(this.queryType)
                 };
             }
             return this.$props;
@@ -102,7 +112,7 @@ export default {
          * - The prior needed element (e.g. 'foo' is needed to have the field 'foo.bar') is not added yet
          * - The prior needed / root element (example above) is not selected yet
          *
-         * @returns {boolean} Whether the input is disabled or not.
+         * @returns {Boolean} Whether the input is disabled or not.
          */
         disabled () {
             const notRoot = this.selectableParameters.options !== "";
@@ -111,7 +121,7 @@ export default {
                 const optionsArr = this.selectableParameters.options.split("."),
                     selectedValues = Object.keys(this.selectedOptions);
 
-                return !(this.currentInstance.addedOptions.includes("")
+                return !(this.currentInstance.addedOptions?.includes("")
                     && optionsArr.every(option => this.currentInstance.addedOptions.includes(option))
                     && (selectedValues.includes("") && optionsArr.slice(0, optionsArr.length - 1).every(option => selectedValues.includes(option))));
             }
@@ -166,11 +176,14 @@ export default {
         this.updateCurrentInstanceOptions();
     },
     methods: {
-        ...mapMutations("Tools/WfsSearch", Object.keys(mutations)),
-        ...mapActions("Tools/WfsSearch", Object.keys(actions)),
+        ...mapMutations("Modules/WfsSearch", [
+            "setValuesReset",
+            "setRequiredValues",
+            "setSelectedOptions",
+            "addOptions"
+        ]),
         /**
-         * Update the addedOptions field for the current instance.
-         *
+         * Update the addedOptions field for the current instance.         *
          * @returns {void}
          */
         updateCurrentInstanceOptions () {
@@ -210,11 +223,10 @@ export default {
                 this.setSelectedOptions({options: this.selectableParameters.options, value, index});
             }
             else if (this.showSuggestions) {
-                // NOTE: Functionality like lodash.throttle would be nice to have here
                 this.showLoader = true;
                 const fieldName = Array.isArray(this.fieldName) ? this.fieldName[this.parameterIndex] : this.fieldName,
-                    xmlFilter = buildXmlFilter({fieldName, type: "like", value}),
-                    suggestions = await requestProvider.searchFeatures(this.currentInstance, this.service, xmlFilter, this?.suggestionsConfig?.featureType);
+                    xmlFilter = buildXmlFilter({fieldName, queryType: "like", value}),
+                    suggestions = await requestProvider.searchFeatures(this.$store, this.currentInstance, this.service, xmlFilter, this?.suggestionsConfig?.featureType);
 
                 this.showLoader = false;
                 // Retrieve the values for the fieldName and make sure they are unique.
@@ -227,15 +239,15 @@ export default {
 </script>
 
 <template>
-    <div class="form-group form-group-sm row">
+    <div class="mb-3">
         <div
             v-if="Array.isArray(inputLabel)"
-            class="col-md-5"
+            class="form-floating mb-3"
         >
             <select
-                :id="`tool-wfsSearch-${selectableParameters.fieldName}-${selectableParameters.fieldId}-fieldSelection`"
-                class="form-select form-select-sm"
-                :aria-label="$t('common:modules.tools.wfsSearch.fieldSelectionLabel')"
+                :id="`module-wfsSearch-${selectableParameters.fieldName}-${selectableParameters.fieldId}-fieldSelection`"
+                class="form-select"
+                :aria-label="$t('common:modules.wfsSearch.fieldSelectionLabel')"
                 @change="parameterIndex = $event.currentTarget.value"
             >
                 <option
@@ -246,45 +258,43 @@ export default {
                     {{ label }}
                 </option>
             </select>
+            <label for="`module-wfsSearch-${selectableParameters.fieldName}-${selectableParameters.fieldId}-fieldSelection`">
+                {{ $t("common:modules.wfsSearch.fieldSelectionLabel") }}
+            </label>
         </div>
         <label
             v-else
-            class="col-md-5 col-form-label"
-            :for="`tool-wfsSearch-${selectableParameters.fieldName}-${selectableParameters.fieldId}-input`"
+            :for="`module-wfsSearch-${selectableParameters.fieldName}-${selectableParameters.fieldId}-input`"
         >
             {{ inputLabel.endsWith("*") ? $t(inputLabel.split("*")[0]) + "*" : $t(inputLabel) }}
         </label>
-        <div class="col-md-7">
+        <div class="form-floating">
             <component
                 :is="htmlElement"
-                :id="`tool-wfsSearch-${selectableParameters.fieldName}-${selectableParameters.fieldId}-input`"
+                :id="`module-wfsSearch-${selectableParameters.fieldName}-${selectableParameters.fieldId}-input`"
                 :class="{
                     'form-control': htmlElement !== 'select',
                     'form-select': htmlElement === 'select',
-                    'form-control-sm': htmlElement !== 'select',
-                    'form-select-sm': htmlElement === 'select',
-                    'tool-wfsSearch-field-input': htmlElement === 'input'
+                    'module-wfsSearch-field-input': htmlElement === 'input'
                 }"
-                :placeholder="htmlElement === 'input' ? selectableParameters.inputPlaceholder : ''"
                 :default-value="htmlElement === 'input' ? selectableParameters.defaultValue : ''"
                 :required="selectableParameters.required"
                 :disabled="disabled"
-                :list="htmlElement === 'input' && showSuggestions ? `tool-wfsSearch-${fieldName}-${fieldId}-input-suggestions` : ''"
+                :list="htmlElement === 'input' && showSuggestions ? `module-wfsSearch-${fieldName}-${fieldId}-input-suggestions` : ''"
                 :aria-label="Array.isArray(inputLabel) ? selectableParameters.inputLabel : ''"
                 @input="valueChanged($event.currentTarget.value)"
             >
                 <template v-if="htmlElement === 'select'">
                     <option
-                        value=""
+                        value="1"
                         :selected="valuesReset"
                     >
-                        {{ $t("common:modules.tools.wfsSearch.optionsPlaceholder") }}
+                        {{ $t("common:modules.wfsSearch.optionsPlaceholder") }}
                     </option>
                     <option
                         v-for="(option, index) of selectableOptions"
                         :key="index + isObject(option) ? option.fieldValue : option"
                         :value="JSON.stringify(isObject(option) ? {value: option.fieldValue, index} : {value: option, index})"
-                        :selected="defaultValue && !required ? defaultValue : ''"
                     >
                         {{ isObject(option) ? (option.displayName ? option.displayName : option.fieldValue) : option }}
                     </option>
@@ -296,7 +306,7 @@ export default {
             />
             <datalist
                 v-if="htmlElement === 'input'"
-                :id="`tool-wfsSearch-${fieldName}-${fieldId}-input-suggestions`"
+                :id="`module-wfsSearch-${fieldName}-${fieldId}-input-suggestions`"
             >
                 <option
                     v-for="(val, index) in suggestions"
@@ -318,7 +328,7 @@ $length: 1.5em;
 
 .loader {
     position: relative;
-    bottom: 2em;
+    bottom: 2rem;
     left: 87.5%;
     height: $length;
     width: $length;
@@ -332,10 +342,10 @@ $length: 1.5em;
         display: inline-block;
         width: 100%;
         height: 100%;
-        border-width: 0.15em;
+        border-width: 0.15rem;
         border-color: $dark_grey $dark_grey transparent transparent;
         border-style: solid;
-        border-radius: 1em;
+        border-radius: 1rem;
         box-sizing: border-box;
         top: 0;
         left: 0;
@@ -355,5 +365,9 @@ $length: 1.5em;
     100% {
         transform: rotate(360deg)
     }
+}
+
+.form-control:focus ~ label {
+    color: $secondary;
 }
 </style>

@@ -52,12 +52,6 @@ npm-debug.log
 !/portal/basic
 !/portal/master
 !/portal/auto
-!/portal/masterCustom
-!/portal/masterDefault
-!/portal/mobility-results
-!/portal/mp-guben
-!/portal/mp-sh
-!/portal/mobility-data
 
 
 # Ignore mkdocs build dir

@@ -35,17 +35,18 @@ function addInterceptor (token, interceptorUrlRegex) {
 
     const {fetch: originalFetch} = window;
 
-    window.fetch = async (resource, options = null) => {
-        let newOptions = options || {};
+    window.fetch = async (...args) => {
+        const [resource] = args;
+        let [config] = args;
 
         if (interceptorUrlRegex && resource?.match(interceptorUrlRegex)) {
-            newOptions = {
-                ...newOptions,
+            config = {
+                ...config,
                 credentials: "include"
             };
         }
 
-        return originalFetch(resource, newOptions);
+        return originalFetch(resource, config);
     };
 
 }

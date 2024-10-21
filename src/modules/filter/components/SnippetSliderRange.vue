@@ -1,10 +1,48 @@
 <script>
-import isObject from "../../../../utils/isObject";
-import thousandsSeparator from "../../../../utils/thousandsSeparator";
-import {translateKeyWithPlausibilityCheck} from "../../../../utils/translateKeyWithPlausibilityCheck.js";
+import isObject from "../../../shared/js/utils/isObject";
+import thousandsSeparator from "@masterportal/masterportalapi/src/lib/thousandsSeparator";
+import {translateKeyWithPlausibilityCheck} from "../../../shared/js/utils/translateKeyWithPlausibilityCheck.js";
 import {getDefaultOperatorBySnippetType} from "../utils/getDefaultOperatorBySnippetType.js";
 import SnippetInfo from "./SnippetInfo.vue";
 
+/**
+* Snippet Slider Range
+* @module modules/SnippetSliderRange
+* @vue-prop {Array} adjustment - The changes made by other snippets that change settings in this snippet. E.g. one snippet changes to "Grundschulen" and other snippets change their min value as a result of the adjustment.
+* @vue-prop {Object} api - The api.
+* @vue-prop {String} attrName - The title and aria label.
+* @vue-prop {Number} decimalPlaces - The amount of decimal places for the slider steps.
+* @vue-prop {Boolean} disabled - Shows if snippet is disabled.
+* @vue-prop {Number} filterId - The filter's id.
+* @vue-prop {Array} fixedRules - The list of foxed rules.
+* @vue-prop {Array} info - The information for the SnippetInfo.
+* @vue-prop {Boolean} isParent - Shows if element is the parent element.
+* @vue-prop {String} operator - (???).
+* @vue-prop {String} prechecked - (???).
+* @vue-prop {Number} snippetId - The snippet id.
+* @vue-prop {Number} timeoutInput - The timeout for the input.
+* @vue-prop {Number} timeoutSlider - The timeout for the slider.
+* @vue-prop {Array} title - The label.
+* @vue-prop {Array} value - The value for the input.
+* @vue-prop {Boolean} visible - Shows if snippet is visible.
+
+* @vue-prop {Number} minValue - The min value for the slider.
+* @vue-prop {Number} maxValue - The max value for the slider.
+* @vue-prop {Number} snippetId - The snippet's id.
+*
+* @vue-data {Number} inputFrom - The from input number.
+* @vue-data {Number} inputUntil - The until input number.
+* @vue-data {Number} sliderFrom - The until slider number.
+* @vue-data {Number} sliderUntil - The until slider number.
+* @vue-data {Number} currentSliderMin - The current slider minimum.
+* @vue-data {Number} currentSliderMax - The current slider maximum.
+*
+* @vue-event {Object} changeRule - Emits the current rule to whoever is listening.
+* @vue-event {Number} deleteRule - Emits the delete rule function to whoever is listening.
+* @vue-event {Number} disableFilterButton - Emits disable filter button function to whoever is listening.
+* @vue-event {Number} enableFilterButton - Emits enable filter button function to whoever is listening.
+* @vue-event {*} setSnippetPrechecked - Emits the setSnippetPrechecked event.
+*/
 export default {
     name: "SnippetSliderRange",
     components: {
@@ -114,6 +152,7 @@ export default {
             default: true
         }
     },
+    emits: ["changeRule", "deleteRule", "disableFilterButton", "enableFilterButton", "setSnippetPrechecked"],
     data () {
         return {
             inputFrom: 0,
@@ -260,30 +299,32 @@ export default {
     },
     mounted () {
         this.$nextTick(() => {
-            this.getInitialSliderMin(this.getAttrNameFrom(), min => {
-                this.getInitialSliderMax(this.getAttrNameUntil(), max => {
-                    this.initSlider(parseFloat(min), parseFloat(max));
-                    this.$nextTick(() => {
-                        if (this.isPrecheckedValid()) {
-                            this.emitCurrentRule([
-                                this.isPrecheckedHigherThanMin() ? this.prechecked[0] : this.currentSliderMin,
-                                this.isPrecheckedLowerThanMax() ? this.prechecked[1] : this.currentSliderMax], true);
-                            this.$emit("setSnippetPrechecked", this.visible ? this.snippetId : false);
-                        }
-                        else {
-                            this.$emit("setSnippetPrechecked", false);
-                        }
+            this.$nextTick(() => {
+                this.getInitialSliderMin(this.getAttrNameFrom(), min => {
+                    this.getInitialSliderMax(this.getAttrNameUntil(), max => {
+                        this.initSlider(parseFloat(min), parseFloat(max));
+                        this.$nextTick(() => {
+                            if (this.isPrecheckedValid()) {
+                                this.emitCurrentRule([
+                                    this.isPrecheckedHigherThanMin() ? this.prechecked[0] : this.currentSliderMin,
+                                    this.isPrecheckedLowerThanMax() ? this.prechecked[1] : this.currentSliderMax], true);
+                                this.$emit("setSnippetPrechecked", this.visible ? this.snippetId : false);
+                            }
+                            else {
+                                this.$emit("setSnippetPrechecked", false);
+                            }
+                            this.setIsInitializing(false);
+                        });
+                    }, error => {
                         this.setIsInitializing(false);
+                        this.$emit("setSnippetPrechecked", false);
+                        console.error(error);
                     });
                 }, error => {
                     this.setIsInitializing(false);
                     this.$emit("setSnippetPrechecked", false);
                     console.error(error);
                 });
-            }, error => {
-                this.setIsInitializing(false);
-                this.$emit("setSnippetPrechecked", false);
-                console.error(error);
             });
         });
     },
@@ -464,40 +505,21 @@ export default {
          * @returns {String} the percentage to use for css left style
          */
         getMeasureLeft () {
-            let pow = 1;
-
-            if (this.decimalPlaces !== 0) {
-                pow = Math.pow(10, this.decimalPlaces);
-            }
-
-            const range = (this.currentSliderMax - this.currentSliderMin) * pow,
-                left = (this.sliderFrom - this.currentSliderMin) * pow;
+            const range = this.currentSliderMax - this.currentSliderMin,
+                left = this.sliderFrom - this.currentSliderMin;
 
             return String((95 / Math.max(1, range) * left).toFixed(1)) + "%";
         },
         /**
          * Calculates the distance between both slider buttons in percent.
          * @info a 5% offset is calculated in to compensate for button width
-         * If the width is 100%, the sliderUntil value should be the max value. Sometimes because of the percentage calculation, it could be possible
-         * the width is less than 100%, but rounded to 100% so that the value of sliderUntil is not as same as currentSliderMax.
          * @returns {String} the percentage to use for css width style
          */
         getMeasureWidth () {
-            let pow = 1;
+            const range = this.currentSliderMax - this.currentSliderMin,
+                measure = this.sliderUntil - this.sliderFrom;
 
-            if (this.decimalPlaces !== 0) {
-                pow = Math.pow(10, this.decimalPlaces);
-            }
-
-            const range = (this.currentSliderMax - this.currentSliderMin) * pow,
-                measure = (this.sliderUntil - this.sliderFrom) * pow,
-                currentWidth = String((95 / Math.max(1, range) * measure + 5).toFixed(1)) + "%";
-
-            if (currentWidth === "100.0%") {
-                this.sliderUntil = this.currentSliderMax;
-            }
-
-            return currentWidth;
+            return String((95 / Math.max(1, range) * measure + 5).toFixed(1)) + "%";
         },
         /**
          * Emits the current rule to whoever is listening.
@@ -775,7 +797,7 @@ export default {
                     :step="getSliderSteps(decimalPlaces)"
                     :min="currentSliderMin"
                     :max="currentSliderMax"
-                    :aria-label="$t('common:modules.tools.filter.ariaLabel.slider.from', {param: getAttrNameFrom()})"
+                    :aria-label="$t('common:modules.filter.ariaLabel.sliderRange.min', {param: getAttrNameFrom()})"
                     :disabled="disabled"
                     :class="{ disabledClass: disabled }"
                     @input="setCurrentSource('input')"
@@ -788,7 +810,7 @@ export default {
                     :step="getSliderSteps(decimalPlaces)"
                     :min="currentSliderMin"
                     :max="currentSliderMax"
-                    :aria-label="$t('common:modules.tools.filter.ariaLabel.slider.to', {param: getAttrNameUntil()})"
+                    :aria-label="$t('common:modules.filter.ariaLabel.sliderRange.max', {param: getAttrNameUntil()})"
                     :disabled="disabled"
                     :class="{ disabledClass: disabled }"
                     @input="setCurrentSource('input')"
@@ -812,7 +834,7 @@ export default {
             <input
                 v-model="sliderFrom"
                 type="range"
-                :aria-label="$t('common:modules.tools.filter.ariaLabel.slider.from', {param: getAttrNameFrom()})"
+                :aria-label="$t('common:modules.filter.ariaLabel.sliderRange.min', {param: getAttrNameFrom()})"
                 class="from"
                 :disabled="disabled"
                 :class="{ disabledClass: disabled }"
@@ -825,7 +847,7 @@ export default {
             <input
                 v-model="sliderUntil"
                 type="range"
-                :aria-label="$t('common:modules.tools.filter.ariaLabel.slider.to', {param: getAttrNameUntil()})"
+                :aria-label="$t('common:modules.filter.ariaLabel.sliderRange.max', {param: getAttrNameUntil()})"
                 class="until"
                 :disabled="disabled"
                 :class="{ disabledClass: disabled }"
@@ -840,14 +862,17 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-    @import "~/css/mixins.scss";
+    @import "~mixins";
 
     .snippetSliderRangeContainer {
         cursor: default;
         height: auto;
+
         .titleWrapper {
+            position: relative;
+            height: 16px;
             .title {
-                float: left;
+                position: absolute;
                 left: 0;
                 padding-right: 15px;
             }
@@ -856,15 +881,16 @@ export default {
                 right: 0;
             }
         }
-
         .disabledClass {
             cursor: wait;
         }
         .inputWrapper {
-            clear: both;
             position: relative;
             margin-top: 5px;
             height: 24px;
+            .disabledClass {
+                background-color: $light_grey;
+                }
             .from {
                 position: absolute;
                 left: 0;
@@ -915,9 +941,6 @@ export default {
                 top: 0;
                 bottom: 0;
                 border-radius: 10px;
-                .disabledClass {
-                background-color: $light_grey;
-                }
             }
 
             input[type="range"] {
@@ -944,6 +967,9 @@ export default {
                 border-radius: 1px;
                 box-shadow: none;
             }
+            input[type="range"]:not(.disabledClass)::-webkit-slider-thumb {
+                cursor: pointer
+            }
             input[type="range"]::-moz-range-track {
                 -moz-appearance: none;
                 height: 3px;
@@ -962,10 +988,8 @@ export default {
                 margin-top: -5px;
                 z-index: 2;
             }
-            input[type="range"]:not(.disabledClass)::-webkit-slider-thumb {
-                cursor: pointer
-            }
             input[type="range"]::-moz-range-thumb {
+                appearance: auto;
                 -webkit-appearance: none;
                 height: 15px;
                 width: 15px;

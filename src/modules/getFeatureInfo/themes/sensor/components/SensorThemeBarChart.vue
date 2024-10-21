@@ -7,9 +7,30 @@ import {shallowRef} from "vue";
 
 dayjs.extend(localeData);
 
-import {calculateWorkloadForOneWeekday} from "../utils/calculateWorkloadForOneWeekday";
-import {calculateArithmeticMean} from "../utils/mathematicalOperations";
+import {calculateWorkloadForOneWeekday} from "../js/calculateWorkloadForOneWeekday";
+import {calculateArithmeticMean} from "../js/mathematicalOperations";
 
+/**
+ * The bar chart for sensor theme of the get feature info.
+ * @module modules/getFeatureInfo/themes/sensor/components/SensorThemeBarChart
+ * @vue-prop {Boolean} show - Show the chart.
+ * @vue-prop {Object} chartValue - The chart value.
+ * @vue-prop {String} targetValue - The target value.
+ * @vue-prop {Object} chartsParams - The charts parameters.
+ * @vue-prop {Number} periodLength - The period length.
+ * @vue-prop {String} periodUnit - The unit of the period length.
+ * @vue-prop {String} processedHistoricalDataByWeekday - The unit of the period length.
+ * @vue-data {String} [momentLocale=null] - The locale.
+ * @vue-data {Number} [weekdayIndex=0] - The weekday index.
+ * @vue-data {Object} [chart=null] - The chart.
+ * @vue-data {String} [hoverBackgroundColor="rgba(0, 0, 0, 0.8)"] - the background color by hover.
+ * @vue-data {String} [chartColor="rgba(0, 0, 0, 1)"] - The chart color.
+ * @vue-data {Number} [barPercentage=1.0] - The bar percentage.
+ * @vue-data {String} [titleText=""] - The title text.
+ * @vue-data {String} [noticeText=""] - The notice text.
+ * @vue-data {Number} [maxValue=1] - The max value
+ * @vue-computed {String} weekday - Gets the weekday using the index, which is between 0 and 6.
+ */
 export default {
     name: "SensorThemeBarChart",
     props: {
@@ -44,7 +65,7 @@ export default {
     },
     data: () => {
         return {
-            momentLocale: dayjs().locale(i18next.language),
+            momentLocale: null,
             weekdayIndex: 0,
             chart: null,
             hoverBackgroundColor: "rgba(0, 0, 0, 0.8)",
@@ -73,13 +94,14 @@ export default {
         }
     },
     created () {
+        this.momentLocale = dayjs().locale(this.$i18next.language);
         this.hoverBackgroundColor = this.chartsParams?.hoverBackgroundColor || this.hoverBackgroundColor;
         this.barPercentage = this.chartsParams?.barPercentage || this.barPercentage;
         this.chartColor = this.chartValue?.color || this.chartColor;
         this.noticeText = this.chartValue?.noticeText || this.noticeText;
     },
     mounted () {
-        this.initialize();
+        this.momentLocale.locale(this.$i18next.language);
     },
     updated () {
         this.initialize();
@@ -109,8 +131,8 @@ export default {
 
             this.titleText = [
                 this.$t(this.chartValue?.title || ""),
-                `${this.$t("common:modules.tools.gfi.themes.sensor.sensorBarChart.chartTitleAverage")} `
-                + this.$t(`common:modules.tools.gfi.themes.sensor.sensorBarChart.${this.periodUnit}`, {count: this.periodLength}),
+                `${this.$t("common:modules.getFeatureInfo.themes.sensor.sensorBarChart.chartTitleAverage")} `
+                + this.$t(`common:modules.getFeatureInfo.themes.sensor.sensorBarChart.${this.periodUnit}`, {count: this.periodLength}),
                 this.$t(this.noticeText)
             ];
 
@@ -232,16 +254,20 @@ export default {
                     min: 0,
                     max: 23,
                     ticks: {
-                        callback: value => value % 2 ? "" : this.$t(
-                            "common:modules.tools.gfi.themes.sensor.sensorBarChart.clock", {value}
-                        )
+                        callback: value => {
+                            return value % 2 ? "" : this.$t(
+                                "common:modules.getFeatureInfo.themes.sensor.sensorBarChart.clock", {value}
+                            );
+                        }
                     }
                 },
                 y: {
                     min: 0,
                     max: maxValue,
                     ticks: {
-                        callback: value => (value / maxValue * 100).toFixed(0) + "%"
+                        callback: value => {
+                            return (value / maxValue * 100).toFixed(0) + "%";
+                        }
                     }
 
                 }
@@ -297,7 +323,7 @@ export default {
                 id="left"
                 type="button"
                 class="leftButton kat btn"
-                :title="$t('common:modules.tools.gfi.themes.sensor.sensorBarChart.previousWeekday')"
+                :title="$t('common:modules.getFeatureInfo.themes.sensor.sensorBarChart.previousWeekday')"
                 @click="showPreviousWeekDay"
             >
                 <span class="bootstrap-icon">
@@ -309,7 +335,7 @@ export default {
                 id="right"
                 type="button"
                 class="rightButton kat btn"
-                :title="$t('common:modules.tools.gfi.themes.sensor.sensorBarChart.nextWeekday')"
+                :title="$t('common:modules.getFeatureInfo.themes.sensor.sensorBarChart.nextWeekday')"
                 @click="showNextWeekDay"
             >
                 <span class="bootstrap-icon">
