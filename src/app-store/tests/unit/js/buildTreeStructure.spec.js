@@ -77,7 +77,8 @@ describe("src/app-store/js/buildTreeStructure.js", () => {
                         name: "Quartiere",
                         typ: "WMS",
                         visibility: false,
-                        showInLayerTree: true
+                        showInLayerTree: true,
+                        gfiTheme: "overwritten"
                     },
                     {
                         id: "22000",
@@ -147,6 +148,7 @@ describe("src/app-store/js/buildTreeStructure.js", () => {
             expect(firstFolders[0].name).to.be.equals(firstFolders[0].elements[1].datasets[0].md_name);
             expect(firstFolders[0].elements).to.be.an("array").to.have.lengthOf(2);
             expect(firstFolders[0].elements[0].id).to.be.equals("21999");
+            expect(firstFolders[0].elements[0].gfiTheme).to.be.equals("overwritten");
             expect(firstFolders[0].elements[0].parentId).to.be.equals(firstFolders[0].id);
             expect(firstFolders[0].elements[0].showInLayerTree).to.be.true;
             expect(firstFolders[0].elements[0].type).to.be.equals("layer");
@@ -194,7 +196,7 @@ describe("src/app-store/js/buildTreeStructure.js", () => {
             expect(layersInSecondFolders[1].name).to.be.equals(layersInSecondFolders[1].datasets[0].md_name);
         });
 
-        it("should return tree structured for active category containing 3D Layers", () => {
+        it("should return tree structured for active category containing 3D Layers, layers configured in config.json shall be respected", () => {
             let result = null,
                 filteredResult = null;
 
@@ -223,6 +225,7 @@ describe("src/app-store/js/buildTreeStructure.js", () => {
             layerConfig[treeSubjectsKey].elements.push(layers3D);
 
             result = buildTreeStructure.build(layerList, layerConfig, categories[0]);
+
             filteredResult = getNestedValues(result, "id").flat(Infinity);
             expect(result).to.be.an("object");
             expect(filteredResult.indexOf("452")).to.be.equals(-1);
@@ -236,6 +239,8 @@ describe("src/app-store/js/buildTreeStructure.js", () => {
             expect(result.elements[0].elements[0].elements[1].id).to.be.equals("12884");
             expect(result.elements[1].name).to.be.equals("Sonstiges");
             expect(result.elements[2].name).to.be.equals("Umwelt und Klima");
+            expect(result.elements[1].elements[2].elements[0].id).to.be.equals("21999");
+            expect(result.elements[1].elements[2].elements[0].gfiTheme).to.be.equals("overwritten");
         });
 
         it("should return tree structured for active category containing a wms-time layer", () => {

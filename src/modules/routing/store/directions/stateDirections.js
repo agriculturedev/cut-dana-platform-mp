@@ -44,6 +44,7 @@ export default {
     // Directions Parameter
     waypoints: [],
     routingAvoidFeaturesOptions: [],
+    keepRoutes: true,
     // Routing Directions Result
     routingDirections: null,
     mapListenerAdded: false,

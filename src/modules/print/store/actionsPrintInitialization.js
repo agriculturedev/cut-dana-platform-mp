@@ -204,7 +204,7 @@ export default {
             ol3d = mapCollection.getMap("3D");
 
         layerProvider.getVisibleLayer(state.printMapMarker);
-
+        layerProvider.revertLayerOpacity(state.printMapMarker);
         /*
         * Since MapFish 3 does not yet support VTL (see https://github.com/mapfish/mapfish-print/issues/659),
         * they are filtered in the following code and an alert is shown to the user informing him about which

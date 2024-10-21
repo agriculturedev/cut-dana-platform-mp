@@ -41,7 +41,7 @@
     "about": {
       "additionalMetadata": "weitere Informationen...",
       "contact": "Ansprechpartner:",
-      "description": "Erfahre etwas über dieses Portal",
+      "description": "Erfahren Sie etwas über dieses Portal",
       "name": "Über dieses Portal",
       "noMetadataLoaded": "Es konnten keine Metadaten geladen werden!",
       "version": "Version: ",
@@ -57,7 +57,7 @@
       "alertTitleSuccess": "Layer erfolgreich hinzugefügt",
       "alreadyAdded": "Die Layer des angeforderten WMS wurden bereits hinzugefügt.",
       "completeMessage": "&#9989; Die Layer des angeforderten WMS wurden dem Themenbaum hinzugefügt!",
-      "description": "Füge einen Web Map Service (WMS) zum Themenbaum hinzu",
+      "description": "Fügen Sie einen Web Map Service (WMS) zum Themenbaum hinzu",
       "errorHttpsMessage": " &#10060; Das von Ihnen angeforderte WMS befindet sich unter einer http-Url. Das Masterportal kann nur WMS über https (SSL) einbinden.",
       "errorMessage": "&#10060; Der angegebene Dienst konnte nicht geladen werden. Bitte stellen Sie sicher, dass die URL richtig angegeben wurde.<br><br> Falls das Problem weiterhin auftritt, wenden Sie sich bitte an den Betreiber des Dienstes mit folgendem Hinweis eines häufig auftretenden Fehlers: <br><strong>Es soll sichergestellt werden, dass ein CORS-Header für den Dienst gesetzt ist. Dies wird von der <a target='_blank' href='https://www.gdi-de.org/download/AK_Geodienste_Architektur_GDI-DE_Bereitstellung_Darstellungsdienste.pdf'>GDI-DE</a> im Kapitel 4.7.1 empfohlen.</strong>",
       "errorTitle": "Layer konnte nicht hinzugefügt werden",
@@ -88,7 +88,7 @@
     },
     "bufferAnalysis": {
       "clearButton": "Zurücksetzen",
-      "description": "Finde heraus, was sich in einem Umkreis um ein Objekt befindet",
+      "description": "Finden Sie heraus, was sich in einem Umkreis um ein Objekt befindet",
       "name": "Buffer Analyse",
       "notOverlapping": "außerhalb Radien",
       "overlapping": "innerhalb Radien",
@@ -114,7 +114,7 @@
     },
     "contact": {
       "addFileButton": "Anhang hinzufügen",
-      "description": "Stelle Fragen zu diesem Portal oder Melde Fehler",
+      "description": "Stellen Sie Fragen zu diesem Portal oder melden Sie Fehler",
       "error": {
         "mail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
         "message": "Versendung der E-Mail fehlgeschlagen!",
@@ -215,13 +215,13 @@
         "contentSaved": "Inhalt wurde in die Zwischenablage kopiert.",
         "contentNotSaved": "Inhalt konnte nicht in die Zwischenablage kopiert werden."
       },
-      "description": "Bestimme Koordinaten aus der Karte oder suche nach Koordinaten.",
+      "description": "Bestimmen Sie Koordinaten aus der Karte oder suchen Sie nach Koordinaten.",
       "errorMsg": {
         "example": "Beispiel: ",
         "hdmsNoCoord": "Bitte geben Sie Ihren Wert der {{valueKey}} vollständig ein.",
-        "hdmsNoMatch": "Die Eingabe für den Wert der {{valueKey}} ist nicht korrekt!",
+        "hdmsNoMatch": "Die Eingabe für den Wert der {{valueKey}} scheint nicht korrekt!",
         "noCoord": "Bitte geben Sie Ihren {{valueKey}} vollständig ein.",
-        "noMatch": "Die Eingabe für den {{valueKey}} ist nicht korrekt! "
+        "noMatch": "Die Eingabe für den {{valueKey}} scheint nicht korrekt! "
       },
       "exampleAcronym": "Bsp. ",
       "hdms": {
@@ -256,7 +256,7 @@
       "wait": "Einen Moment bitte"
     },
     "draw": {
-      "description": "Erstelle wichtige Markierungen oder kennzeichne Flächen",
+      "description": "Erstellen Sie wichtige Markierungen oder kennzeichnen Sie Flächen",
       "name": "Zeichnen / Schreiben"
     },
     "draw_old": {
@@ -296,7 +296,7 @@
         "yellow": "Gelb"
       },
       "defined": "definiert",
-      "description": "Erstelle wichtige Markierungen oder kennzeichne Flächen. Lade diese hier herunter um sie später wieder zu laden",
+      "description": "Erstellen Sie wichtige Markierungen oder kennzeichnen Sie Flächen. Laden Sie diese hier herunter, um sie später wieder zu laden",
       "doubleCirclePlaceholder": "Bitte geben Sie einen Radius ein",
       "download": {
         "enterFilename": "Bitte Dateiname angeben",
@@ -351,7 +351,7 @@
       "chooseTheme": "Thema wählen",
       "details": "Details",
       "detailsOfSelected": "Details des ausgewählten Features",
-      "description": "Liste alle Einträge zu einem Thema auf",
+      "description": "Listen Sie alle Einträge zu einem Thema auf",
       "key": "{{shownFeatures}} von {{featureCount}} Features gelistet",
       "list": "Liste",
       "more": "Mehr...",
@@ -379,7 +379,7 @@
           "kml": "KML-Datei (*.kml)"
         }
       },
-      "description": "Importiere Geodaten aus verschiedenen Dateiformaten",
+      "description": "Importieren Sie Geodaten aus verschiedenen Dateiformaten",
       "fileZoom": "Auf Features dieser Datei \"{{filename}}\" zoomen",
       "importFiles": "Ausgewählte Dateien importieren",
       "name": "Datei-Import",
@@ -547,7 +547,7 @@
     },
     "language": {
       "de": "Deutsch",
-      "description": "Wähle deine Sprache aus",
+      "description": "Wählen Sie ihre Sprache aus",
       "en": "English",
       "es": "Español",
       "it": "Italiano",
@@ -559,7 +559,7 @@
       "ua": "Українська"
     },
     "layerClusterToggler": {
-      "description": "Aktiviere mehrere Themen mit einem Knopfdruck",
+      "description": "Aktivieren Sie mehrere Themen mit einem Knopfdruck",
       "info": "Schalte die Sichtbarkeit der folgenden Layer ein bzw. aus:",
       "name": "Layer-Gruppe öffnen",
       "toggle": "Sichtbarkeit der Layer umschalten"
@@ -598,7 +598,7 @@
       "addSelectedSubjectsToMap_other": "{{count}} ausgewählte Themen der Karte hinzufügen"
     },
     "layerSlider": {
-      "description": "Starte eine Slideshow",
+      "description": "Starten Sie eine Slideshow",
       "displayLayers": "Anzeige diverser Layer.",
       "name": "Layerserie",
       "serviceOne": "Dienst 1",
@@ -626,7 +626,7 @@
       "invisibleLayerNoScale": "Dieses Thema kann in diesem Maßstab nicht angezeigt werden"
     },
     "legend": {
-      "description": "Erhalte Informationen zu den Objekten in der Karte",
+      "description": "Erhalten Sie Informationen zu den Objekten in der Karte",
       "linkToPdf": "Zur externen Legende (PDF)",
       "name": "Legende",
       "noLegendForLayerInfo": "Legende nicht verfügbar"
@@ -644,7 +644,7 @@
     "measure": {
       "area": "Fläche",
       "deleteMeasurements": "Messungen löschen",
-      "description": "Miss eine Strecke oder Fläche",
+      "description": "Messen Sie eine Strecke oder Fläche",
       "finishWithDoubleClick": "Abschließen mit Doppelklick",
       "geometry": "Geometrie",
       "influenceFactors": "Die angezeigten Werte unterliegen Ungenauigkeiten, die u.a. durch folgende Faktoren beeinflusst werden, z.B. Maßstab, Auflösung der Karte und des Bildschirmes.",
@@ -778,7 +778,7 @@
         "importTitle": "Importieren",
         "options": "Optionen"
       },
-      "description": "Importiere, zeichne und bearbeite 3D-Modelle im Stadtmodell",
+      "description": "Importieren, zeichnen und bearbeiten Sie 3D-Modelle im Stadtmodell",
       "hiddenObjectsLabel": "Ausgeblendete Gebäude:",
       "name": "3D Modeller"
     },
@@ -786,7 +786,7 @@
       "infoText": "(weitere Objekte. Bitte zoomen.)"
     },
     "news": {
-      "description": "Erfahre was es neues gibt",
+      "description": "Erfahren Sie was es neues gibt",
       "headline": "Neuigkeiten",
       "name": "Neuigkeiten"
     },
@@ -807,7 +807,7 @@
       "authorLabel": "Ersteller",
       "autoAdjustScale": "Druckmaßstab automatisch anpassen",
       "createDownloadFile": "Wird erstellt...",
-      "description": "Lade einen Kartenausschnitt in einem ausgewählten Format herunter",
+      "description": "Laden Sie einen Kartenausschnitt in einem ausgewählten Format herunter",
       "downloadFile": "Herunterladen",
       "dpiLabel": "DPI",
       "errorMessage": "Die Abfrage der Metadaten ist fehlgeschlagen. Falls das Problem weiterhin besteht, wenden Sie sich bitte an den Eigentümer des Dienstes: <b>{{cswObjCswUrl}}</b>",
@@ -853,7 +853,7 @@
       },
       "coordinateInputHelp": "Suchen Sie einen Ort oder fügen Sie einen Punkt durch Klick in die Karte hinzu",
       "deleteWaypoint": "Wegpunkt löschen",
-      "description": "Finde heraus, wie du am schnellsten zu deinem Ziel kommst oder lege einen Suchradius fest",
+      "description": "Finden Sie heraus, wie Sie am schnellsten zu ihrem Ziel kommen oder legen Sie einen Suchradius fest",
       "directions": {
         "batchProcessing": {
           "downloadHeader": {
@@ -875,6 +875,7 @@
         },
         "deleteRestrictedAreas": "Sperrflächen löschen",
         "editRestrictedAreas": "Sperrflächen zeichnen/bearbeiten",
+        "keepRoutesAfterClose": "Die Route nach dem Schließen beibehalten",
         "preference": {
           "RECOMMENDED": "Empfohlene Route",
           "SHORTEST": "Kürzeste Route",
@@ -939,7 +940,7 @@
       "waypoint": "Wegpunkt"
     },
     "scaleSwitcher": {
-      "description": "Stelle den Maßstab um, ganz ohne zu scrollen",
+      "description": "Stellen Sie den Maßstab um, ganz ohne zu scrollen",
       "label": "Maßstab",
       "name": "Maßstab umschalten"
     },
@@ -953,8 +954,8 @@
         "address": "Suche nach Adresse",
         "addressDistrict": "Suche Adresse, Stadtteil",
         "addressHospitalBplan": "Suche nach Adresse/Krankenhaus/B-Plan",
-        "addressTopic": "Suche Adresse, Stadtteil, Themen",
-        "addressTopicParcel": "Suche Adresse, Stadtteil, Themen, Flurstück"
+        "addressTopic": "Suche Adresse, Stadtteil, Thema",
+        "addressTopicParcel": "Suche Adresse, Stadtteil, Thema, Flurstück"
     },
     "showAllResults": "alle Ergebnisse anzeigen",
     "searchResults": "Suchergebnisse",
@@ -999,7 +1000,7 @@
     "layerInfoNotShown": "Die Layer Information kann nicht angezeigt werden."
     },
     "selectFeatures": {
-      "description": "Erhalte Informationen zu Objekten die du auf der Karte auswählst",
+      "description": "Erhalten Sie Informationen zu Objekten die Sie auf der Karte auswählen",
       "name": "Features auswählen",
       "noFeatureChosen": "Keine Features ausgewählt. Wählen Sie Features durch Ziehen einer Box um die auszuwählenden Features bzw. Halten von Strg und Ziehen.",
       "propertylessFeature": "Element ohne Attribute",
@@ -1007,7 +1008,7 @@
     },
     "statisticDashboard": {
       "name": "Statistik Dashboard",
-      "description": "Filtere Statistiken nach Themenfeld und lasse dir zugehörige Tabellen und Diagramme anzeigen.",
+      "description": "Filtern Sie Statistiken nach Themenfeld und lassen sich zugehörige Tabellen und Diagramme anzeigen.",
       "headings": {
         "mrhstatistics": "Zahlen, Daten, Fakten der MRH - Regionalstatistik",
         "mrhstatisticsTooltip": "Link zu den Metadaten",
@@ -1073,7 +1074,7 @@
     },
     "shadow": {
       "name": "Schatten",
-      "description": "Zeige den Schattenwurf zu verschiedenen Zeitpunkten in der Karte an",
+      "description": "Zeigen Sie den Schattenwurf zu verschiedenen Zeitpunkten in der Karte an",
       "pickDate": "Wählen Sie ein Datum:",
       "shadowDisplayOff": "Schatten auf der Karte ausblenden",
       "shadowDisplayOn": "Schatten auf der Karte einblenden",
@@ -1082,7 +1083,7 @@
     },
     "shareView": {
       "copyErrorAlert": "Die <b><a href=\"{{url}}\" target=\"_blank\">URL der aktuellen Ansicht</a></b> konnte nicht in die Zwischenablage kopiert werden. Diese Funktion ist nur auf sicheren Websites verfügbar, die über das Protokoll HTTPS (https://) zugänglich sind.<br><br>Bitte kontaktieren Sie den Betreiber des Portals und bitten Sie um die Einrichtung einer sicheren Verbindung.",
-      "description": "Teile einen Link zur Karte",
+      "description": "Teilen Sie einen Link zur Karte",
       "downloadQR": "QRCode herunterladen",
       "myMap": "Hier ist mein Kartenausschnitt: ",
       "name": "Auswahl teilen",
@@ -1099,7 +1100,7 @@
     },
     "styleVT": {
       "chooseTheme": "Bitte aktives Thema auswählen",
-      "description": "Wechsel das Aussehen eines Layers vom Typ VectorTile",
+      "description": "Wechseln Sie das Aussehen eines Layers vom Typ VectorTile",
       "introText": "Auf VectorTiles-Layer können verschiedene vordefinierte Styles angewendet werden, um die Ansicht für den jeweiligen Anwendungszweck zu optimieren.",
       "name": "Style Vector Tile Layers",
       "noStyleableLayers": "Derzeit sind keine Themen verfügbar, auf die dieses Werkzeug angewendet werden könnte.",
@@ -1107,8 +1108,8 @@
       "theme": "Thema"
     },
     "wfsSearch": {
-      "description": "Suche in einem Thema nach Objekten",
-      "description_parcel": "Suche nach einem Flurstück",
+      "description": "Suchen Sie in einem Thema nach Objekten",
+      "description_parcel": "Suchen Sie nach einem Flurstück",
       "district": "Gemarkung",
       "fieldSelectionLabel": "Feld Auswahl",
       "instancesSelectLabel": "Instanzenauswahl",
@@ -1134,7 +1135,7 @@
         "headline": "Achtung",
         "text": "Sind Sie sich sicher, dass Sie diese Geometrie löschen möchten?"
       },
-      "description": "Erstelle, aktualisiere und lösche Objekte",
+      "description": "Erstellen, aktualisieren und löschen Sie Objekte",
       "error": {
         "allLayersNotSelected": "Aktiviere einen konfigurierten WFS-T Layer im Themenbaum",
         "geometryOutOfRange": "Die gezeichnete Geometrie befindet sich außerhalb des erlaubten Bereiches des Layers.",

@@ -245,16 +245,28 @@ export default {
      * @param {Object} context actions context object.
      * @returns {void}
      */
-    async initDirections ({state, dispatch, commit}) {
+    async initDirections ({state, dispatch, commit, rootState}) {
         const {
-            directionsWaypointsLayer,
-            directionsRouteLayer,
-            directionsAvoidLayer,
-            directionsWaypointsDrawInteraction,
-            directionsAvoidDrawInteraction,
-            directionsAvoidSelectInteraction,
-            mapListenerAdded
-        } = state;
+                directionsWaypointsLayer,
+                directionsRouteLayer,
+                directionsAvoidLayer,
+                directionsWaypointsDrawInteraction,
+                directionsAvoidDrawInteraction,
+                directionsAvoidSelectInteraction,
+                mapListenerAdded
+            } = state,
+            map = await mapCollection.getMap(rootState.Maps.mode),
+            allLayers = map.getLayers().getArray();
+
+        /**
+         * Checks if a layer with the specified ID has already been added to the map.
+         *
+         * @param {string} layerId - The ID of the layer to check.
+         * @returns {boolean} - Returns true if the layer is already added, false otherwise.
+         */
+        function isLayerAdded (layerId) {
+            return allLayers.some(layer => layer.get("id") === layerId);
+        }
 
         dispatch("initWaypoints");
 
@@ -262,15 +274,24 @@ export default {
             directionsWaypointsDrawInteraction.on("drawend", event => dispatch("onDirectionsWaypointsDrawEnd", event));
             directionsAvoidDrawInteraction.on("drawend", event => dispatch("onDirectionsAvoidDrawEnd", event));
             directionsAvoidSelectInteraction.on("select", event => dispatch("onDirectionsAvoidSelect", event));
+
             dispatch("createDirectionsWaypointsModifyInteractionListener");
             dispatch("createDirectionsAvoidModifyInteractionListener");
             dispatch("createDirectionsRouteModifyInteractionListener");
             commit("setMapListenerAdded", true);
         }
 
-        dispatch("Maps/addLayer", toRaw(directionsRouteLayer), {root: true});
-        dispatch("Maps/addLayer", toRaw(directionsWaypointsLayer), {root: true});
-        dispatch("Maps/addLayer", toRaw(directionsAvoidLayer), {root: true});
+        if (!isLayerAdded(directionsRouteLayer.get("id"))) {
+            dispatch("Maps/addLayer", toRaw(directionsRouteLayer), {root: true});
+        }
+
+        if (!isLayerAdded(directionsWaypointsLayer.get("id"))) {
+            dispatch("Maps/addLayer", toRaw(directionsWaypointsLayer), {root: true});
+        }
+
+        if (!isLayerAdded(directionsAvoidLayer.get("id"))) {
+            dispatch("Maps/addLayer", toRaw(directionsAvoidLayer), {root: true});
+        }
 
 
         dispatch("createInteractionFromMapInteractionMode");
@@ -329,7 +350,9 @@ export default {
         const {directionsWaypointsLayer, directionsRouteLayer, directionsAvoidLayer} = state,
             map = await mapCollection.getMap("2D");
 
-        map.removeLayer(toRaw(directionsRouteLayer));
+        if (!state.keepRoutes) {
+            map.removeLayer(toRaw(directionsRouteLayer));
+        }
         map.removeLayer(toRaw(directionsWaypointsLayer));
         map.removeLayer(toRaw(directionsAvoidLayer));
 

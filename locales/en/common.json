@@ -872,6 +872,7 @@
         },
         "deleteRestrictedAreas": "Delete Barrier areas",
         "editRestrictedAreas": "Draw/edit Barrier areas",
+        "keepRoutesAfterClose": "Keep the route after closing the tool",
         "preference": {
           "RECOMMENDED": "Recommended",
           "SHORTEST": "Shortest"

@@ -53,12 +53,13 @@ function build (layerList, layerConfig, category, shownLayerConfs = [], category
                         folder.elements.push(element);
                     }
                     else {
-                        const config = layerList.find(layer => layer.id === element.id);
+                        const rawLayerConfig = layerList.find(layer => layer.id === element.id);
 
-                        if (config) {
-                            const index = subjectDataLayers.findIndex(layer => layer.id === config.id);
+                        if (rawLayerConfig) {
+                            const index = subjectDataLayers.findIndex(layer => layer.id === rawLayerConfig.id),
+                                replacement = Object.assign({}, rawLayerConfig, element);
 
-                            layerList.splice(layerList.indexOf(config), 1, Object.assign(element, config));
+                            layerList.splice(layerList.indexOf(rawLayerConfig), 1, replacement);
                             subjectDataLayers.splice(index, 1);
                         }
                     }

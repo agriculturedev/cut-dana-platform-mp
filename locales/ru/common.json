@@ -638,6 +638,7 @@
         },
         "deleteRestrictedAreas": "Запретные зоны удалить",
         "editRestrictedAreas": "Запретные зоны рисовать/редактировать",
+        "keepRoutesAfterClose": "Сохранить маршрут после закрытия инструмента",
         "preference": {
           "RECOMMENDED": "Рекомендуемый маршрут",
           "SHORTEST": "Кратчайший маршрут"

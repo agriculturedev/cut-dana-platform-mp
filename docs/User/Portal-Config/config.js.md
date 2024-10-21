@@ -138,3 +138,38 @@ Optional remote interface configuration.
     }
 }
 ```
+***
+## login
+This module allows the user to login with an OIDC server. The retrieved access token is stored in cookies which can be used by the backend to deliver user-specific data (e.g. layers). Since the cookies are technically required to implement the login functionality, there is not corresponding cookie notice.
+|Name|Required|Type|Default|Description|
+|----|--------|----|-------|-----------|
+|oidcAuthorizationEndpoint|yes|String||The oidc auth endpoint, e.g. "https://idm.domain.de/auth/realms/REALM/protocol/openid-connect/auth".|
+|oidcRevocationEndpoint|yes|String||The oidc revoke endpoint, e.g. "https://idm.domain.de/auth/realms/REALM/protocol/openid-connect/revoke".|
+|oidcTokenEndpoint|yes|String||The oidc token endpoint, e.g. "https://idm.domain.de/auth/realms/REALM/protocol/openid-connect/token".|
+|oidcClientId|yes|String||The oidc client, e.g. "masterportal" (must be created in your IDM, e.g. keycloak).|
+|oidcScope|yes|String||The scope used for oidc, defaults to "profile email openid".|
+|oidcRedirectUri|yes|String||The url to redirect the oidc process to - after login.|
+|interceptorUrlRegex|yes|String||An regexp pattern that allows to specify urls the oidc token will be attached to.|
+Make sure in keycloak the client is configured as follows:
+```
+Access Type: public
+Standard Flow Enabled: ON
+Valid Redirect URIs: <PORTAL URL, e.g. https://localhost/*>
+Web Origins: <PORTAL HOST, e.g. https://localhost>
+```
+Specific ports are not allowed ports here. Especially, ports on localhost, e.g. `localhost:9001` will not work with keycloak since ports are not accepted in web origins.
+In the section `OpenID Connect Compatibility Modes` activate `Use Refresh Tokens`. In the section `Advanced Settings` set `Proof Key for Code Exchange Code Challenge Method` to `S256`.
+**Example:**
+```json
+{
+  "login": {
+      "oidcAuthorizationEndpoint": "https://idm.DOMAIN.de/auth/realms/REALM/protocol/openid-connect/auth",
+      "oidcRevocationEndpoint": "https://idm.DOMAIN.de/auth/realms/REALM/protocol/openid-connect/revoke",
+      "oidcTokenEndpoint": "https://idm.DOMAIN.de/auth/realms/REALM/protocol/openid-connect/token",
+      "oidcClientId": "masterportal",
+      "oidcScope": "profile email openid",
+      "oidcRedirectUri": "https://localhost/portal/basic/",
+      "interceptorUrlRegex": "https?://localhost.*" // add authorization to all URLs that match the given regex
+  }
+}
+```

@@ -50,7 +50,8 @@ export default {
             "routingAvoidFeaturesOptions",
             "routingDirections",
             "settings",
-            "waypoints"
+            "waypoints",
+            "keepRoutes"
         ]),
         ...mapGetters("Modules/Routing", ["directionsSettings"]),
         /**
@@ -78,7 +79,8 @@ export default {
     methods: {
         ...mapMutations("Modules/Routing/Directions", [
             "setRoutingDirections",
-            "setMapInteractionMode"
+            "setMapInteractionMode",
+            "setKeepRoutes"
         ]),
         ...mapActions("Modules/Routing/Directions", [
             "findDirections",
@@ -206,10 +208,9 @@ export default {
             :checked="keepRoutes"
             @change="setKeepRoutes($event.target.checked)"
         >
-        <span class="ms-2">{{ $t('common:modules.tools.routing.directions.keepRoutesAfterClose') }}</span>
+        <span class="ms-2">{{ $t('common:modules.routing.directions.keepRoutesAfterClose') }}</span>
 
         <hr>
-
         <template v-if="directionsSettings.batchProcessing.enabled">
             <RoutingBatchProcessingCheckbox
                 :batch-processing="directionsSettings.batchProcessing"

@@ -474,7 +474,8 @@ const BuildSpecModel = {
         return {
             type: "geojson",
             style: this.buildStyle(layer, features, geojsonList, extent),
-            geojson: geojsonList
+            geojson: geojsonList,
+            opacity: layer.getOpacity()
         };
     },
     /**
@@ -991,9 +992,6 @@ const BuildSpecModel = {
         const strokeColor = style.getColor();
 
         obj.strokeColor = convertColor(strokeColor, "hex");
-        if (Array.isArray(strokeColor) && strokeColor[3] !== undefined) {
-            obj.strokeOpacity = strokeColor[3];
-        }
         if (typeof style.getWidth === "function" && style.getWidth() !== undefined) {
             obj.strokeWidth = style.getWidth();
         }

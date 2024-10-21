@@ -638,6 +638,7 @@
         },
         "deleteRestrictedAreas": "Видалення бар'єрних зон",
         "editRestrictedAreas": "Малювання / редагування бар'єрних зон",
+        "keepRoutesAfterClose": "Зберігати маршрут після закриття інструмента",
         "preference": {
           "RECOMMENDED": "Рекомендований маршрут",
           "SHORTEST": "Найкоротший маршрут"

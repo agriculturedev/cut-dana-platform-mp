@@ -164,4 +164,70 @@ describe("src/modules/print/utils/getVisibleLayer", function () {
         });
     });
 
+    describe("revertLayerOpacity", () => {
+        let getVisibleLayerListStub, getGroupedLayersStub, layerStub, groupedLayerStub;
+        const visibleLayers = [],
+            groupedLayers = [];
+
+        beforeEach(function () {
+            getVisibleLayerListStub = sinon.stub(layerProvider, "getVisibleLayerList").returns(visibleLayers);
+            getGroupedLayersStub = sinon.stub(layerProvider, "getGroupedLayers").returns(groupedLayers);
+            layerStub = {setOpacity: sinon.spy()};
+            groupedLayerStub = {getLayers: () => [layerStub]};
+        });
+
+        afterEach(function () {
+            sinon.restore();
+        });
+
+        it("should do nothing when there are no grouped layers", () => {
+            layerProvider.revertLayerOpacity();
+
+            expect(getVisibleLayerListStub.calledOnce).to.be.true;
+            expect(getGroupedLayersStub.calledOnce).to.be.true;
+            expect(layerStub.setOpacity.calledWith(1)).to.be.false;
+        });
+
+
+        it("should revert opacity to 1 for each layer in groupedLayers", function () {
+            getVisibleLayerListStub.returns(["someLayer"]);
+            getGroupedLayersStub.returns([groupedLayerStub]);
+
+            layerProvider.revertLayerOpacity();
+
+            expect(getVisibleLayerListStub.calledOnce).to.be.true;
+            expect(getGroupedLayersStub.calledOnce).to.be.true;
+            expect(layerStub.setOpacity.calledWith(1)).to.be.true;
+        });
+
+        it("should call getVisibleLayerList with true when printMapMarker is true", function () {
+            layerProvider.revertLayerOpacity(true);
+
+            expect(getVisibleLayerListStub.calledOnceWith(true)).to.be.true;
+        });
+
+        it("should call getVisibleLayerList with false when printMapMarker is false", function () {
+            layerProvider.revertLayerOpacity(false);
+
+            expect(getVisibleLayerListStub.calledOnceWith(false)).to.be.true;
+        });
+
+        it("should revert opacity to 1 for multiple layers in groupedLayers", function () {
+            const secondLayerStub = {setOpacity: sinon.spy()};
+
+            groupedLayerStub = {getLayers: () => [layerStub, secondLayerStub]};
+
+            getVisibleLayerListStub.returns(["someLayer"]);
+            getGroupedLayersStub.returns([groupedLayerStub]);
+
+            layerProvider.revertLayerOpacity();
+
+            expect(getVisibleLayerListStub.calledOnce).to.be.true;
+            expect(getGroupedLayersStub.calledOnce).to.be.true;
+            expect(layerStub.setOpacity.calledWith(1)).to.be.true;
+            expect(secondLayerStub.setOpacity.calledWith(1)).to.be.true;
+        });
+
+    });
+
 });

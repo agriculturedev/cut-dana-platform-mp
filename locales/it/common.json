@@ -638,6 +638,7 @@
         },
         "deleteRestrictedAreas": "Eliminare le aree di interdizione",
         "editRestrictedAreas": "Disegnare/modificare le aree di mantenimento",
+        "keepRoutesAfterClose": "Conserva il percorso dopo la chiusura dello strumento",
         "preference": {
           "RECOMMENDED": "Percorso consigliato",
           "SHORTEST": "Percorso più breve"

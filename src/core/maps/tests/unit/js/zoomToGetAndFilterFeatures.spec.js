@@ -80,4 +80,57 @@ describe("src/core/maps/js/zoomToGetAndFilterFeatures.js", () => {
             expect(createdUrl.searchParams.get("request")).to.eql("GetFeature");
         });
     });
+    describe("createFilter", () => {
+        it("test params", () => {
+            const version = "1.1.1",
+                featureNS = "http://www.deegree.org/app",
+                featurePrefix = "app",
+                createdFilter = featureProvider.createFilter(featureNS, featurePrefix, version, property, values);
+
+            expect(createdFilter.includes("xmlns=\"http://www.opengis.net/ogc\""));
+            expect(createdFilter.includes("xmlns:app=\"http://www.deegree.org/app\""));
+            expect(createdFilter.includes(featurePrefix));
+            expect(createdFilter.includes(featureNS));
+            expect(createdFilter.includes("<Or>"));
+            expect(createdFilter.includes("<Literal>18</Literal>"));
+            expect(createdFilter.includes("<Literal>26</Literal>"));
+        });
+        it("createFilter should respect version number", () => {
+            const version = "2.0.0",
+                featureNS = "http://www.deegree.org/app",
+                featurePrefix = "app",
+                createdFilter = featureProvider.createFilter(featureNS, featurePrefix, version, property, values);
+
+            expect(createdFilter.includes("xmlns=\"http://www.opengis.net/fes/2.0\""));
+        });
+        it("createFilter should respect number of values", () => {
+            const version = "1.1.1",
+                featureNS = "http://www.deegree.org/app",
+                featurePrefix = "app",
+                testValues = ["26"],
+                createdFilter = featureProvider.createFilter(featureNS, featurePrefix, version, property, testValues);
+
+            !expect(createdFilter.includes("<Or>"));
+            !expect(createdFilter.includes("<Literal>18</Literal>"));
+            expect(createdFilter.includes("<Literal>26</Literal>"));
+        });
+        it("createFilter should respect no property", () => {
+            const version = "1.1.1",
+                featureNS = "http://www.deegree.org/app",
+                featurePrefix = "app",
+                testProperty = "",
+                createdFilter = featureProvider.createFilter(featureNS, featurePrefix, version, testProperty, values);
+
+            expect(createdFilter).to.be.null;
+        });
+        it("createFilter should respect no value", () => {
+            const version = "1.1.1",
+                featureNS = "http://www.deegree.org/app",
+                featurePrefix = "app",
+                testValues = [],
+                createdFilter = featureProvider.createFilter(featureNS, featurePrefix, version, property, testValues);
+
+            expect(createdFilter.includes("<Literal></Literal>"));
+        });
+    });
 });
