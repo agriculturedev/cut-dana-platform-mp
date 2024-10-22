@@ -12,14 +12,17 @@
         "startResolution": 5.2916638091682096
       },
       "controls": {
-        "zoom": true,
+        "orientation3d": true,
         "button3d": true,
-        "expandable": {
-          "totalView": true,
-          "backForward": true,
-          "fullScreen": true
-        }
-      },
+        "toggleMenu": true,
+        "fullScreen": false,
+        "zoom": false,
+        "orientation": false,
+        "mousePosition": false,
+        "attributions": false,
+        "buttonOblique": false
+      }
+    },
       "layerPills": {
         "active": true
       }
@@ -272,7 +275,7 @@
             "heightValueBuilding": "200",
             "zoomLevel": 5
           },
-        
+
           {
             "type": "openConfig"
           },
