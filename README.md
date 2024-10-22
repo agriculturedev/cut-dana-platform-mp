@@ -224,17 +224,18 @@ Install the `node_modules` required for the addons:
 
 Step 1:
 
-```console
-cd cut-data-narrator\addons\dipasAddons\dataNarrator
-npm install
-```
-
 Install the `node_modules` required for the Masterportal:
 
 ```console
 cd cut-data-narrator
 npm install
 ```
+
+```console
+cd cut-data-narrator\addons\dipasAddons\dataNarrator
+npm install --legacy-peer-deps
+```
+
 
 With this, all dependencies are installed.
 
