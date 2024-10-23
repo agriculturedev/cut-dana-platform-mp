@@ -1,6 +1,5 @@
 <script>
-import ToolTemplate from "../../../src/modules/tools/ToolTemplate.vue";
-import {getComponent} from "../../../src/utils/getComponent";
+import {getComponent} from "../../../src/shared/js/utils/getComponent";
 import {mapGetters, mapActions, mapMutations} from "vuex";
 import getters from "../store/gettersFileImportAddon";
 import mutations from "../store/mutationsFileImportAddon";
@@ -8,7 +7,6 @@ import mutations from "../store/mutationsFileImportAddon";
 export default {
     name: "FileImportAddon",
     components: {
-        ToolTemplate
     },
     data () {
         return {
@@ -103,17 +101,7 @@ export default {
 };
 </script>
 
-<template lang="html">
-    <ToolTemplate
-        :title="$t('additional:modules.tools.fileImportAddon.title')"
-        :icon="icon"
-        :active="active"
-        :render-to-window="renderToWindow"
-        :resizable-window="resizableWindow"
-        :deactivate-gfi="deactivateGFI"
-        :focus-to-close-icon="true"
-    >
-        <template #toolBody>
+<template lang="html" #toolBody>
             <div
                 v-if="active"
                 id="tool-file-import"
@@ -190,13 +178,11 @@ export default {
                     </p>
                 </div>
             </div>
-        </template>
-    </ToolTemplate>
 </template>
 
 <style lang="scss" scoped>
-    @import "~/css/mixins.scss";
-    @import "~variables";
+@import "src/assets/css/mixins.scss";
+    @import "src/assets/css/variables.scss";
 
     .h-seperator {
         margin:12px 0 12px 0;

@@ -1,5 +1,5 @@
 import {KML, GeoJSON, GPX} from "ol/format.js";
-import uniqueId from "../../../src/utils/uniqueId.js";
+import uniqueId from "../../../src/shared/js/utils/uniqueId.js";
 import Circle from "ol/geom/Circle";
 
 const supportedFormats = {
