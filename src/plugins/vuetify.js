@@ -18,10 +18,10 @@ export async function instantiateVuetify () {
             /* webpackChunkName: "[request]" */
             /* webpackInclude: /addons[\\\/].*[\\\/]index.js$/ */
             /* webpackExclude: /(node_modules)|(.+unittests.)|(.+test.)+/ */
-            `../../../${Config.vuetify}`
+            `../../${Config.vuetify}`
         );
 
-        return vuetify.default;
+        return vuetify;
     }
     catch (e) {
         console.error(`Vuetify cannot be loaded from path ${Config.vuetify}. Please check the path set in the portal's config.js and try again.`, e);

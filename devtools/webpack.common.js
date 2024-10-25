@@ -96,7 +96,8 @@ module.exports = function () {
                 "mixins": path.resolve(__dirname, "..", "src", "assets", "css", "mixins.scss"),
                 "variables": path.resolve(__dirname, "..", "src", "assets", "css", "variables.scss")
             },
-            extensions: [".tsx", ".ts", ".js"]
+            modules: ["node_modules", "src"],
+            extensions: [".tsx", ".ts", ".js", ".mjs", ".scss"]
         },
         module: {
             unknownContextCritical: false,
@@ -131,7 +132,17 @@ module.exports = function () {
                 {
                     test: /\.mjs$/,
                     include: /node_modules/,
-                    type: "javascript/auto"
+                    type: "javascript/auto",
+                    use: {
+                        loader: "babel-loader",
+                        options: {
+                            presets: ["@babel/preset-env"],
+                            plugins: [
+                                "@babel/plugin-proposal-nullish-coalescing-operator",
+                                "@babel/plugin-proposal-optional-chaining"
+                            ]
+                        }
+                    }
                 },
                 {
                     test: /\.scss$/,

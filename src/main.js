@@ -10,10 +10,10 @@ import "bootstrap/js/dist/offcanvas";
 
 import remoteInterface from "./plugins/remoteInterface";
 import utilsLogin from "../src/modules/login/js/utilsLogin";
-// import {instantiateVuetify} from "./plugins/vuetify";
 import {initiateVueI18Next, initLanguage} from "./plugins/i18next";
 
 import {initiateMatomo} from "./plugins/matomo";
+import vuetify from "../addons/dipasAddons/dataNarrator/vuetify/index";
 
 let app;
 const configPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/") + 1) + "config.js",
@@ -56,6 +56,7 @@ loadConfigJs.then(() => {
         initiateMatomo(app);
     }
 
+    app.use(vuetify);
 
     initLanguage(Config.portalLanguage)
         .then(() => {
