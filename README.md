@@ -232,7 +232,7 @@ npm install
 ```
 
 ```console
-cd cut-data-narrator\addons\dipasAddons\dataNarrator
+cd addons\dipasAddons\dataNarrator
 npm install --legacy-peer-deps
 ```
 
