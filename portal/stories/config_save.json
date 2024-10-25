@@ -309,7 +309,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 1,
           "datasets": [
@@ -364,7 +364,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 1,
           "datasets": [
@@ -410,7 +410,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 1,
           "datasets": [
@@ -456,7 +456,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 1,
           "datasets": [
@@ -503,7 +503,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 1,
           "datasets": [
@@ -578,7 +578,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 5,
           "datasets": [
@@ -637,7 +637,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 1,
           "datasets": [
@@ -695,7 +695,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 20,
           "datasets": [
@@ -742,7 +742,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 1,
           "datasets": [
@@ -796,7 +796,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 5,
           "datasets": [
@@ -847,7 +847,7 @@
           "gfiTheme": "default",
           "gfiComplex": "false",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cache": false,
           "featureCount": 1,
           "datasets": [
@@ -905,7 +905,7 @@
           "projection": "",
           "gfiAttributes": "showAll",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "datasets": [
               {
                   "md_id": "87D131E6-1D27-4C38-828E-B3DBEBFF8CE6",
@@ -945,7 +945,7 @@
               "Grundrissaktualitaet": "Grundrissaktualität (ALKIS)"
           },
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "ignore",
+          "legend": "ignore",
           "cesium3DTilesetOptions": {
               "maximumScreenSpaceError": 10
           },
@@ -975,7 +975,7 @@
           "typ": "TileSet3D",
           "gfiAttributes": "showAll",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "ignore",
+          "legend": "ignore",
           "cesium3DTilesetOptions": {
               "maximumScreenSpaceError": 0
           },
@@ -1005,7 +1005,7 @@
           "typ": "TileSet3D",
           "gfiAttributes": "ignore",
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "ignore",
+          "legend": "ignore",
           "cesium3DTilesetOptions": {
               "maximumScreenSpaceError": 10
           },
@@ -1045,7 +1045,7 @@
               "Pflanzjahr": "Pflanzjahr"
           },
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "",
+          "legend": "",
           "cesium3DTilesetOptions": {
               "maximumScreenSpaceError": 10
           },
@@ -1087,7 +1087,7 @@
               "Grundrissaktualitaet": "Grundrissaktualität (ALKIS)"
           },
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "ignore",
+          "legend": "ignore",
           "cesium3DTilesetOptions": {
               "maximumScreenSpaceError": 10
           },
@@ -1126,7 +1126,7 @@
               "Stadt": "Stadt"
           },
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "ignore",
+          "legend": "ignore",
           "cesium3DTilesetOptions": {
               "maximumScreenSpaceError": 10
           },
@@ -1164,7 +1164,7 @@
               "Stadt": "Stadt"
           },
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "ignore",
+          "legend": "ignore",
           "cesium3DTilesetOptions": {
               "maximumScreenSpaceError": 10
           },
@@ -1202,7 +1202,7 @@
               "Stadt": "Stadt"
           },
           "layerAttribution": "nicht vorhanden",
-          "legendURL": "ignore",
+          "legend": "ignore",
           "cesium3DTilesetOptions": {
               "maximumScreenSpaceError": 10
           },
