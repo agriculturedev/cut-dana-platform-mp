@@ -2,8 +2,5 @@
   "dataNarrator": {
     "path": "dipasAddons/dataNarrator",
     "type": "tool"
-  },
-  "fileImportAddon": {
-    "type": "tool"
   }
 }

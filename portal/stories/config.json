@@ -164,10 +164,6 @@
             "type": "legend"
           },
           {
-            "type": "fileImport",
-            "customStylingOption": true
-          },
-          {
             "type": "openConfig"
           }
         ]
