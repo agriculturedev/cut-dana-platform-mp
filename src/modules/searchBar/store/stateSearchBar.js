@@ -6,6 +6,7 @@
  * @property {String} [currentSide="mainMenu"] Current side of the searchBar.
  * @property {String} [minCharacters=3] Minimum amount of characters required to start a search.
  * @property {String} [placeholder="common:modules.searchBar.placeholder.address"] Input text field placeholder shown when no input has been given yet.
+ * @property {String} [globalPlaceholder="common:modules.searchBar.placeholder.address"] contains the globally used placeholder value.
  * @property {Object} [searchInterfaces={}] The configurations of the search interfaces
  * @property {Number} [suggestionListLength=5] Maximum amount of entries in the suggestion list.
  * @property {Number} [timeout=5000] Timeout for request to a search interface.
@@ -34,6 +35,7 @@ const state = {
     currentSide: "mainMenu",
     minCharacters: 3,
     placeholder: "common:modules.searchBar.placeholder.address",
+    globalPlaceholder: "common:modules.searchBar.placeholder.address",
     searchInterfaces: [],
     suggestionListLength: 5,
     timeout: 5000,

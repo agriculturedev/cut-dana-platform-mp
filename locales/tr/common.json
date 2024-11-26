@@ -136,8 +136,8 @@
         "distanceUnit": "Metre",
         "geolocationDeniedText": "Yerelleştirme mevcut değil",
         "imgAlt": "İlgi alanını için resim",
-        "poiChoiceCurrentPostion": "Konum",
-        "poiChoiceCustomPostion": "Adres arama veya haritada nokta belirleme",
+        "poiChoiceCurrentPosition": "Konum",
+        "poiChoiceCustomPosition": "Adres arama veya haritada nokta belirleme",
         "poiChoiceConfirmation": "OK",
         "poiChoiceStop": "Son",
         "poiChoiceTitle": "Alan araması için başlangıç ​​noktası seçin:",
@@ -709,11 +709,11 @@
         "unknownProjection": "Sonuçlar bilinmeyen koordinat sisteminde"
       },
       "placeholder": {
-          "address": "Adrese göre ara",
-          "addressDistrict": "",
-          "addressHospitalBplan": "Adres/Hastane/B-Planı ile arama yapın",
-          "addressTopic": "Adres, semt, konu ara",
-          "addressTopicParcel": "Adres,Bölge,Konu,Parsel ara"
+        "address": "Adrese göre ara",
+        "addressDistrict": "",
+        "addressHospitalBplan": "Adres/Hastane/B-Planı ile arama yapın",
+        "addressTopic": "Adres, semt, konu ara",
+        "addressTopicParcel": "Adres,Bölge,Konu,Parsel ara"
       },
       "showAllResults": "Tüm sonuçları göster",
       "searchResults": "Arama Sonuçları",
@@ -723,15 +723,15 @@
       "mark": "Konuyu işaretle",
       "add": "Konu Ekle",
       "type": {
-          "address": "Adres",
-          "district": "Semt",
-          "folder": "",
-          "general": "Konu",
-          "location": "Yer",
-          "parcel": "Parsel alan",
-          "street": "Sokak",
-          "subject": "Teknik konu",
-          "topic": "Konu"
+        "address": "Adres",
+        "district": "Semt",
+        "folder": "",
+        "general": "Konu",
+        "location": "Yer",
+        "parcel": "Parsel alan",
+        "street": "Sokak",
+        "subject": "Teknik konu",
+        "topic": "Konu"
       },
       "specialWFS": {
         "ongoing": "Prosedürde",
@@ -846,18 +846,18 @@
     },
     "wmsTime": {
       "layerSwiper": {
-          "description": "Kaydırıcı (Swiper i), fare (mouse) veya klavye ok tuşları kullanılarak hareket ettirilebilirsiniz. Ok tuşlarını kullanırken, {{amount}}px kaydırıcı ilgili yönde hareket eder.",
-          "title": "Katmanları karşılaştırın"
+        "description": "Kaydırıcı (Swiper i), fare (mouse) veya klavye ok tuşları kullanılarak hareket ettirilebilirsiniz. Ok tuşlarını kullanırken, {{amount}}px kaydırıcı ilgili yönde hareket eder.",
+        "title": "Katmanları karşılaştırın"
       },
       "timeSlider": {
-          "buttons": {
-              "backward": "Geriye doğru bir zaman",
-              "deactivateLayerSwiper": "Katmanı sil",
-              "forward": "Öne doğru bir zaman",
-              "layerSwiper": "Zamanları karşılaştır",
-              "play": "O anda seçili olan zaman noktasına göre zaman içindeki tüm noktaların otomatik olarak yeniden oynatılması"
-          },
-          "inputRangeLabel": "Bir zaman dilimi seçin"
+        "buttons": {
+          "backward": "Geriye doğru bir zaman",
+          "deactivateLayerSwiper": "Katmanı sil",
+          "forward": "Öne doğru bir zaman",
+          "layerSwiper": "Zamanları karşılaştır",
+          "play": "O anda seçili olan zaman noktasına göre zaman içindeki tüm noktaların otomatik olarak yeniden oynatılması"
+        },
+        "inputRangeLabel": "Bir zaman dilimi seçin"
       }
     }
   },

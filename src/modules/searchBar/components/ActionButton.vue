@@ -31,7 +31,7 @@ export default {
         ...mapActions("Modules/SearchBar", [
             "activateAction"
         ]),
-        ...mapMutations("Modules/SearchBar", ["setSearchResultsActive", "setCurrentActionEvent", "setCurrentSearchInputValue"]),
+        ...mapMutations("Modules/SearchBar", ["setSearchResultsActive", "setCurrentActionEvent"]),
         /**
          * Checks for special actions, if an icon for the action shall be displayed.
          * Action 'startRouting': checks if routing module is available.
@@ -49,7 +49,6 @@ export default {
          */
         callAction () {
             this.setCurrentActionEvent(this.actionName);
-            this.setCurrentSearchInputValue(this.searchInput);
             this.activateAction({actionName: this.actionName, actionArgs: this.actionArgs});
 
         }

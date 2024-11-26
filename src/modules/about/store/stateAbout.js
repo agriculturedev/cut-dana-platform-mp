@@ -12,7 +12,7 @@
  * @property {Object} contact the metadata contact
  * @property {String} cswUrl the csw metadata URL
  * @property {String} logo the masterportal logo
- * @property {String} logoLink the link to https://masterportal.org
+ * @property {String} logoLink the link behind the masterportal logo
  * @property {String} logoText the alternate text if the the masterportal logo cannot be displayed
  * @property {String} metaDataCatalogueId id of the MetaDataCatalogue
  * @property {String} metaId id of the MetaData
@@ -21,7 +21,7 @@
  * @property {Boolean} showAdditionalMetaData parameter to show the metadata link for more information
  * @property {String} title the metadata title
  * @property {String} version the current mp version
- * @property {String} versionLink link to the masteprortal downloads
+ * @property {String} versionLink link behind the masterportal version
  * @property {String} ustId Sales tax identification number
  * @property {String} privacyStatementText Text for data privacy section
  * @property {String} privacyStatementUrl URL to data privacy policy site
@@ -47,7 +47,7 @@ export default {
     noMetadataLoaded: "",
     showAdditionalMetaData: true,
     title: "",
-    version: "",
+    version: true,
     versionLink: "https://bitbucket.org/geowerkstatt-hamburg/masterportal/downloads/",
     ustId: "",
     privacyStatementText: "",

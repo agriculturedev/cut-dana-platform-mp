@@ -6,7 +6,7 @@ const fs = require("fs-extra"),
 
     replaceStrings = require(path.resolve(rootPath, "devtools/tasks/replace")),
     prependVersionNumber = require(path.resolve(rootPath, "devtools/tasks/prependVersionNumber")),
-    mastercodeVersionFolderName = require(path.resolve(rootPath, "devtools/tasks/getMastercodeVersionFolderName"))(),
+    mastercodeVersionFolderName = require(path.resolve(rootPath, "devtools/tasks/getMastercodeVersionFolderName"))().replace(/[\s:]+/g, ""),
 
     distPath = path.resolve(rootPath, "dist/"),
     buildTempPath = path.resolve(distPath, "build/"),

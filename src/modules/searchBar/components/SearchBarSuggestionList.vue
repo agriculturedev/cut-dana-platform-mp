@@ -27,11 +27,13 @@ export default {
     computed: {
         ...mapGetters("Modules/SearchBar", [
             "minCharacters",
+            "showInTree",
             "searchInput",
             "searchResults",
             "searchResultsActive",
             "showAllResults",
-            "currentSide"
+            "currentSide",
+            "showAllResultsSearchInterfaceInstances"
         ]),
         ...mapGetters("Menu", [
             "menuBySide"
@@ -43,6 +45,7 @@ export default {
     methods: {
         ...mapMutations("Modules/SearchBar", [
             "setCurrentAvailableCategories",
+            "setPlaceholder",
             "setSearchResultsActive",
             "setShowAllResults",
             "setShowAllResultsSearchInterfaceInstances"
@@ -59,13 +62,23 @@ export default {
          * @returns {void}
          */
         prepareShowAllResults (categoryItem) {
-            const side = this.currentSide;
+            const side = this.currentSide,
+                interfaceToAdd = {id: this.limitedSortedSearchResults.results.categoryProvider[categoryItem], searchCategory: categoryItem},
+                exists = this.showAllResultsSearchInterfaceInstances.find(searchInterface => searchInterface.id === interfaceToAdd.id);
 
-            this.setShowAllResultsSearchInterfaceInstances(this.limitedSortedSearchResults.results.categoryProvider[categoryItem]);
+            if (!exists) {
+                const currentInterfaces = [...this.showAllResultsSearchInterfaceInstances];
+
+                currentInterfaces.push(interfaceToAdd);
+                this.setShowAllResultsSearchInterfaceInstances(currentInterfaces);
+            }
             if (this.menuBySide(side)) {
-                this.setNavigationCurrentComponentBySide({side: side, newComponent: {props: {name: "common:modules.searchBar.searchResults"}, type: "searchbar"}});
+                const name = i18next.t("common:modules.searchBar.searchResults") + " - " + categoryItem;
+
+                this.setNavigationCurrentComponentBySide({side: side, newComponent: {props: {name}, type: "searchbar"}});
+                this.setPlaceholder(i18next.t("common:modules.searchBar.placeholder.searchFor") + " " + categoryItem);
                 this.setCurrentComponentBySide({side: side, type: "searchbar"});
-                this.setNavigationHistoryBySide({side: side, newHistory: [{type: "root", props: []}, {type: "searchBar", props: {name: "modules.searchBar.searchBar"}}, {type: "searchBar", props: {name: "modules.searchBar.searchResultList"}}]});
+                this.setNavigationHistoryBySide({side: side, newHistory: [{type: "root", props: []}, {type: "searchBar", props: {name}}, {type: "searchBar", props: {name: "modules.searchBar.searchResultList"}}]});
             }
             this.setCurrentAvailableCategories(categoryItem);
             this.currentShowAllList = this.limitedSortedSearchResults.currentShowAllList.filter(value => {
@@ -80,7 +93,7 @@ export default {
 
 <template lang="html">
     <div
-        v-if="searchInput?.length >= minCharacters && searchResultsActive && searchResults?.length > 0"
+        v-if="searchInput?.length >= minCharacters && searchResultsActive && searchResults?.length > 0 && !showInTree"
         class="suggestions-container"
     >
         <div

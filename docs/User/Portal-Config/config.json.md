@@ -1026,6 +1026,7 @@ Here you can configure the menu items for the `mainMenu` (in the desktop view on
 |expanded|no|Boolean|false|Defines whether the respective menu is expanded or collapsed when the portal is started.|false|
 |width|no|String|"25%"|Sets the initial width of the respective menu as a percentage value.|false|
 |showDescription|no|Boolean||Defines whether a description of the modules should be displayed in the respective menu.|false|
+|showHeaderIcon|no|Boolean|false|Defines whether the icon of the current module is shown in the menu header|false|
 |searchBar|no|**[searchBar](#portalconfigmenusearchbar)**||The search bar allows requesting information from various search services at once.|false|
 |sections|no|**[sections](#portalconfigmenusections)**[]||Subdivision of modules in the menu.|false|
 |title|no|**[title](#portalconfigmenutitle)**||The portal's title and further elements to be shown in the main menu bar.|false|
@@ -1516,7 +1517,7 @@ Searching all topic selection tree layers.
 ```json
 {
     "type": "topicTree",
-    "searchInterfaceId": "topicTree" 
+    "searchInterfaceId": "topicTree"
 }
 ```
 
@@ -1680,17 +1681,18 @@ This module displays specific portal information like description, Masterportal 
 |type|no|String|"about"|The type of the module. Defines which module is configured.|false|
 |abstractText|no|String|""|Description of the portal|false|
 |contact|no|String|null|Metadata contact information|false|
-|cswUrl|no|String|"../../src/assets/img/Logo_Masterportal.svg"|Metadata URL|false|
-|logoLink|no|String|"https://masterportal.org"|Logo link|false|
-|logoText|no|String|"Masterportallogo"|Text if logo is not shown|false|
+|cswUrl|no|String|""|Metadata URL|false|
+|logo|no|Boolean/String|true|"../../src/assets/img/Logo_Masterportal.svg"|Path to the logo. With `false` the logo is hidden.|false|
+|logoLink|no|String|"https://masterportal.org"|Link that opens in a new tab when you click on the logo.|false|
+|logoText|no|String|"Masterportallogo"|Alternative text that is displayed if the logo cannot be displayed.|false|
 |metaDataCatalogueId|no|String|"2"|Id of the metadata service|false|
 |metaId|no|String|""|Id of the metadata object|false|
 |metaUrl|no|String|""|URL of the metadata object|false|
 |noMetadataLoaded|no|String|""|Text if no metadata is shown|false|
 |showAdditionalMetaData|no|Boolean|true|Metadata link to show extended metadata|false|
 |title|no|String|""|Metadata title |false|
-|version|no|String|""|Version information of the masterportal|false|
-|versionLink|no|String|"https://bitbucket.org/geowerkstatt-hamburg/masterportal/downloads/"|Link to the masterportal version|false|
+|version|no|Boolean/String|true|Version specification of the master portal. With `true` the master portal version is determined automatically. With `false` the version is hidden.|false|
+|versionLink|no|String|"https://bitbucket.org/geowerkstatt-hamburg/masterportal/downloads/"|Link that opens in a new tab when you click on the version.|false|
 |ustId|no|String|""|Sales tax identification number in accordance with Section 27 of the Sales Tax Act|false|
 |privacyStatementText|no|String|"common:modules.about.privacyStatementText"|Text for data privacy section|false|
 |privacyStatementUrl|no|String|""|URL to data privacy policy site|false|
@@ -1715,8 +1717,8 @@ This module displays specific portal information like description, Masterportal 
 
 [inherits]: # (portalConfig.menu.sections.modules)
 
-The module allows for adding additional WMS layers via a provided URL. The [GDI-DE](https://www.gdi-de.org/download/AK_Geodienste_Architektur_GDI-DE_Bereitstellung_Darstellungsdienste.pdf) recommends setting up a CORS header, see chapter 4.7.1.   
-Schema for a WMS layer URL: `www.diensteurl/wmsdienste`. 
+The module allows for adding additional WMS layers via a provided URL. The [GDI-DE](https://www.gdi-de.org/download/AK_Geodienste_Architektur_GDI-DE_Bereitstellung_Darstellungsdienste.pdf) recommends setting up a CORS header, see chapter 4.7.1.
+Schema for a WMS layer URL: `www.diensteurl/wmsdienste`.
 
 |Name|Required|Type|Default|Description|Expert|
 |----|--------|----|-------|-----------|------|
@@ -2840,6 +2842,7 @@ The measure tool allows measuring distances and areas.
 
 |Name|Required|Type|Default|Description|Expert|
 |----|--------|----|-------|-----------|------|
+|color|no|Number[]|[255, 127, 0, 1.0]|Defines the color for the measured lines and polygons.|false|
 |earthRadius|no|Number|6378137|Earth radius in meters. Please mind that the earth radius should be chosen in accordance with the reference ellipsoid. E.g., GRS80 should be used for ETRS89 (EPSG:25832).|false|
 |icon|no|String|"bi-arrows-angle-expand"|Icon that is shown in front of the module-name in the menu. For selection see **[Bootstrap Icons](https://icons.getbootstrap.com/)**.|false|
 |lineStringUnits|no|String[]|["m", "km"]|Indicates which units for length measurements will be selectable by users. Options are "m" (metres), "km" (kilometres), "nm" (nautical miles).|false|
@@ -4347,7 +4350,7 @@ Configuration of the addLayerButton to select layers.
                 {
                     "id":"elasticSearch_0",
                     "searchCategory": "Thema (externe Fachdaten)"
-                }, 
+                },
                 {
                     "id": "topicTree",
                     "searchCategory": "Thema"
@@ -4795,16 +4798,44 @@ A group layer is created that contains all layers of the specified ids.
 |----|--------|----|-------|-----------|------|
 |id|yes|String[]||Ids of the layers to be grouped, these must be contained in the **[services.json](../Global-Config/services.json.md)**. They can have different types (field `typ`).|false|
 |typ|yes|String|"GROUP"|Sets the layer typ to GROUP, which can group layers.|false|
-|styleId|no|String||Id that defines the style. Id is resolved in the **[style.json](../Global-Config/style.json.md)**. If filled, then all grouped layers receive this style.|false|
+|children|no|Object[]||Attributes on the grouped layers can be overwritten in `children`. Exception: `visibility` is not overwritten. All ids in the id array must have an equivalent in the `children`.|false|
 
 
-**Example**
+**Example without children**
 ```json
  {
     "id": [ "20501", "20502", "20503", "20504" ],
     "typ": "GROUP",
-    "name": "Gruppe Freizeitrouten und Radfernwege",
+    "name": "Leisure routes and long-distance cycle routes group",
     "styleId": "4515"
+}
+```
+**Example with children**
+
+```json
+{
+    "id": [ "27926", "1711", "18104"],
+    "typ": "GROUP",
+    "name": "Group OAF, WFS, SensorThings",
+    "visibility": false,
+    "children" :[
+        {
+            "id": "27926",
+            "styleId": "8712",
+            "typ": "OAF",
+            "gfiTheme": "schulinfo"
+        },
+        {
+            "id": "1711",
+            "styleId": "1711",
+            "typ": "WFS"
+        },
+        {
+            "id": "18104",
+            "styleId": "18104",
+            "typ": "SensorThings"
+        }
+    ]
 }
 ```
 

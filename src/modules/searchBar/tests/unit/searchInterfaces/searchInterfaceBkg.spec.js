@@ -21,7 +21,8 @@ describe("src/modules/searchBar/searchInterfaces/searchInterfaceBkg.js", () => {
                 return {
                     url: "test.url"
                 };
-            }
+            },
+            "Maps/projectionCode": "EPSG:25832"
         };
 
         mapCollection.clear();
@@ -85,13 +86,20 @@ describe("src/modules/searchBar/searchInterfaces/searchInterfaceBkg.js", () => {
             expect(checkConfigSpy.calledOnce).to.be.true;
             expect(checkConfigSpy.firstCall.args[1]).to.be.deep.equals(["setMarker", "zoomToResult", "startRouting"]);
         });
+
+        it("should set the default values to SearchInterfaceBkg", () => {
+            expect(SearchInterface1.epsg).to.equals("EPSG:25832");
+            expect(SearchInterface1.extent).to.deep.equals([454591, 5809000, 700000, 6075769]);
+            expect(SearchInterface1.minScore).to.equals(0.6);
+            expect(SearchInterface1.resultCount).to.equals(20);
+        });
     });
 
     describe("createSearchUrl", () => {
         it("should create the search url with GET parameters", () => {
             const searchInput = "abc";
 
-            expect(SearchInterface1.createSearchUrl(searchInput)).to.equals("test.url?bbox=454591,5809000,700000,6075769&outputformat=json&srsName=undefined&count=20&query=abc");
+            expect(SearchInterface1.createSearchUrl(searchInput)).to.equals("test.url?bbox=454591,5809000,700000,6075769&outputformat=json&srsName=EPSG:25832&count=20&query=abc");
         });
     });
 

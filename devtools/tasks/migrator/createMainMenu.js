@@ -168,8 +168,18 @@ function addSearchbar (data, mainMenu) {
                     console.info("--- HINT: deprecated " + searchType + " is no longer provided, use elastic instead.");
                 }
                 if (searchName === "bkg") {
+                    searchConfig.geoSearchServiceId = searchConfig.geosearchServiceId;
+
+                    delete searchConfig.geosearchServiceId;
+                    delete searchConfig.minCharacters;
+                    delete searchConfig.suggestCount;
+                    delete searchConfig.suggestServiceId;
+                    delete searchConfig.zoomLevel;
+
                     if (searchConfig.zoomToResultOnHover !== undefined || searchConfig.zoomToResultOnClick !== undefined) {
                         console.info("--- HINT: " + searchType + " removed deprecated property zoomToResultOnHover and zoomToResultOnClick, configure resultEvents instead.");
+                        delete searchConfig.zoomToResultOnClick;
+                        delete searchConfig.zoomToResultOnHover;
                     }
                 }
                 if (searchName.toLowerCase() === "specialwfs") {

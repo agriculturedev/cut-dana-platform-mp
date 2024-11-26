@@ -40,6 +40,7 @@ export default {
             "abstractText",
             "customText",
             "datePublication",
+            "dateRevision",
             "downloadLinks",
             "layerInfo",
             "legendAvailable",
@@ -65,6 +66,9 @@ export default {
         },
         showPublication () {
             return typeof this.datePublication !== "undefined" && this.datePublication !== null && this.datePublication !== "";
+        },
+        showRevision () {
+            return typeof this.dateRevision !== "undefined" && this.dateRevision !== null && this.dateRevision !== "";
         },
         showPeriodicity () {
             return this.periodicityKey !== "" && this.periodicityKey !== null && this.periodicityKey !== undefined;
@@ -234,6 +238,9 @@ export default {
         <br>
         <p v-if="showPublication">
             {{ $t("common:modules.layerInformation.publicationCreation") }}: {{ datePublication }}
+        </p>
+        <p v-if="showRevision">
+            {{ $t("common:modules.layerInformation.lastModified") }}: {{ dateRevision }}
         </p>
         <p v-if="showPeriodicity">
             {{ $t("common:modules.layerInformation.periodicityTitle") }}: {{ $t(periodicityKey) }}

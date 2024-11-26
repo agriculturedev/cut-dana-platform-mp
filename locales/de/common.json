@@ -81,8 +81,8 @@
     },
     "aria": {
       "sliderAria": "Schieberegeler für "
-     },
-     "button": {
+    },
+    "button": {
       "confirm": "Bestätigen",
       "stop": "Abbrechen"
     },
@@ -167,8 +167,8 @@
         "distanceUnit": "Meter",
         "geolocationDeniedText": "Lokalisierung nicht verfügbar",
         "imgAlt": "Bild für Point of Interest",
-        "poiChoiceCurrentPostion": "Standort",
-        "poiChoiceCustomPostion": "Adresssuche oder Punkt in Karte setzen",
+        "poiChoiceCurrentPosition": "Standort",
+        "poiChoiceCustomPosition": "Adresssuche oder Punkt in Karte setzen",
         "poiChoiceClickPoint": "Punkt in Karte setzen",
         "poiChoiceConfirmation": "OK",
         "poiChoiceStop": "Beenden",
@@ -531,7 +531,7 @@
           }
         }
       },
-      "title":"Objekt Information"
+      "title": "Objekt Information"
     },
     "gfiThemes": {
       "dataTable": {
@@ -539,11 +539,11 @@
       }
     },
     "info": {
-        "name": "Info",
-        "disclaimer": "Haftungsausschluss",
-        "home": {
-            "name": "Hamburg"
-        }
+      "name": "Info",
+      "disclaimer": "Haftungsausschluss",
+      "home": {
+        "name": "Hamburg"
+      }
     },
     "language": {
       "de": "Deutsch",
@@ -686,25 +686,25 @@
           "zoomTo": "Zu 3D-Modell \"{{name}}\" zoomen"
         },
         "deleteInteraction": {
-            "confirm": "Löschen",
-            "headline": "Achtung",
-            "text": "Sind Sie sicher, dass Sie das Modell \"{{name}}\" löschen möchten?"
+          "confirm": "Löschen",
+          "headline": "Achtung",
+          "text": "Sind Sie sicher, dass Sie das Modell \"{{name}}\" löschen möchten?"
         },
         "projections": {
-            "adaptToHeight": "An Gelände anpassen",
-            "area": "Grundfläche",
-            "cartesian": {
-                "eastingLabel": "Rechtswert",
-                "northingLabel": "Hochwert"
-            },
-            "depth": "Tiefe",
-            "hdms": {
-                "eastingLabel": "Länge",
-                "northingLabel": "Breite"
-            },
-            "height": "Höhe",
-            "projection": "Koordinatensystem",
-            "width": "Breite"
+          "adaptToHeight": "An Gelände anpassen",
+          "area": "Grundfläche",
+          "cartesian": {
+            "eastingLabel": "Rechtswert",
+            "northingLabel": "Hochwert"
+          },
+          "depth": "Tiefe",
+          "hdms": {
+            "eastingLabel": "Länge",
+            "northingLabel": "Breite"
+          },
+          "height": "Höhe",
+          "projection": "Koordinatensystem",
+          "width": "Breite"
         }
       },
       "import": {
@@ -951,20 +951,21 @@
         "unknownProjection": "Ergebnisse in unbekanntem Koordinatensystem"
       },
       "placeholder": {
+        "searchFor": "Suche nach",
         "address": "Suche nach Adresse",
         "addressDistrict": "Suche Adresse, Stadtteil",
         "addressHospitalBplan": "Suche nach Adresse/Krankenhaus/B-Plan",
         "addressTopic": "Suche Adresse, Stadtteil, Thema",
         "addressTopicParcel": "Suche Adresse, Stadtteil, Thema, Flurstück"
-    },
-    "showAllResults": "alle Ergebnisse anzeigen",
-    "searchResults": "Suchergebnisse",
-    "search": "Suche",
-    "searchResultList": "Suchübersicht",
-    "searchResultsFrom": "Suchergebnisse von: ",
-    "mark": "Wähle das Thema aus",
-    "add": "Thema hinzufügen",
-    "type": {
+      },
+      "showAllResults": "alle Ergebnisse anzeigen",
+      "searchResults": "Suchergebnisse",
+      "search": "Suche",
+      "searchResultList": "Suchübersicht",
+      "searchResultsFrom": "Suchergebnisse von: ",
+      "mark": "Wähle das Thema aus",
+      "add": "Thema hinzufügen",
+      "type": {
         "address": "Adresse",
         "county": "Bezirk",
         "district": "Stadtteil",
@@ -975,29 +976,29 @@
         "street": "Straße",
         "subject": "Thema",
         "topic": "Thema (Fachdaten)"
-    },
-    "specialWFS": {
-      "ongoing": "im Verfahren",
-      "terminated": "festgestellt",
-      "hazardous": "Störfallbetrieb",
-      "childcare": "Kita",
-      "bplan": "B-Plan"
-    },
-    "actions":{
-      "activateLayerInTopicTree":"Layer im Themenbaum anzeigen",
-      "addLayerToTopicTree":"Layer dem Themenbaum hinzufügen",
-      "highlightFeature":"Feature hervorheben",
-      "openGetFeatureInfo":"Informationen anzeigen",
-      "setMarker":"Marker setzen",
-      "zoomToResult":"Zum Ergebnis zoomen",
-      "startRouting":"Route starten",
-      "showInTree":"Thema im Ordner anzeigen",
-      "showLayerInfo":"Informationen und Legende"
-    },
-    "noInitialResults": "Die initiale Suche ergab keine Treffer.",
-    "showAll": "Alle anzeigen",
-    "layerResultNotShown": "Der gefundene Layer kann nicht angezeigt werden.",
-    "layerInfoNotShown": "Die Layer Information kann nicht angezeigt werden."
+      },
+      "specialWFS": {
+        "ongoing": "im Verfahren",
+        "terminated": "festgestellt",
+        "hazardous": "Störfallbetrieb",
+        "childcare": "Kita",
+        "bplan": "B-Plan"
+      },
+      "actions": {
+        "activateLayerInTopicTree": "Layer im Themenbaum anzeigen",
+        "addLayerToTopicTree": "Layer dem Themenbaum hinzufügen",
+        "highlightFeature": "Feature hervorheben",
+        "openGetFeatureInfo": "Informationen anzeigen",
+        "setMarker": "Marker setzen",
+        "zoomToResult": "Zum Ergebnis zoomen",
+        "startRouting": "Route starten",
+        "showInTree": "Thema im Ordner anzeigen",
+        "showLayerInfo": "Informationen und Legende"
+      },
+      "noInitialResults": "Die initiale Suche ergab keine Treffer.",
+      "showAll": "Alle anzeigen",
+      "layerResultNotShown": "Der gefundene Layer kann nicht angezeigt werden.",
+      "layerInfoNotShown": "Die Layer Information kann nicht angezeigt werden."
     },
     "selectFeatures": {
       "description": "Erhalten Sie Informationen zu Objekten die Sie auf der Karte auswählen",
@@ -1096,7 +1097,6 @@
       "linkCopied": "Link wurde in die Zwischenablage kopiert.",
       "qrError": "Beim Generieren des QR-Codes ist ein Fehler aufgetreten.",
       "qrErrorDataTooLarge": "Die Daten, die Sie teilen möchten, sind zu groß. Bitte reduzieren Sie die Anzahl der Optionen auf der Karte, um die Datenmenge zu verkleinern."
-      }
     },
     "styleVT": {
       "chooseTheme": "Bitte aktives Thema auswählen",
@@ -1178,19 +1178,20 @@
     },
     "wmsTime": {
       "layerSwiper": {
-          "description": "Der Swiper kann mithilfe der Maus oder den Pfeiltasten der Tastatur bewegt werden. Bei der Nutzung der Pfeiltasten wird der Swiper {{amount}}px in die entsprechende Richtung bewegt.",
-          "title": "Layer vergleichen"
+        "description": "Der Swiper kann mithilfe der Maus oder den Pfeiltasten der Tastatur bewegt werden. Bei der Nutzung der Pfeiltasten wird der Swiper {{amount}}px in die entsprechende Richtung bewegt.",
+        "title": "Layer vergleichen"
       },
       "timeSlider": {
-          "buttons": {
-              "backward": "Einen Zeitpunkt zurück",
-              "deactivateLayerSwiper": "Layer entfernen",
-              "forward": "Einen Zeitpunkt voran",
-              "layerSwiper": "Zeitpunkte vergleichen",
-              "play": "Ein automatisches Abspielen aller Zeitpunkte, ausgehend vom aktuell ausgewählten Zeitpunkt"
-          },
-          "inputRangeLabel": "Einen Zeitpunkt auswählen"
+        "buttons": {
+          "backward": "Einen Zeitpunkt zurück",
+          "deactivateLayerSwiper": "Layer entfernen",
+          "forward": "Einen Zeitpunkt voran",
+          "layerSwiper": "Zeitpunkte vergleichen",
+          "play": "Ein automatisches Abspielen aller Zeitpunkte, ausgehend vom aktuell ausgewählten Zeitpunkt"
+        },
+        "inputRangeLabel": "Einen Zeitpunkt auswählen"
       }
+    }
   },
   "shared": {
     "js": {
@@ -1310,67 +1311,51 @@
   },
   "libraries": {
     "vue-datepicker-next": {
-        "lang": {
-            "formatLocale": {
-                "months": [
-                    "Januar",
-                    "Februar",
-                    "März",
-                    "April",
-                    "Mai",
-                    "Juni",
-                    "Juli",
-                    "August",
-                    "September",
-                    "Oktober",
-                    "November",
-                    "Dezember"
-                ],
-                "monthsShort": [
-                    "Jan",
-                    "Feb",
-                    "Mär",
-                    "Apr",
-                    "Mai",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Okt",
-                    "Nov",
-                    "Dez"
-                ],
-                "weekdays": [
-                    "Sonntag",
-                    "Montag",
-                    "Dienstag",
-                    "Mittwoch",
-                    "Donnerstag",
-                    "Freitag",
-                    "Samstag"
-                ],
-                "weekdaysShort": [
-                    "Son",
-                    "Mon",
-                    "Die",
-                    "Mit",
-                    "Don",
-                    "Fre",
-                    "Sam"
-                ],
-                "weekdaysMin": [
-                    "So",
-                    "Mo",
-                    "Di",
-                    "Mi",
-                    "Do",
-                    "Fr",
-                    "Sa"
-                ],
-                "firstDayOfWeek": 1,
-                "firstWeekContainsDate": 4
-            }
+      "lang": {
+        "formatLocale": {
+          "months": [
+            "Januar",
+            "Februar",
+            "März",
+            "April",
+            "Mai",
+            "Juni",
+            "Juli",
+            "August",
+            "September",
+            "Oktober",
+            "November",
+            "Dezember"
+          ],
+          "monthsShort": [
+            "Jan",
+            "Feb",
+            "Mär",
+            "Apr",
+            "Mai",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Okt",
+            "Nov",
+            "Dez"
+          ],
+          "weekdays": [
+            "Sonntag",
+            "Montag",
+            "Dienstag",
+            "Mittwoch",
+            "Donnerstag",
+            "Freitag",
+            "Samstag"
+          ],
+          "weekdaysShort": ["Son", "Mon", "Die", "Mit", "Don", "Fre", "Sam"],
+          "weekdaysMin": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+          "firstDayOfWeek": 1,
+          "firstWeekContainsDate": 4
         }
+      }
     }
-}
+  }
 }

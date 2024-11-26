@@ -136,8 +136,8 @@
         "distanceUnit": "Metri",
         "geolocationDeniedText": "Localizzazione non disponibile",
         "imgAlt": "Immagine per Punto di interesse",
-        "poiChoiceCurrentPostion": "Posizione",
-        "poiChoiceCustomPostion": "Ricerca dell'indirizzo o del punto di riferimento nella mappa",
+        "poiChoiceCurrentPosition": "Posizione",
+        "poiChoiceCustomPosition": "Ricerca dell'indirizzo o del punto di riferimento nella mappa",
         "poiChoiceConfirmation": "OK",
         "poiChoiceStop": "Uscita",
         "poiChoiceTitle": "Selezionare il punto di partenza per la ricerca del raggio:",
@@ -717,15 +717,15 @@
         "addressHospitalBplan": "Cerca indirizzo/ospedale/piano regolatore",
         "addressTopic": "Ricerca indirizzo, distretto, argomenti",
         "addressTopicParcel": "Cerca indirizzo, distretto, livello, parcella catastale"
-    },
-    "showAllResults": "mostra tutto i risultati",
-    "searchResults": "Risultati di ricerca",
-    "search": "vercare",
-    "searchResultList": "Panoramica della ricerca",
-    "searchResultsFrom": "Risultati di ricerca da: ",
-    "mark": "Escolha o tema",
-    "add": "Adicionar tópico",
-    "type": {
+      },
+      "showAllResults": "mostra tutto i risultati",
+      "searchResults": "Risultati di ricerca",
+      "search": "vercare",
+      "searchResultList": "Panoramica della ricerca",
+      "searchResultsFrom": "Risultati di ricerca da: ",
+      "mark": "Escolha o tema",
+      "add": "Adicionar tópico",
+      "type": {
         "address": "indirizzo",
         "district": "distretto",
         "folder": "Cartella (dati soggettivi)",
@@ -735,16 +735,16 @@
         "street": "strada",
         "subject": "dati specialistici",
         "topic": "oggetto"
-    },
-    "specialWFS": {
-      "ongoing": "in corso",
-      "terminated": "fisso",
-      "hazardous": "Azienda pericolosa",
-      "childcare": "Asilo",
-      "bplan": "Piano regolatore"
-    },
-    "noInitialResults": "La ricerca iniziale non ha portato risultati.",
-    "showAll": "Mostra tutto"
+      },
+      "specialWFS": {
+        "ongoing": "in corso",
+        "terminated": "fisso",
+        "hazardous": "Azienda pericolosa",
+        "childcare": "Asilo",
+        "bplan": "Piano regolatore"
+      },
+      "noInitialResults": "La ricerca iniziale non ha portato risultati.",
+      "showAll": "Mostra tutto"
     },
     "selectFeatures": {
       "name": "Seleziona",
@@ -849,18 +849,18 @@
     },
     "wmsTime": {
       "layerSwiper": {
-          "description": "Lo swiper può essere spostato con il mouse o con i tasti freccia della tastiera. Quando si utilizzano i tasti freccia, il cursore viene spostato di {{amount}}px nella direzione corrispondente.",
-          "title": "Stratificatore"
+        "description": "Lo swiper può essere spostato con il mouse o con i tasti freccia della tastiera. Quando si utilizzano i tasti freccia, il cursore viene spostato di {{amount}}px nella direzione corrispondente.",
+        "title": "Stratificatore"
       },
       "timeSlider": {
-          "buttons": {
-              "backward": "Una volta indietro",
-              "deactivateLayerSwiper": "Rimuovere layer",
-              "forward": "Un punto di vantaggio",
-              "layerSwiper": "Confronta i tempi",
-              "play": "Riproduzione automatica di tutti i punti temporali, a partire dal punto temporale attualmente selezionato"
-          },
-          "inputRangeLabel": "Selezionare un orario"
+        "buttons": {
+          "backward": "Una volta indietro",
+          "deactivateLayerSwiper": "Rimuovere layer",
+          "forward": "Un punto di vantaggio",
+          "layerSwiper": "Confronta i tempi",
+          "play": "Riproduzione automatica di tutti i punti temporali, a partire dal punto temporale attualmente selezionato"
+        },
+        "inputRangeLabel": "Selezionare un orario"
       }
     }
   },

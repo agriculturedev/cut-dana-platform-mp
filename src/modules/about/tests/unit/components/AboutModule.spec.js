@@ -1,5 +1,5 @@
 import {createStore} from "vuex";
-import {config, mount} from "@vue/test-utils";
+import {config, mount, shallowMount} from "@vue/test-utils";
 import {expect} from "chai";
 import AboutComponent from "../../../components/AboutModule.vue";
 import sinon from "sinon";
@@ -7,9 +7,14 @@ import sinon from "sinon";
 config.global.mocks.$t = key => key;
 
 describe("src/modules/about/components/AboutModule.vue", () => {
-    let store;
+    let logo,
+        store,
+        version;
 
     beforeEach(() => {
+        logo = "../../src/assets/img/Logo_Masterportal.svg";
+        version = "3.0.0";
+
         store = createStore({
             namespaced: true,
             modules: {
@@ -23,13 +28,14 @@ describe("src/modules/about/components/AboutModule.vue", () => {
                             getters: {
                                 abstractText: () => "Test",
                                 contact: () => null,
-                                logo: () => "",
+                                logo: () => logo,
                                 logoLink: () => "",
+                                logoText: () => "Masterportallogo",
                                 metaUrl: () => "",
                                 noMetadataLoaded: () => "",
                                 showAdditionalMetaData: () => true,
                                 title: () => "",
-                                version: () => "3.0.0",
+                                version: () => version,
                                 versionLink: () => "",
                                 ustId: () => "DE12345",
                                 privacyStatementText: () => "Privacy Statement",
@@ -99,18 +105,30 @@ describe("src/modules/about/components/AboutModule.vue", () => {
         expect(wrapper.find(".abstract")).to.exist;
     });
     it("should have a logo and version", async () => {
-        const wrapper = mount(AboutComponent, {
+        const wrapper = shallowMount(AboutComponent, {
             global: {
                 plugins: [store]
             }
         });
 
-        expect(wrapper.find("div.logoAndVersion")).to.exist;
-        expect(wrapper.find("div.logoAndVersion > a.logo")).to.exist;
-        expect(wrapper.find("div.logoAndVersion > a.logo > img")).to.exist;
-        expect(wrapper.find("div.logoAndVersion > span.version")).to.exist;
-        expect(wrapper.find("div.logoAndVersion > span.version > a")).to.exist;
+        expect(wrapper.find("div.logoAndVersion").exists()).to.be.true;
+        expect(wrapper.find("div.logoAndVersion > a.logo").exists()).to.be.true;
+        expect(wrapper.find("div.logoAndVersion > a.logo > img").exists()).to.be.true;
+        expect(wrapper.find("div.logoAndVersion > span.version").exists()).to.be.true;
+        expect(wrapper.find("div.logoAndVersion > span.version > a").exists()).to.be.true;
         expect(wrapper.find("div.logoAndVersion > span.version > a").text()).to.equals("common:modules.about.version3.0.0");
+    });
+    it("should do not have a logo and version, if version and logo are false", async () => {
+        logo = false;
+        version = false;
+
+        const wrapper = shallowMount(AboutComponent, {
+            global: {
+                plugins: [store]
+            }
+        });
+
+        expect(wrapper.find("div.logoAndVersion").exists()).to.be.false;
     });
     it("should have an ustId", async () => {
         const wrapper = mount(AboutComponent, {

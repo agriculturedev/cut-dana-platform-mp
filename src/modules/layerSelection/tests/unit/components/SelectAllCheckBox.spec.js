@@ -162,6 +162,28 @@ describe("src/modules/layerTree/components/SelectAllCheckBox.vue", () => {
     });
 
     describe("Methods", () => {
+        it("method click makes the layers visible in reverse order", () => {
+            propsData = {
+                confs: [
+                    {id: "2"},
+                    {id: "3"},
+                    {id: "4"}
+                ]
+            };
+            wrapper = shallowMount(SelectAllCheckBox, {
+                global: {
+                    plugins: [store]
+                },
+                propsData
+            });
+
+            wrapper.vm.clicked();
+
+            expect(changeVisibilitySpy.firstCall.args[1]).to.deep.equals({layerId: "4", value: true});
+            expect(changeVisibilitySpy.secondCall.args[1]).to.deep.equals({layerId: "3", value: true});
+            expect(changeVisibilitySpy.thirdCall.args[1]).to.deep.equals({layerId: "2", value: true});
+        });
+
         it("method calculateEncompassingBoundingBox shall set the boundingbox and call zoomToExtent", () => {
             const setEncompassingBoundingBox = sinon.spy(SelectAllCheckBox.methods, "setEncompassingBoundingBox"),
                 zoomToExtent = sinon.spy(SelectAllCheckBox.methods, "zoomToExtent"),
@@ -205,6 +227,7 @@ describe("src/modules/layerTree/components/SelectAllCheckBox.vue", () => {
 
             expect(ids).to.be.deep.equals("1-2");
         });
+
         it("method getLabelText shall return text for not checked boxes", () => {
             let text = null;
 
@@ -222,6 +245,7 @@ describe("src/modules/layerTree/components/SelectAllCheckBox.vue", () => {
 
             expect(text).to.be.equals("modules.layerSelection.selectAll");
         });
+
         it("method getLabelText shall return text for checked boxes", () => {
             let text = null;
 

@@ -36,7 +36,7 @@ export function getVisibleWmsLayersAtResolution (resolution, visibleSubjectDataL
         visibleLayersWms = visibleLayersWithGroupLayersChildren.filter(layer => {
             return (layer.get("typ") === "WMS")
             && (resolution <= layer.get("maxResolution") && resolution >= layer.get("minResolution")
-            && visibleSubjectDataLayerConfigs.find(config => config.id === layer.get("id")));
+            && visibleSubjectDataLayerConfigs.find(config => config.typ === "GROUP" ? config.id.split("-").includes(layer.get("id")) : config.id === layer.get("id")));
         });
 
     return visibleLayersWms;

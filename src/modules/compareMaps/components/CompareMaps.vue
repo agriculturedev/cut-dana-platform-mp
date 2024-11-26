@@ -131,8 +131,6 @@ export default {
          * @returns {void}
          */
         resetSelection () {
-            this.changeVisibility({layerId: this.selectedLayer1Id, value: false});
-            this.changeVisibility({layerId: this.selectedLayer2Id, value: false});
             this.changeVisibility({layerId: this.initialBaseLayer.id, value: true});
 
             this.selectedLayer1 = null;

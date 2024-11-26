@@ -5,6 +5,7 @@
  * @property {String} [abstractText=""] the abstract Info text
  * @property {String} [customText=null] the custom Info text
  * @property {String} [datePublication=""] the date of the publication
+ * @property {String} [dateRevision=""] the date of the last revision
  * @property {String[]} [downloadLinks=null] the download Links
  * @property {String} [icon="bi-info-circle"] Icon next to name (config-param).
  * @property {Object} [layerInfo={}] additional layer Information
@@ -25,6 +26,7 @@ export default {
     abstractText: "",
     customText: null,
     datePublication: "",
+    dateRevision: "",
     downloadLinks: null,
     icon: "bi-info-circle",
     layerInfo: {},

@@ -5,7 +5,7 @@ import {nextTick} from "vue";
 import sinon from "sinon";
 import View from "ol/View";
 
-import {processLayerConfig, setResolutions, setResolutionsForGroupLayer, updateLayerAttributes} from "../../../js/layerProcessor";
+import {processLayerConfig, setResolutions, updateLayerAttributes} from "../../../js/layerProcessor";
 
 describe("src/core/js/layers/layerProcessor.js", () => {
     let layerConfig,
@@ -192,95 +192,216 @@ describe("src/core/js/layers/layerProcessor.js", () => {
             expect(setMinResolutionSpy.firstCall.args[0]).to.equals(0);
         });
     });
-    describe("setResolutionsForGroupLayer", () => {
-        it("maxScale is not set at layer - do nothing", () => {
-            const setMaxResolutionSpy = sinon.spy(),
-                setMinResolutionSpy = sinon.spy(),
-                rawLayer = [{
+    it("GROUP: maxScale is not set at any layer - do nothing", () => {
+        const setMaxResolutionSpy = sinon.spy(),
+            setMinResolutionSpy = sinon.spy(),
+            setOpacitySpy = sinon.spy(),
+            setZIndexSpy = sinon.spy(),
+            olLayer = {
+                setMaxResolution: setMaxResolutionSpy,
+                setMinResolution: setMinResolutionSpy,
+                setOpacity: setOpacitySpy,
+                setZIndex: setZIndexSpy
+            },
+            childLayer = {
+                attributes: {
                     typ: "WMS"
-                }],
-                groupLayer = {
-                    getLayer: () => {
-                        return {
-                            getLayers: () => {
-                                return {
-                                    getArray: () => {
-                                        return rawLayer;
-                                    }
-                                };
-                            }
-                        };
+
+                },
+                get: (value) => {
+                    if (value === "maxScale") {
+                        return childLayer.attributes.maxScale;
                     }
+                    if (value === "typ") {
+                        return childLayer.attributes.typ;
+                    }
+                    return value;
                 },
-                index = 0;
-
-            setResolutionsForGroupLayer(rawLayer, groupLayer, index);
-            expect(setMaxResolutionSpy.notCalled).to.be.true;
-            expect(setMinResolutionSpy.notCalled).to.be.true;
-        });
-        it.skip("maxScale is set at layer", () => {
-            const setMaxResolutionSpy = sinon.spy(),
-                setMinResolutionSpy = sinon.spy(),
-                olLayer = {
-                    setMaxResolution: setMaxResolutionSpy,
-                    setMinResolution: setMinResolutionSpy
+                set: (key, value) => {
+                    childLayer.attributes[key] = value;
                 },
-                layer = {
-                    attributes: {
-                        typ: "GROUP",
-                        maxScale: "50000",
-                        minScale: "0"
-                    },
-                    get: (value) => {
-                        if (value === "maxScale") {
-                            return layer.attributes.maxScale;
-                        }
-                        if (value === "minScale") {
-                            return layer.attributes.minScale;
-                        }
-                        return value;
-                    },
-                    getLayer: sinon.stub().returns(olLayer)
-                };
-
-            setResolutions(layer);
-            expect(setMaxResolutionSpy.calledOnce).to.be.true;
-            expect(setMaxResolutionSpy.firstCall.args[0]).to.equals(505);
-            expect(setMinResolutionSpy.calledOnce).to.be.true;
-            expect(setMinResolutionSpy.firstCall.args[0]).to.equals(0);
-        });
-        it.skip("maxScale is set at layer, minScale not", () => {
-            const setMaxResolutionSpy = sinon.spy(),
-                setMinResolutionSpy = sinon.spy(),
-                olLayer = {
-                    setMaxResolution: setMaxResolutionSpy,
-                    setMinResolution: setMinResolutionSpy
+                getLayer: sinon.stub().returns(olLayer)
+            },
+            layer = {
+                attributes: {
+                    typ: "GROUP",
+                    transparency: 50,
+                    zIndex: 1
                 },
-                layer = {
-                    attributes: {
-                        typ: "WMS",
-                        maxScale: "50000"
-                    },
-                    get: (value) => {
-                        if (value === "maxScale") {
-                            return layer.attributes.maxScale;
-                        }
-                        if (value === "minScale") {
-                            return layer.attributes.minScale;
-                        }
-                        return value;
-                    },
-                    set: (key, value) => {
-                        layer.attributes[key] = value;
-                    },
-                    getLayer: sinon.stub().returns(olLayer)
-                };
+                get: (value) => {
+                    if (value === "typ") {
+                        return layer.attributes.typ;
+                    }
+                    if (value === "maxScale") {
+                        return layer.attributes.maxScale;
+                    }
+                    if (value === "transparency") {
+                        return layer.attributes.transparency;
+                    }
+                    if (value === "zIndex") {
+                        return layer.attributes.zIndex;
+                    }
+                    return value;
+                },
+                set: (key, value) => {
+                    layer.attributes[key] = value;
+                },
+                getLayerSource: sinon.stub().returns([childLayer])
+            };
 
-            setResolutions(layer);
-            expect(setMaxResolutionSpy.calledOnce).to.be.true;
-            expect(setMaxResolutionSpy.firstCall.args[0]).to.equals(505);
-            expect(setMinResolutionSpy.calledOnce).to.be.true;
-            expect(setMinResolutionSpy.firstCall.args[0]).to.equals(0);
-        });
+        setResolutions(layer);
+        expect(setMaxResolutionSpy.notCalled).to.be.true;
+        expect(setMinResolutionSpy.notCalled).to.be.true;
+        expect(setOpacitySpy.calledOnce).to.be.true;
+        expect(setOpacitySpy.firstCall.args[0]).to.equals(0.5);
+        expect(setZIndexSpy.calledOnce).to.be.true;
+        expect(setZIndexSpy.firstCall.args[0]).to.equals(1);
+    });
+    it("GROUP: maxScale and minScale is set at group layer and not at child layer", () => {
+        const setMaxResolutionSpy = sinon.spy(),
+            setMinResolutionSpy = sinon.spy(),
+            setOpacitySpy = sinon.spy(),
+            setZIndexSpy = sinon.spy(),
+            olLayer = {
+                setMaxResolution: setMaxResolutionSpy,
+                setMinResolution: setMinResolutionSpy,
+                setOpacity: setOpacitySpy,
+                setZIndex: setZIndexSpy
+            },
+            childLayer = {
+                attributes: {
+                    typ: "WMS"
+                },
+                get: (value) => {
+                    if (value === "maxScale") {
+                        return childLayer.attributes.maxScale;
+                    }
+                    if (value === "minScale") {
+                        return groupLayer.attributes.minScale;
+                    }
+                    if (value === "typ") {
+                        return childLayer.attributes.typ;
+                    }
+                    return value;
+                },
+                set: (key, value) => {
+                    childLayer.attributes[key] = value;
+                },
+                getLayer: sinon.stub().returns(olLayer)
+            },
+            groupLayer = {
+                attributes: {
+                    typ: "GROUP",
+                    maxScale: "50000",
+                    minScale: "0",
+                    transparency: 100,
+                    zIndex: 55
+                },
+                get: (value) => {
+                    if (value === "maxScale") {
+                        return groupLayer.attributes.maxScale;
+                    }
+                    if (value === "minScale") {
+                        return groupLayer.attributes.minScale;
+                    }
+                    if (value === "typ") {
+                        return groupLayer.attributes.typ;
+                    }
+                    if (value === "transparency") {
+                        return groupLayer.attributes.transparency;
+                    }
+                    if (value === "zIndex") {
+                        return groupLayer.attributes.zIndex;
+                    }
+                    return value;
+                },
+                set: (key, value) => {
+                    groupLayer.attributes[key] = value;
+                },
+                getLayerSource: sinon.stub().returns([childLayer])
+            };
+
+        setResolutions(groupLayer);
+        expect(setMaxResolutionSpy.calledOnce).to.be.true;
+        expect(setMaxResolutionSpy.firstCall.args[0]).to.equals(505);
+        expect(setMinResolutionSpy.calledOnce).to.be.true;
+        expect(setMinResolutionSpy.firstCall.args[0]).to.equals(0);
+        expect(setOpacitySpy.calledOnce).to.be.true;
+        expect(setOpacitySpy.firstCall.args[0]).to.equals(0);
+        expect(setZIndexSpy.calledOnce).to.be.true;
+        expect(setZIndexSpy.firstCall.args[0]).to.equals(55);
+    });
+    it("GROUP: maxScale is set at group layer, minScale not --> shall be set to 0", () => {
+        const setMaxResolutionSpy = sinon.spy(),
+            setMinResolutionSpy = sinon.spy(),
+            setOpacitySpy = sinon.spy(),
+            setZIndexSpy = sinon.spy(),
+            olLayer = {
+                setMaxResolution: setMaxResolutionSpy,
+                setMinResolution: setMinResolutionSpy,
+                setOpacity: setOpacitySpy,
+                setZIndex: setZIndexSpy
+            },
+            childLayer = {
+                attributes: {
+                    typ: "WMS"
+                },
+                get: (value) => {
+                    if (value === "maxScale") {
+                        return childLayer.attributes.maxScale;
+                    }
+                    if (value === "minScale") {
+                        return childLayer.attributes.minScale;
+                    }
+                    if (value === "typ") {
+                        return childLayer.attributes.typ;
+                    }
+                    return value;
+                },
+                set: (key, value) => {
+                    childLayer.attributes[key] = value;
+                },
+                getLayer: sinon.stub().returns(olLayer)
+            },
+            groupLayer = {
+                attributes: {
+                    maxScale: "50000",
+                    typ: "GROUP",
+                    transparency: 50,
+                    zIndex: 1
+                },
+                get: (value) => {
+                    if (value === "maxScale") {
+                        return groupLayer.attributes.maxScale;
+                    }
+                    if (value === "minScale") {
+                        return groupLayer.attributes.minScale;
+                    }
+                    if (value === "typ") {
+                        return groupLayer.attributes.typ;
+                    }
+                    if (value === "transparency") {
+                        return groupLayer.attributes.transparency;
+                    }
+                    if (value === "zIndex") {
+                        return groupLayer.attributes.zIndex;
+                    }
+                    return value;
+                },
+                set: (key, value) => {
+                    groupLayer.attributes[key] = value;
+                },
+                getLayerSource: sinon.stub().returns([childLayer])
+            };
+
+        setResolutions(groupLayer);
+        expect(setMaxResolutionSpy.calledOnce).to.be.true;
+        expect(setMaxResolutionSpy.firstCall.args[0]).to.equals(505);
+        expect(setMinResolutionSpy.calledOnce).to.be.true;
+        expect(setMinResolutionSpy.firstCall.args[0]).to.equals(0);
+        expect(setOpacitySpy.calledOnce).to.be.true;
+        expect(setOpacitySpy.firstCall.args[0]).to.equals(0.5);
+        expect(setZIndexSpy.calledOnce).to.be.true;
+        expect(setZIndexSpy.firstCall.args[0]).to.equals(1);
     });
 });

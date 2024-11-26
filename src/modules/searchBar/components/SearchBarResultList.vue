@@ -51,7 +51,7 @@ export default {
                 return this.limitedSortedSearchResults?.currentShowAllList;
             }
 
-            return this.limitedSortedSearchResults?.currentShowAllList.filter(item => item.category === this.currentAvailableCategories);
+            return this.limitedSortedSearchResults?.currentShowAllList.filter(item => this.currentAvailableCategories.startsWith(item.category));
         },
 
         /**

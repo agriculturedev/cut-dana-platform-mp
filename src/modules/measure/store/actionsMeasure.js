@@ -39,6 +39,7 @@ export default {
         const {selectedGeometry} = state;
 
         interaction = makeDraw2d(
+            {state},
             selectedGeometry,
             feature => commit("addFeature", feature),
             flag => commit("setIsDrawing", flag),

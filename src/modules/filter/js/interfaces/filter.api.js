@@ -82,7 +82,8 @@ export default class FilterApi {
         const type = layerModel.typ.toLowerCase(),
             featureNS = layerModel.featureNS,
             url = layerModel.url,
-            featureType = layerModel.featureType;
+            featureType = layerModel.featureType,
+            isSecured = layerModel.isSecured;
 
         if (type === "wfs") {
             this.service = {
@@ -90,6 +91,7 @@ export default class FilterApi {
                 extern,
                 layerId,
                 url,
+                isSecured,
                 typename: featureType,
                 namespace: featureNS,
                 srsName: openlayerFunctions.getMapProjection(),

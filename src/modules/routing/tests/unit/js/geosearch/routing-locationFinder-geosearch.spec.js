@@ -112,6 +112,7 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
             expect(createdUrl.searchParams.get("properties")).to.eql("text");
             expect(createdUrl.searchParams.get("query")).to.eql(search);
         });
+
         it("test pathname", () => {
             service = "https://service/";
             const search = "search",
@@ -123,6 +124,7 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
             expect(createdUrl.searchParams.get("properties")).to.eql("text");
             expect(createdUrl.searchParams.get("query")).to.eql(search);
         });
+
         it("createUrl should respect questionmark in serviceUrl", () => {
             const search = "search";
             let createdUrl = null;
@@ -135,5 +137,32 @@ describe("src/modules/routing/js/geosearch/routing-locationFinder-geosearch.js",
             expect(createdUrl.searchParams.get("properties")).to.eql("text");
             expect(createdUrl.searchParams.get("query")).to.eql(search);
         });
+
+        it("should set query correct for search strings with spaces", () => {
+            const search = "aachener str";
+            let createdUrl = null;
+
+            service = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map";
+            createdUrl = getRoutingLocationFinderGeosearchUrl(search);
+            expect(createdUrl.origin).to.eql("https://mapservice.regensburg.de");
+            expect(decodeURI(createdUrl)).to.eql(service + "%2FLookup&limit=1000&properties=text&query=aachener+str");
+            expect(createdUrl.searchParams.get("limit")).to.eql("1000");
+            expect(createdUrl.searchParams.get("properties")).to.eql("text");
+            expect(createdUrl.searchParams.get("query")).to.eql(search);
+        });
+
+        it("should set query correct for search strings with umlauts", () => {
+            const search = "Gräfin-von-Linden-Weg";
+            let createdUrl = null;
+
+            service = "https://mapservice.regensburg.de/cgi-bin/mapserv?map=wfs.map";
+            createdUrl = getRoutingLocationFinderGeosearchUrl(search);
+            expect(createdUrl.origin).to.eql("https://mapservice.regensburg.de");
+            expect(decodeURI(createdUrl)).to.eql(service + "%2FLookup&limit=1000&properties=text&query=Gräfin-von-Linden-Weg");
+            expect(createdUrl.searchParams.get("limit")).to.eql("1000");
+            expect(createdUrl.searchParams.get("properties")).to.eql("text");
+            expect(createdUrl.searchParams.get("query")).to.eql(search);
+        });
+
     });
 });

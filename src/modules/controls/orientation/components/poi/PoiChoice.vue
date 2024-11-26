@@ -15,8 +15,8 @@ export default {
         ...mapGetters("Controls/Orientation", ["poiMode", "customPosition"]),
         choices () {
             return {
-                "currentPosition": this.$t("common:modules.controls.orientation.poiChoiceCurrentPostion"),
-                "customPosition": this.$t(this.customPosition)
+                currentPosition: this.$t("common:modules.controls.orientation.poiChoiceCurrentPosition"),
+                customPosition: this.$t(this.customPosition)
             };
         }
     },
@@ -126,9 +126,7 @@ export default {
 </script>
 
 <template>
-    <div
-        class="modal fade in poi-choice"
-    >
+    <div class="modal fade in poi-choice">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -195,18 +193,20 @@ export default {
 
 <style lang="scss" scoped>
     @import "~variables";
-    .modal-backdrop{
+
+    .modal-backdrop {
         pointer-events: all;
         cursor: default;
     }
     .modal-backdrop:focus {
-       background-color: lighten($dark_grey, 5%);
+        background-color: lighten($dark_grey, 5%);
     }
     .poi-choice {
         color: $dark_grey;
         font-size: $font_size_big;
         .modal-header {
             padding: 0;
+            justify-content: space-between;
             > .bootstrap-icon {
                 font-size: $font_size_icon_lg;
                 padding: 12px;
@@ -225,7 +225,7 @@ export default {
         .modal-dialog {
             z-index: 1051;
         }
-        .choice-content{
+        .choice-content {
             display: inline-block;
             width: 100%;
             padding: 10px;
@@ -250,4 +250,3 @@ export default {
         }
     }
 </style>
-

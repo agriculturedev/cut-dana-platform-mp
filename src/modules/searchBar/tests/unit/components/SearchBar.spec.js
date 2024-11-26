@@ -19,7 +19,9 @@ describe("src/modules/searchBar/components/SearchBar.vue", () => {
         menuActionsSpy,
         searchBarActionsSpy,
         searchBarMutationsSpy,
-        searchInputValue;
+        searchInputValue,
+        setGlobalPlaceholderSpy,
+        setSearchResultsActiveSpy;
 
 
     beforeEach(() => {
@@ -65,13 +67,16 @@ describe("src/modules/searchBar/components/SearchBar.vue", () => {
             checkLayerSelectionSearchConfig: sinon.stub()
         };
 
+        setGlobalPlaceholderSpy = sinon.spy();
+        setSearchResultsActiveSpy = sinon.spy();
         searchBarMutationsSpy = {
             addSuggestionItem: sinon.stub(),
             setSearchInput: sinon.stub(),
             setShowAllResults: sinon.stub(),
             setCurrentSide: sinon.stub(),
-            setSearchResultsActive: sinon.stub(),
-            setSearchSuggestions: sinon.stub()
+            setSearchResultsActive: setSearchResultsActiveSpy,
+            setSearchSuggestions: sinon.stub(),
+            setGlobalPlaceholder: setGlobalPlaceholderSpy
         };
 
         searchInputValue = "abc-straße";
@@ -96,7 +101,8 @@ describe("src/modules/searchBar/components/SearchBar.vue", () => {
                                 searchResultsActive: () => false,
                                 showAllResults: () => false,
                                 suggestionListLength: () => 0,
-                                type: () => "searchBar"
+                                type: () => "searchBar",
+                                addLayerButtonSearchActive: () => true
                             },
                             mutations: searchBarMutationsSpy
                         }
@@ -409,6 +415,33 @@ describe("src/modules/searchBar/components/SearchBar.vue", () => {
 
             wrapper.vm.$options.watch.searchInputValue.handler.call(wrapper.vm);
             expect(startSearchSpy.calledOnce).to.be.true;
+        });
+    });
+    describe("watcher", () => {
+        it("currentComponentSide layerSelection, addLayerButtonSearchActive is true", async () => {
+            wrapper = shallowMount(SearchBarComponent, {
+                global: {
+                    plugins: [store]
+                }
+            });
+
+            wrapper.vm.$options.watch.currentComponentSide.handler.call(wrapper.vm, "layerSelection");
+            expect(setGlobalPlaceholderSpy.calledOnce).to.be.true;
+            expect(setGlobalPlaceholderSpy.firstCall.args[1]).to.equal("common:modules.searchBar.search");
+
+        });
+        it("currentComponentSide root, addLayerButtonSearchActive is true", async () => {
+            wrapper = shallowMount(SearchBarComponent, {
+                global: {
+                    plugins: [store]
+                }
+            });
+
+            wrapper.vm.$options.watch.currentComponentSide.handler.call(wrapper.vm, "root");
+            expect(setSearchResultsActiveSpy.calledOnce).to.be.true;
+            expect(menuActionsSpy.navigateBack.called).to.be.true;
+            expect(setGlobalPlaceholderSpy.calledOnce).to.be.true;
+            expect(setGlobalPlaceholderSpy.firstCall.args[1]).to.equal("ABC");
         });
     });
 });

@@ -240,6 +240,32 @@ describe("src/modules/filter/components/LayerFilterSnippet.vue", () => {
             });
             expect(wrapper.vm.getTitle({}, 1)).to.be.true;
         });
+        it("should return the title if attribute is set in gfiAttributes", () => {
+            sinon.stub(openlayerFunctions, "getLayerByLayerId").returns({
+                "id": "filterId",
+                "type": "layer",
+                "showInLayerTree": false,
+                "visibility": true,
+                "gfiAttributes": {
+                    "attr": "Attribute Title"
+                }
+            });
+            expect(wrapper.vm.getTitle({attrName: "attr"}, 1)).to.be.equal("Attribute Title");
+        });
+        it("should return the title if attribute is set in gfiAttributes as object", () => {
+            sinon.stub(openlayerFunctions, "getLayerByLayerId").returns({
+                "id": "filterId",
+                "type": "layer",
+                "showInLayerTree": false,
+                "visibility": true,
+                "gfiAttributes": {
+                    "attr": {
+                        "name": "Attribute Title"
+                    }
+                }
+            });
+            expect(wrapper.vm.getTitle({attrName: "attr"}, 1)).to.be.equal("Attribute Title");
+        });
     });
 
     describe("getTagTitle", () => {

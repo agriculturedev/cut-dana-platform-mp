@@ -116,6 +116,19 @@ export function initLanguage (portalLanguageConfig) {
             },
             interpolation: {
                 skipOnVariables: false
+            },
+            appendNamespaceToMissingKey: true,
+            /**
+             * Custom handler for missing keys. Strips prefixes and corrects time format.
+             * Removes unnecessary prefixes from translation keys and adjusts time formats
+             * to use colons (`:`) where appropriate (e.g., replacing "HH.MM" with "HH:MM").
+             * @param {String} key - The missing key string to process.
+             * @returns {String} The cleaned key with time formats corrected if applicable.
+             */
+            parseMissingKeyHandler: (key) => {
+                return key
+                    .replace(/^(common:|additional:)/, "")
+                    .replace(/(?<=\s|^)([01]?[0-9]|2[0-3])\.([0-5][0-9])(?=\s|$)/g, "$1:$2");
             }
         });
 }

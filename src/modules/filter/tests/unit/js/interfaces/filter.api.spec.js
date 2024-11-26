@@ -73,6 +73,7 @@ describe("src/modules/filter/interfaces/filter.api.js", () => {
                         layerId: 0,
                         url: "foo",
                         typename: "bar",
+                        isSecured: undefined,
                         namespace: "foob/boof",
                         srsName: "foo",
                         featureNS: "foob",

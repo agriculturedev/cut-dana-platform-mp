@@ -36,7 +36,7 @@ export default {
                 @focus="activateActions({searchResult: searchSuggestion, actionType: 'onHover'})"
             >
                 <span class="btn-title">
-                    {{ searchSuggestion.name }}
+                    {{ $t(searchSuggestion.name) }}
                 </span>
             </button>
         </div>

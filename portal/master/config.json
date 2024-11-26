@@ -163,6 +163,7 @@
         "toolTip": "Landesbetrieb Geoinformation und Vermessung"
       },
       "searchBar": {
+        "placeholder": "common:modules.searchBar.placeholder.addressTopic",
         "searchInterfaces": [
           {
             "type": "elasticSearch",
@@ -351,7 +352,6 @@
                 "propertyNames": [
                   "app:Name"
                 ],
-
                 "namespaces": "xmlns:app='http://www.deegree.org/app'"
               },
               {
@@ -754,12 +754,12 @@
             {
               "id":"elasticSearch_0",
               "searchCategory": "Thema (externe Fachdaten)"
-            }, 
+            },
             {
               "id": "topicTree",
               "searchCategory": "Thema"
             }
-          ]         
+          ]
         }
       },
       "highlightedFeatures": {
@@ -1013,7 +1013,8 @@
           "id": "2426",
           "name": "Bezirke",
           "typ": "WMS",
-          "visibility": true
+          "visibility": true,
+          "showInLayerTree": false
         },
         {
           "id": "2425",
@@ -1285,7 +1286,8 @@
           "legend": [
             "https://geodienste.hamburg.de/lgv-config/img/Legende_Laermberechnung_Tag.png",
             "https://geodienste.hamburg.de/lgv-config/img/Legende_Laermberechnung_Nacht.png"
-          ]
+          ],
+          "crs": "EPSG:25832"
         },
         {
           "id": "2928",

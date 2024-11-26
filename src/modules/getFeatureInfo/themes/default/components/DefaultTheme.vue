@@ -13,13 +13,10 @@ import {markRaw} from "vue";
  * The default theme for the get feature info.
  * @module modules/getFeatureInfo/themes/default/components/DefaultTheme
  * @vue-prop {Object} feature - The required feature.
- * @vue-data {String[]} [imageLinks=["bildlink", "link_bild", "Bild", "bild"]] - Links to images, are rendered as an image.
  * @vue-data {Object[]} importedComponents - The imported gfi themes.
  * @vue-data {Boolean} [showFavoriteIcons=true] - Show favorite icons.
- * @vue-data {String} [maxWidth=600px] - Max width for an iframe
  * @vue-data {Boolean} [beautifyKeysParam=true] - Specifies if the keys should be displayed more nicely, like first letter cap.
  * @vue-data {Boolean} [showObjectKeysParam=false] - Show objects key params.
- * @vue-computed {String} imageAttribute - Returns the first value found from the feature properties based on the imageLinks
  * @vue-computed {String} mimeType - Returns the mimeType of the gfi feature
  */
 export default {
@@ -35,33 +32,13 @@ export default {
     },
     data: () => {
         return {
-            imageLinks: ["bildlink", "link_bild", "Bild", "bild"],
             importedComponents: [],
             showFavoriteIcons: true,
-            maxWidth: "600px",
             beautifyKeysParam: true,
             showObjectKeysParam: false
         };
     },
     computed: {
-        /**
-         * Returns the first value found from the feature properties based on the imageLinks.
-         * @return {String} The attribute with image link.
-         */
-        imageAttribute: function () {
-            const properties = this.feature.getProperties();
-
-            if (properties === null || typeof properties !== "object" || !Array.isArray(this.imageLinks)) {
-                return undefined;
-            }
-            for (const key of this.imageLinks) {
-                if (Object.prototype.hasOwnProperty.call(properties, key)) {
-                    return properties[key];
-                }
-            }
-            return undefined;
-        },
-
         /**
          * Returns the mimeType of the gfi feature.
          * @returns {String} The mimeType.
@@ -74,7 +51,6 @@ export default {
         feature () {
             this.$nextTick(() => {
                 this.addTextHtmlContentToIframe();
-                this.setMaxWidth(this.feature.getTheme()?.params);
                 this.initParams(this.feature.getTheme()?.params);
             });
         }
@@ -83,13 +59,11 @@ export default {
         this.showFavoriteIcons = this.feature.getTheme()?.params?.showFavoriteIcons ?
             this.feature.getTheme().params.showFavoriteIcons : this.showFavoriteIcons;
 
-        this.replacesConfiguredImageLinks();
         this.setImportedComponents();
     },
     mounted () {
         this.$nextTick(() => {
             this.addTextHtmlContentToIframe();
-            this.setMaxWidth(this.feature.getTheme()?.params);
             this.initParams(this.feature.getTheme()?.params);
         });
     },
@@ -185,21 +159,6 @@ export default {
         },
 
         /**
-         * Replaces  the configured imageLinks from the gfiTheme.params to the imageLinks.
-         * @returns {void}
-         */
-        replacesConfiguredImageLinks: function () {
-            const imageLinksAttribute = this.feature.getTheme()?.params?.imageLinks;
-
-            if (Array.isArray(imageLinksAttribute)) {
-                this.imageLinks = imageLinksAttribute;
-            }
-            else if (typeof imageLinksAttribute === "string") {
-                this.imageLinks = [imageLinksAttribute];
-            }
-        },
-
-        /**
          * Adds the text/html content to the iframe.
          * The onLoad event of the iframe starts with the execution of close().
          * @returns {void}
@@ -226,35 +185,13 @@ export default {
             document.getElementsByClassName("gfi-theme-iframe")[0].style.maxWidth = "";
             iframe.style.width = params?.iframe?.width;
             iframe.style.height = params?.iframe?.height;
-        },
-
-        /**
-         * Sets the max-width of the default gfiTheme content.
-         * @param {Object} params The gfi parameters.
-         * @returns {void}
-         */
-        setMaxWidth: function (params) {
-            if (this.mimeType !== "text/html") {
-                const gfiThemeContainer = document.getElementsByClassName("gfi-theme-images")[0];
-
-                if (typeof gfiThemeContainer?.style !== "object" || gfiThemeContainer?.style === null) {
-                    return;
-                }
-
-                if (params?.maxWidth) {
-                    gfiThemeContainer.style.maxWidth = params?.maxWidth;
-                }
-                else {
-                    gfiThemeContainer.style.maxWidth = this.maxWidth;
-                }
-            }
         }
     }
 };
 </script>
 
 <template>
-    <div :class="mimeType === 'text/html' ? 'gfi-theme-iframe' : 'gfi-theme-images'">
+    <div :class="mimeType === 'text/html' ? 'gfi-theme-iframe' : ''">
         <div
             v-if="showFavoriteIcons && mimeType !== 'text/html'"
             class="favorite-icon-container"
@@ -268,19 +205,6 @@ export default {
                     :feature="feature"
                 />
             </template>
-        </div>
-        <div v-if="mimeType !== 'text/html'">
-            <a
-                v-if="imageAttribute"
-                :href="imageAttribute"
-                target="_blank"
-            >
-                <img
-                    class="gfi-theme-images-image"
-                    :alt="$t('common:modules.getFeatureInfo.themes.default.imgAlt')"
-                    :src="imageAttribute"
-                >
-            </a>
         </div>
         <table
             v-if="mimeType !== 'text/html'"
@@ -400,10 +324,6 @@ export default {
 }
 .gfi-theme-iframe {
     line-height: 1px;
-}
-.gfi-theme-images {
-    max-width: 600px;
-    height: 100%;
 }
 .gfi-theme-images-image {
     margin: auto;

@@ -965,10 +965,14 @@ export default {
             if (Object.prototype.hasOwnProperty.call(snippet, "title")) {
                 return snippet.title;
             }
-            const model = openlayerFunctions.getLayerByLayerId(layerId),
-                title = isObject(model) && isObject(model.gfiAttributes) ? model.gfiAttributes[
-                    Array.isArray(snippet.attrName) ? snippet.attrName[0] : snippet.attrName
-                ] : undefined;
+            const model = openlayerFunctions.getLayerByLayerId(layerId);
+            let title = isObject(model) && isObject(model.gfiAttributes) ? model.gfiAttributes[
+                Array.isArray(snippet.attrName) ? snippet.attrName[0] : snippet.attrName
+            ] : undefined;
+
+            if (isObject(title) && title.name) {
+                title = title.name;
+            }
 
             if (typeof title !== "undefined") {
                 return title;

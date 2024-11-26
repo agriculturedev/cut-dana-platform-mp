@@ -221,6 +221,22 @@ describe("src/modules/layerTree/components/LayerCheckBox.vue", () => {
         expect(wrapper.find(".layer-tree-layer-label").attributes("class")).to.include("font-bold");
     });
 
+    it("render the lock fill icon, if the layer has the attribute isSecured=true", () => {
+        propsData.conf.isSecured = true;
+
+        wrapper = shallowMount(LayerCheckBox, {
+            global: {
+                plugins: [store]
+            },
+            propsData
+        });
+
+        expect(wrapper.find("#layer-checkbox-" + propsData.conf.id).exists()).to.be.true;
+        expect(wrapper.find("#layer-checkbox-" + propsData.conf.id + " > i").exists()).to.be.true;
+        expect(wrapper.find("#layer-checkbox-" + propsData.conf.id + " > i").classes()).to.be.an("array").that.includes("bi-lock-fill", "pe-1");
+
+    });
+
     it("computed property isLayerVisible with visibility=false ", () => {
         wrapper = shallowMount(LayerCheckBox, {
             global: {

@@ -6,11 +6,11 @@ export default {
     name: "LayerSwiper",
     props: {
     /**
-     * The current time slider object.
+     * The initial time slider object.
      * @type {Object}
      * @default () => ({})
      */
-        currentTimeSliderObject: {
+        initialTimeSliderObject: {
             type: Object,
             default: () => ({})
         }
@@ -72,7 +72,7 @@ export default {
 
             target.focus();
             this.setLayerSwiperDomSwiper(target);
-            this.setCurrentTimeSliderObject(this.currentTimeSliderObject);
+            this.setCurrentTimeSliderObject(this.initialTimeSliderObject);
         },
 
         /**
@@ -103,7 +103,7 @@ export default {
         class="btn"
         :class="splitDirection"
         :title="$t('common:modules.wmsTime.layerSwiper.title')"
-        :aria-describedby="$t('common:modules.wmsTime.layerSwiper.description', { amount: currentTimeSliderObject.keyboardMovement })"
+        :aria-describedby="$t('common:modules.wmsTime.layerSwiper.description', { amount: initialTimeSliderObject.keyboardMovement })"
         :style="splitDirection === 'vertical' ? { cursor: 'ew-resize' } : { cursor: 'ns-resize' }"
         @keydown.left="moveSwiper"
         @keydown.right="moveSwiper"

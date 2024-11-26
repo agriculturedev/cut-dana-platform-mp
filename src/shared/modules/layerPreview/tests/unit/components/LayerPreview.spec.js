@@ -455,5 +455,34 @@ describe("src/modules/layerPreview/components/LayerPreview.vue", () => {
         expect(warnSpy.notCalled).to.be.true;
     });
 
+    it("do render the LayerPreview with tooltip attributes", async () => {
+        const props = {
+            layerId: "WMS"
+        };
+
+        wrapper = shallowMount(LayerPreviewComponent, {
+            global: {
+                plugins: [store]
+            },
+            props: props
+        });
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.find(".layerPreview").exists()).to.be.true;
+        expect(wrapper.find(".layerPreview").attributes()).to.deep.equals({
+            "data-v-601392fe": "",
+            role: "button",
+            tabindex: "0",
+            class: "layerPreview",
+            "data-bs-toggle": "tooltip",
+            "data-bs-original-title": "layerWMS",
+            title: "layerWMS"
+        });
+        expect(wrapper.find(".wrapperImg").attributes()).to.deep.equals({
+            "data-v-601392fe": "",
+            class: "wrapperImg",
+            title: ""
+        });
+    });
 
 });

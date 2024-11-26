@@ -136,8 +136,8 @@
         "distanceUnit": "Metros",
         "geolocationDeniedText": "Localización no disponible",
         "imgAlt": "",
-        "poiChoiceCurrentPostion": "Mi posición actual",
-        "poiChoiceCustomPostion": "Búsqueda de direcciones o puntos de referencia en el mapa",
+        "poiChoiceCurrentPosition": "Mi posición actual",
+        "poiChoiceCustomPosition": "Búsqueda de direcciones o puntos de referencia en el mapa",
         "poiChoiceConfirmation": "OK",
         "poiChoiceStop": "Terminar",
         "poiChoiceTitle": "Selección del punto de partida para la búsqueda de una circunferencia:",
@@ -714,15 +714,15 @@
         "addressHospitalBplan": "Búsqueda por dirección/hospital/plan territorial",
         "addressTopic": "Buscar dirección, distrito, temas",
         "addressTopicParcel": "Buscar dirección, distrito, temas, unidad catastral"
-    },
-    "showAllResults": "mostrar todos los resultados",
-    "searchResults": "Resultados de la búsqueda",
-    "search": "buscar",
-    "searchResultList": "Resumen de búsqueda",
-    "searchResultsFrom": "Buscar resultados de: ",
-    "mark": "Elegir el tema",
-    "add": "Agregar tema",
-    "type": {
+      },
+      "showAllResults": "mostrar todos los resultados",
+      "searchResults": "Resultados de la búsqueda",
+      "search": "buscar",
+      "searchResultList": "Resumen de búsqueda",
+      "searchResultsFrom": "Buscar resultados de: ",
+      "mark": "Elegir el tema",
+      "add": "Agregar tema",
+      "type": {
         "address": "Dirección",
         "district": "Distrito",
         "folder": "",
@@ -732,16 +732,16 @@
         "street": "Calle",
         "subject": "Tema específico",
         "topic": "Tema"
-    },
-    "specialWFS": {
-      "ongoing": "en proceso",
-      "terminated": "encontrado",
-      "hazardous": "Operación interrumpida",
-      "childcare": "Guardería",
-      "bplan": "Plan catastral"
-    },
-    "noInitialResults": "La búsqueda inicial no dio ningún resultado.",
-    "showAll": "Ver todo"
+      },
+      "specialWFS": {
+        "ongoing": "en proceso",
+        "terminated": "encontrado",
+        "hazardous": "Operación interrumpida",
+        "childcare": "Guardería",
+        "bplan": "Plan catastral"
+      },
+      "noInitialResults": "La búsqueda inicial no dio ningún resultado.",
+      "showAll": "Ver todo"
     },
     "selectFeatures": {
       "name": "Seleccionar entidad",

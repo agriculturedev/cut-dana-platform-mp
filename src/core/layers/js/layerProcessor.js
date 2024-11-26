@@ -55,7 +55,7 @@ export function processLayerConfig (layerConfig, mapMode) {
             updateLayerAttributes(layer, layerConf);
         }
         else if (layerConf.visibility === true) {
-            Object.assign(layerConf, {showInLayerTree: true}); // a visible layer is always show in layer tree
+            Object.assign(layerConf);
             layer = layerFactory.createLayer(layerConf, mapMode);
             processLayer(layer, mapMode);
         }
@@ -104,11 +104,32 @@ function processLayer (layer) {
  */
 export function setResolutions (layer) {
     if (layer.get("typ") === "GROUP") {
-        layer.attributes.children.forEach((rawLayer, index) => {
-            setResolutionsForGroupLayer(rawLayer, layer, index);
+        layer.getLayerSource().forEach(childLayer => {
+            const opacity = (100 - layer.get("transparency")) / 100,
+                zIndex = layer.get("zIndex");
+
+            setMinMaxResolution(childLayer, layer);
+            childLayer.getLayer().setOpacity(opacity);
+            childLayer.getLayer().setZIndex(zIndex);
         });
     }
-    else if (layer.get("maxScale") !== undefined) {
+    else {
+        setMinMaxResolution(layer);
+    }
+}
+
+/**
+ * Sets maxResolution and minResolution at ol.layer depending on maxScale and minScale of the layer or the grouped layer.
+ * @param {Layer} layer The layer of the layer collection.
+ * @param {Layer} groupLayer The GroupLayer of the layer collection.
+ * @returns {void}
+ */
+function setMinMaxResolution (layer, groupLayer) {
+    if (layer.get("maxScale") === undefined && groupLayer?.get("maxScale") !== undefined) {
+        layer.set("maxScale", groupLayer.get("maxScale"));
+        layer.set("minScale", groupLayer.get("minScale"));
+    }
+    if (layer.get("maxScale") !== undefined) {
         if (layer.get("minScale") === undefined) {
             layer.set("minScale", 0);
         }
@@ -117,25 +138,6 @@ export function setResolutions (layer) {
 
         layer.getLayer().setMaxResolution(resoByMaxScale + (resoByMaxScale / 100));
         layer.getLayer().setMinResolution(resoByMinScale);
-    }
-}
-/**
- * If a layer in a group layer has attributes 'minScale' and 'maxScale', min- and maxResolution is set at ol.Layer.
- * @param {Layer} rawLayer A layer of the group layer collection.
- * @param {Layer} groupLayer The GroupLayer of the layer collection.
- * @param {Integer} index The index of the layer in the group layer collection.
- * @returns {void}
- */
-export function setResolutionsForGroupLayer (rawLayer, groupLayer, index) {
-    if (rawLayer.maxScale !== undefined) {
-        if (rawLayer.minScale === undefined) {
-            rawLayer.minScale = 0;
-        }
-        const resoByMaxScale = store.getters["Maps/getResolutionByScale"](rawLayer.maxScale, "max"),
-            resoByMinScale = store.getters["Maps/getResolutionByScale"](rawLayer.minScale, "min");
-
-        groupLayer.getLayer().getLayers().getArray()[index].setMaxResolution(resoByMaxScale + (resoByMaxScale / 100));
-        groupLayer.getLayer().getLayers().getArray()[index].setMinResolution(resoByMinScale);
     }
 }
 

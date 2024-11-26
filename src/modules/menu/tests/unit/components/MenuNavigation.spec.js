@@ -12,7 +12,9 @@ describe("src/core/menu/navigation/components/MenuNavigation.vue", () => {
         navigateBackSpy,
         side,
         componentName,
-        previousNavigationEntryText;
+        component,
+        previousNavigationEntryText,
+        showHeaderIcon;
 
     beforeEach(() => {
         side = "mainMenu";
@@ -24,7 +26,15 @@ describe("src/core/menu/navigation/components/MenuNavigation.vue", () => {
             mainMenu: "nameMainMenu",
             secondaryMenu: "nameSecondaryMenu"
         };
+        component = {
+            mainMenu: "root",
+            secondaryMenu: "root"
+        };
         navigateBackSpy = sinon.spy();
+        showHeaderIcon = {
+            mainMenu: false,
+            secondaryMenu: false
+        };
 
         store = createStore({
             modules: {
@@ -32,7 +42,9 @@ describe("src/core/menu/navigation/components/MenuNavigation.vue", () => {
                     namespaced: true,
                     getters: {
                         previousNavigationEntryText: () => (theSide) => previousNavigationEntryText[theSide],
-                        currentComponentName: () => (theSide) => componentName[theSide]
+                        currentComponentName: () => (theSide) => componentName[theSide],
+                        currentComponent: () => (theSide) => component[theSide],
+                        showHeaderIcon: () => (theSide) => showHeaderIcon[theSide]
                     },
                     actions: {
                         navigateBack: navigateBackSpy
@@ -125,4 +137,47 @@ describe("src/core/menu/navigation/components/MenuNavigation.vue", () => {
 
     });
 
+    it("renders the header icon in the main menu side", () => {
+        showHeaderIcon.mainMenu = true;
+        component.mainMenu = {"name": "componentName", "icon": "bi-tools"};
+        wrapper = mount(MenuNavigation, {
+            global: {
+                plugins: [store]
+            }, propsData: {side}});
+
+        expect(wrapper.find("#mp-menu-navigation-mainMenu > .mp-menu-navigation-moduletitle > i").exists()).to.be.true;
+    });
+
+    it("renders the header icon in the secondary menu side", () => {
+        side = "secondaryMenu";
+        showHeaderIcon.secondaryMenu = true;
+        component.secondaryMenu = {"name": "componentName", "props": {"icon": "bi-tools"}};
+        wrapper = mount(MenuNavigation, {
+            global: {
+                plugins: [store]
+            }, propsData: {side}});
+
+        expect(wrapper.find("#mp-menu-navigation-secondaryMenu > .mp-menu-navigation-moduletitle > i").exists()).to.be.true;
+    });
+
+    it("dont renders the header icon in the main menu side", () => {
+        component.mainMenu = {"name": "componentName", "icon": "bi-tools"};
+        wrapper = mount(MenuNavigation, {
+            global: {
+                plugins: [store]
+            }, propsData: {side}});
+
+        expect(wrapper.find("#mp-menu-navigation-mainMenu > .mp-menu-navigation-moduletitle > i").exists()).to.be.false;
+    });
+
+    it("dont renders the header icon in the secondar menu side", () => {
+        side = "secondaryMenu";
+        component.secondaryMenu = {"name": "componentName", "icon": "bi-tools"};
+        wrapper = mount(MenuNavigation, {
+            global: {
+                plugins: [store]
+            }, propsData: {side}});
+
+        expect(wrapper.find("#mp-menu-navigation-secondaryMenu > .mp-menu-navigation-moduletitle > i").exists()).to.be.false;
+    });
 });

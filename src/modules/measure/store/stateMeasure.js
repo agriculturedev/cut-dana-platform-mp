@@ -1,6 +1,3 @@
-import VectorLayer from "ol/layer/Vector.js";
-
-import style from "../js/measureStyle";
 import source from "../js/measureSource";
 
 /**
@@ -58,15 +55,10 @@ const state = {
     isDrawing: false,
 
     // measure layer and ol
+    color: [255, 127, 0, 1.0],
     interaction: null,
     source,
-    layer: new VectorLayer({
-        source,
-        style,
-        id: "measureLayer",
-        name: "measureLayer",
-        alwaysOnTop: true
-    }),
+    layer: null,
     featureId: null,
     tooltipCoord: []
 };

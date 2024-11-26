@@ -35,7 +35,7 @@ describe("src/modules/getFeatureInfo/themes/default/components/DefaultTheme.vue"
                         };
                     },
                     getTheme: function () {
-                        return "images";
+                        return "default";
                     },
                     getGfiUrl: () => "http",
                     getMimeType: () => "text/xml"
@@ -98,103 +98,12 @@ describe("src/modules/getFeatureInfo/themes/default/components/DefaultTheme.vue"
             expect(wrapper.findAll("td")[countTdTags - 4].text()).equals("TestBrTag");
             expect(wrapper.findAll("td")[countTdTags - 3].text()).equals("moinA123");
         });
+
         it("should render as string with <br> tags for each part of an array if value is an array", () => {
             const countTdTags = wrapper.findAll("td").length;
 
             expect(wrapper.findAll("td")[countTdTags - 2].text()).equals("TestArray");
             expect(wrapper.findAll("td")[countTdTags - 1].text()).equals("moinB123");
-        });
-
-        it("should render an a and img if imageAttribute is existst in feature.properties", () => {
-            expect(wrapper.find(".gfi-theme-images > div:nth-child(2) > a").exists()).to.be.true;
-            expect(wrapper.find(".gfi-theme-images > div:nth-child(2) > a > img").exists()).to.be.true;
-        });
-
-        it("should the img have the source of feature properties", () => {
-            expect(wrapper.find(".gfi-theme-images > div:nth-child(2) > a > img").classes()).includes("gfi-theme-images-image");
-            expect(wrapper.find(".gfi-theme-images > div:nth-child(2) > a > img").attributes().src).equals("https://test.png");
-        });
-
-        it("should the img have the source to the image", () => {
-            const wrapper1 = shallowMount(DefaultTheme, {
-                props: {
-                    feature: {
-                        getProperties: function () {
-                            return {
-                                abc: "https://abc.jpeg"
-                            };
-                        },
-                        getTheme: function () {
-                            return {
-                                name: "images",
-                                params: {
-                                    imageLinks: "abc"
-                                }
-                            };
-                        },
-                        getGfiUrl: () => "",
-                        getMimeType: () => "text/xml"
-                    }
-                }
-            });
-
-            expect(wrapper1.find(".gfi-theme-images-image").exists());
-            expect(wrapper1.find(".gfi-theme-images-image").attributes().src).equals("https://abc.jpeg");
-        });
-
-
-        it("should the img have the source of gfiTheme params as string", () => {
-            const wrapper1 = shallowMount(DefaultTheme, {
-                props: {
-                    feature: {
-                        getProperties: function () {
-                            return {
-                                bildlink: "https://test.png",
-                                abc: "https://abc.jpeg"
-                            };
-                        },
-                        getTheme: function () {
-                            return {
-                                name: "images",
-                                params: {
-                                    imageLinks: "abc"
-                                }
-                            };
-                        },
-                        getGfiUrl: () => "",
-                        getMimeType: () => "text/xml"
-                    }
-                }
-            });
-
-            expect(wrapper1.find(".gfi-theme-images > div:nth-child(2) > a > img").attributes().src).equals("https://abc.jpeg");
-        });
-
-        it("should the img have the source of first found element gfiTheme params as array, the order is specified by imageLinks", () => {
-            const wrapper2 = shallowMount(DefaultTheme, {
-                props: {
-                    feature: {
-                        getProperties: function () {
-                            return {
-                                xyz: "https://test.png",
-                                abc: "https://abc.jpeg"
-                            };
-                        },
-                        getTheme: function () {
-                            return {
-                                name: "images",
-                                params: {
-                                    imageLinks: ["abc", "xyz"]
-                                }
-                            };
-                        },
-                        getMimeType: () => "text/xml",
-                        getGfiUrl: () => ""
-                    }
-                }
-            });
-
-            expect(wrapper2.find(".gfi-theme-images > div:nth-child(2) > a > img").attributes().src).equals("https://abc.jpeg");
         });
 
         it("should show no attribute is available message if getMappedProperties is empty", () => {
@@ -209,10 +118,7 @@ describe("src/modules/getFeatureInfo/themes/default/components/DefaultTheme.vue"
                         },
                         getTheme: () => {
                             return {
-                                name: "images",
-                                params: {
-                                    imageLinks: "abc"
-                                }
+                                name: "default"
                             };
                         },
                         getGfiUrl: () => "",

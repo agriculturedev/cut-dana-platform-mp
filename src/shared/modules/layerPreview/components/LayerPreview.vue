@@ -149,7 +149,7 @@ export default {
                 params.STYLES = "";
 
                 Object.entries(params).forEach(([key, value]) => {
-                    if (key !== "WIDTH" && key !== "HEIGHT") {
+                    if (key !== "WIDTH" && key !== "HEIGHT" && value !== undefined) {
                         url += `&${key}=${encodeURIComponent(value)}`;
                     }
                 });
@@ -275,11 +275,15 @@ export default {
             'layerPreview'
         ]"
         :data-bs-toggle="!isMobile ? 'tooltip' : null"
+        :data-bs-original-title="layerName"
         :title="layerName"
         @click="clicked()"
         @keydown.enter="clicked()"
     >
-        <div class="wrapperImg">
+        <div
+            class="wrapperImg"
+            title=""
+        >
             <img
                 :class="[
                     customClass,
@@ -306,7 +310,7 @@ export default {
 <style lang="scss" scoped>
 @import "~variables";
 
-.layerPreview{
+.layerPreview {
     position: relative;
     width: 50px;
     height: 50px;
@@ -327,10 +331,10 @@ export default {
 .bi-circle::before {
     display: block;
 }
-.wrapperImg{
+.wrapperImg {
    position: absolute;
 }
-.checkable{
+.checkable {
     position: absolute;
     width: 50px;
     height: 50px;
@@ -342,7 +346,7 @@ export default {
     border: 2px solid rgba(66, 66, 66, 0.3);
     border-radius: 50%;
 }
-.checkable:hover, .checkable:focus,  .checkable:active{
+.checkable:hover, .checkable:focus,  .checkable:active {
     border: 2px solid rgba(66, 66, 66, 0.8);
 }
 
@@ -350,7 +354,7 @@ export default {
     .checkable{
         font-size: 2.5rem;
         text-align: center;
-}
+    }
 }
 
 </style>

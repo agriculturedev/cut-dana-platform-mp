@@ -52,6 +52,7 @@ npm-debug.log
 !/portal/basic
 !/portal/master
 !/portal/auto
+!/portal/layer
 
 
 # Ignore mkdocs build dir

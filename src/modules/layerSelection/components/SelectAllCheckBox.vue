@@ -37,7 +37,8 @@ export default {
          */
         clicked () {
             this.checked = !this.checked;
-            this.confs.forEach(conf => {
+
+            this.confs.slice().reverse().forEach(conf => {
                 this.changeVisibility({layerId: conf.id, value: this.checked});
                 if (conf.fitCapabilitiesExtent === true) {
                     this.zoomToCapabilitiesExtent(conf);

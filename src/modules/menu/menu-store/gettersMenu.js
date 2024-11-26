@@ -212,6 +212,15 @@ const menuGetters = {
     },
 
     /**
+     * @param {MenuNavigationState} state Local vuex state.
+     * @param {String} side Menu Side.
+     * @returns {Boolean} Whether show Icon for the current component in the menu header by side
+     */
+    showHeaderIcon: state => side => {
+        return state[side]?.showHeaderIcon;
+    },
+
+    /**
      * Returns the url params.
      * @param {Object} state menu store state.
      * @param {Object} getters menu store getters.

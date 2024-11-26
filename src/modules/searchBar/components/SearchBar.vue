@@ -151,9 +151,6 @@ export default {
                     if (newVal === "root") {
                         this.setSearchResultsActive(false);
                         this.navigateBack(this.currentSide);
-                        if (this.side) {
-                            this.switchToRoot(this.side);
-                        }
                     }
                 }
                 if (newVal === "layerSelection" && this.addLayerButtonSearchActive === true) {
@@ -162,6 +159,7 @@ export default {
                 else {
                     this.layerSelectionPlaceHolder = this.placeholder;
                 }
+                this.setGlobalPlaceholder(this.layerSelectionPlaceHolder);
             },
             deep: true
         },
@@ -179,6 +177,12 @@ export default {
                 }
             },
             deep: true
+        },
+        /**
+         * Watcher for value of placeholder.
+         */
+        placeholder (newValue) {
+            this.layerSelectionPlaceHolder = newValue;
         }
     },
     mounted () {
@@ -205,6 +209,7 @@ export default {
             "navigateBack"
         ]),
         ...mapMutations("Modules/SearchBar", [
+            "setGlobalPlaceholder",
             "addSuggestionItem",
             "setSearchInput",
             "setSearchResultsActive",

@@ -1,6 +1,6 @@
 import Feature from "ol/Feature.js";
 import {GeoJSON} from "ol/format.js";
-import {Group, Image, Tile, Vector} from "ol/layer.js";
+import {Image, Tile, Vector} from "ol/layer.js";
 import {MVTEncoder} from "@geoblocks/print";
 import Geometry from "ol/geom/Geometry";
 import {Point} from "ol/geom.js";
@@ -179,15 +179,7 @@ const BuildSpecModel = {
             for (const layer of layerList) {
                 const printLayers = [];
 
-                if (layer instanceof Group) {
-                    for (const childLayer of layer.getLayers().getArray()) {
-                        printLayers.push(await this.buildLayerType(childLayer, currentResolution, dpi));
-                        visibleLayerIds.push(childLayer.get("id"));
-                    }
-                }
-                else {
-                    printLayers.push(await this.buildLayerType(layer, currentResolution, dpi));
-                }
+                printLayers.push(await this.buildLayerType(layer, currentResolution, dpi));
                 printLayers.forEach(printLayer => {
                     if (typeof printLayer !== "undefined") {
                         if (layer?.get("id") !== undefined) {
@@ -656,7 +648,7 @@ const BuildSpecModel = {
      */
     getStyleAttributes: function (layer, feature) {
         const layerId = layer.get("id"),
-            styleObject = this.getStyleObject(layer, layerId);
+            styleObject = this.getStyleObject(layerId);
         let styleFields = ["styleId"];
 
         if (styleObject !== undefined) {
@@ -673,25 +665,26 @@ const BuildSpecModel = {
         return styleFields;
     },
     /**
-     * Gets the style object for the given layer.
-     * @param {ol/layer} layer The layer.
+     * Gets the style object for the given layer id.
      * @param {String} layerId The layer id.
      * @returns {Object} The style object.
      */
-    getStyleObject (layer, layerId) {
-        const layerModel = layerCollection.getLayerById(layer.get("id"));
-        let foundChild;
+    getStyleObject (layerId) {
+        let layer = layerCollection.getLayerById(layerId);
 
-        if (typeof layerModel?.get === "function") {
-            if (layerModel.get("typ") === "GROUP") {
-                foundChild = layerModel.get("children").find(child => child.id === layerId);
-                if (foundChild) {
-                    return styleList.returnStyleObject(foundChild.styleId);
+        if (!layer) {
+            layerCollection.getLayers().forEach(aLayer => {
+                if (aLayer.get("typ") === "GROUP") {
+                    const groupedLayer = aLayer.getLayerSource().find(childLayer => childLayer.attributes.id === layerId);
+
+                    if (groupedLayer) {
+                        layer = groupedLayer;
+                    }
                 }
-            }
-            else {
-                return styleList.returnStyleObject(layerModel.get("styleId"));
-            }
+            });
+        }
+        if (typeof layer?.get === "function") {
+            return styleList.returnStyleObject(layer.get("styleId"));
         }
         return undefined;
     },

@@ -19,7 +19,7 @@ export default {
         }
     },
     computed: {
-        ...mapGetters("Menu", ["previousNavigationEntryText", "currentComponentName"]),
+        ...mapGetters("Menu", ["previousNavigationEntryText", "currentComponentName", "currentComponent", "showHeaderIcon"]),
         ...mapGetters(["isMobile"]),
 
         previousNavigation () {
@@ -28,6 +28,14 @@ export default {
 
         currentTitle () {
             return this.currentComponentName(this.side);
+        },
+
+        currentIcon () {
+            return this.currentComponent(this.side).props?.icon;
+        },
+
+        showIcon () {
+            return this.showHeaderIcon(this.side);
         }
     },
     methods: {
@@ -66,6 +74,13 @@ export default {
             v-if="currentTitle !== 'none'"
             class="mp-menu-navigation-moduletitle mb-4"
         >
+            <i
+                v-if="showIcon && (currentIcon !== null)"
+                :class="[
+                    currentIcon, 'col-2'
+                ]"
+                role="img"
+            />
             {{ currentTitle }}
         </h4>
     </div>
@@ -90,6 +105,16 @@ export default {
 
 .mp-menu-navigation-moduletitle{
     display: flex;
+
+    i {
+        max-width: 35px;
+        font-size: 1.3rem;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+        vertical-align: middle;
+    }
 }
 
 </style>

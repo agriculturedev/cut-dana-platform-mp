@@ -290,7 +290,10 @@ describe("src/modules/menu/menu-store/actionsMenu.js", () => {
         let side = "mainMenu";
 
         it("should switch to previous component", async () => {
-            rootGetters = {"Modules/SearchBar/showAllResults": false};
+            rootGetters = {
+                "Modules/SearchBar/showAllResults": false,
+                "Modules/SearchBar/globalPlaceholder": "placeholder"
+            };
             getters = {
                 currentComponent: () => {
                     return {
@@ -302,11 +305,13 @@ describe("src/modules/menu/menu-store/actionsMenu.js", () => {
             actions.navigateBack({commit, dispatch, getters, state, rootGetters}, side);
 
             await nextTick(() => {
-                expect(commit.calledTwice).to.be.true;
+                expect(commit.calledThrice).to.be.true;
                 expect(commit.firstCall.args[0]).to.equal("switchToPreviousComponent");
                 expect(commit.firstCall.args[1]).to.equal(side);
                 expect(commit.secondCall.args[0]).to.equal("Modules/SearchBar/setShowInTree");
                 expect(commit.secondCall.args[1]).to.equal(false);
+                expect(commit.thirdCall.args[0]).to.equal("Modules/SearchBar/setPlaceholder");
+                expect(commit.thirdCall.args[1]).to.equal("placeholder");
 
                 expect(dispatch.calledTwice).to.be.true;
                 expect(dispatch.firstCall.args[0]).to.equal("Modules/SearchBar/updateSearchNavigation");

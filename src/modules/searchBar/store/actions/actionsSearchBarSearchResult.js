@@ -188,7 +188,7 @@ export default {
 
 
     /**
-     * Open folders in layerSelection and shows layer to select.
+     * Open folders in layerSelection and shows layer or folder to select.
      * If layer is not contained, it is added.
      * @param {Object} param.commit the commit
      * @param {Object} param.dispatch the dispatch
@@ -200,19 +200,17 @@ export default {
         const layerConfig = await dispatch("retrieveLayerConfig", {layerId, source}),
             typeLayerSelection = {type: "layerSelection", props: {name: "common:modules.layerSelection.name"}};
 
+        commit("setShowInTree", true);
+        commit("Menu/setNavigationHistoryBySide", {side: "mainMenu", newHistory: [{type: "root", props: []}, typeLayerSelection]}, {root: true});
+        dispatch("Menu/changeCurrentComponent", {type: "layerSelection", side: "mainMenu", props: {name: "common:modules.layerSelection.name"}}, {root: true});
         if (layerId.includes("folder-")) {
             const folderChildId = layerConfig.elements[0]?.id;
 
-            commit("Modules/SearchBar/setShowAllResults", false, {root: true});
-            commit("Menu/setNavigationHistoryBySide", {side: "mainMenu", newHistory: [{type: "root", props: []}, typeLayerSelection]}, {root: true});
             dispatch("Modules/LayerSelection/showLayer", {layerId: folderChildId}, {root: true});
             // unset the highlightLayerId in layerSelection, for not highlighting first child element of folder
             commit("Modules/LayerSelection/setHighlightLayerId", null, {root: true});
         }
         else if (layerConfig) {
-            commit("setShowInTree", true);
-            commit("Menu/setNavigationHistoryBySide", {side: "mainMenu", newHistory: [{type: "root", props: []}, typeLayerSelection, typeLayerSelection]}, {root: true});
-            dispatch("Menu/changeCurrentComponent", {type: "layerSelection", side: "mainMenu", props: {}}, {root: true});
             dispatch("Modules/LayerSelection/showLayer", {layerId}, {root: true});
         }
         else {
@@ -222,8 +220,7 @@ export default {
                 content: i18next.t("common:modules.searchBar.layerResultNotShown")
             }, {root: true});
         }
-        commit("setSearchInput", "");
-        dispatch("Menu/navigateBack", "mainMenu", {root: true});
+
     },
 
     /**

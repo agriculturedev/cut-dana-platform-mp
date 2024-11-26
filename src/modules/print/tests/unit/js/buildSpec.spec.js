@@ -604,11 +604,24 @@ describe("src/modules/print/js/buildSpec", function () {
                 name: "foobar",
                 typ: "WMS",
                 styleId: "123"
+            },
+            child_one_layer = {
+                get: () => {
+                    return "child_one";
+                }
+            },
+            child_two_layer = {
+                get: () => {
+                    return "child_two";
+                }
             };
-        let layerId,
+        let layerId = "123",
             layer = {
                 get: () => {
-                    return "123";
+                    return layerId;
+                },
+                getLayerSource: () =>{
+                    return [child_one_layer, child_two_layer];
                 }
             };
 
@@ -623,16 +636,18 @@ describe("src/modules/print/js/buildSpec", function () {
                 }
                 return undefined;
             });
+            sinon.stub(layerCollection, "getLayers").callsFake(() => {
+                return [layer];
+            });
             sinon.stub(styleList, "returnStyleObject").returns(styleObj);
         });
-
         it("should return the style object if type is GROUP", function () {
-            layerAttributes.type = "GROUP";
+            layerAttributes.typ = "GROUP";
 
-            expect(buildSpec.getStyleObject(layer, layerId)).to.be.an("object");
+            expect(buildSpec.getStyleObject(layerAttributes.id)).to.be.an("object");
         });
         it("should return the style object if type is not GROUP", function () {
-            expect(buildSpec.getStyleObject(layer, layerId)).to.be.an("object");
+            expect(buildSpec.getStyleObject(layerId)).to.be.an("object");
         });
         it("should return undefined if no layerModel is found", function () {
             layer = {
@@ -641,7 +656,7 @@ describe("src/modules/print/js/buildSpec", function () {
                 }
             };
             layerId = "1234";
-            expect(buildSpec.getStyleObject(layer, layerId)).to.be.undefined;
+            expect(buildSpec.getStyleObject(layerId)).to.be.undefined;
         });
     });
     describe("checkPolygon", function () {
@@ -649,7 +664,7 @@ describe("src/modules/print/js/buildSpec", function () {
             const source = new VectorSource(),
                 layer = new VectorLayer({
                     source,
-                    style: measureStyle
+                    style: measureStyle([255, 127, 0, 1.0])
                 }),
                 feature = new Feature({
                     geometry: new Polygon([[[0, 0], [0, 1], [1, 1], [0, 0]]])

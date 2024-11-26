@@ -59,9 +59,8 @@ function splitId (id, seperator = ".") {
 /**
  * Adds the attribute "showInLayerTree" to raw layer.
  * Rules:
- * If no add Layer Button is configured (portalConfig.tree.addLayerButton.active=true), then always showInLayerTree = true (so showLayerInTree has no effect in config.json)
- * If a layer has visibility= true, then also always showInLayerTree = true so it is not possible to have showInLayerTree = false and visibility: true
- * because visibility = true always results in showInLayerTree = true no matter what the config.json says.
+ * If no add Layer Button is configured (portalConfig.tree.addLayerButton.active=true), then always showInLayerTree = true and visibility = true (so showLayerInTree has no effect in config.json)
+ * If a layer has visibility= true and showInLayerTree is undefined, then also always showInLayerTree = true
  * If both are not true, then showInLayerTree = false (for all other treeTypes e.g. "auto") if the attribute is not already set explicitly on the layer (i.e. in config.json).
  * @param {Object} rawLayer The raw layer.
  * @param {Object} [showAllLayerInTree="false"] if true, all layers get the attribute showInLayerTree=true
@@ -72,13 +71,13 @@ export function addAdditional (rawLayer, showAllLayerInTree = false) {
         const layerTypes3d = layerFactory.getLayerTypes3d();
 
         rawLayer.type = "layer";
-        if (showAllLayerInTree || rawLayer.visibility) {
+        if (showAllLayerInTree || (rawLayer.visibility && rawLayer.showInLayerTree === undefined)) {
             rawLayer.showInLayerTree = true;
         }
         else if (!Object.prototype.hasOwnProperty.call(rawLayer, "showInLayerTree")) {
             rawLayer.showInLayerTree = false;
         }
-        if (rawLayer.showInLayerTree === true) {
+        if (rawLayer.showInLayerTree === true || rawLayer.visibility === true) {
             rawLayer.zIndex = zIndex++;
         }
         rawLayer.is3DLayer = layerTypes3d.includes(rawLayer.typ?.toUpperCase());
@@ -130,33 +129,61 @@ function mergeGroupedLayer (layerConf) {
     if (existingLayers.length !== ids.length || ids.length === 0) {
         return layerConf;
     }
-    existingLayers.forEach(object => object.maxScale ? maxScales.push(parseInt(object.maxScale, 10)) : null);
-    existingLayers.forEach(object => object.minScale ? minScales.push(parseInt(object.minScale, 10)) : null);
     if (layerConf.typ === "GROUP") {
-        existingLayers.forEach(aLayer => {
-            if (layerConf.styleId) {
-                aLayer.styleId = layerConf.styleId;
-            }
-        });
         rawLayer = {...layerConf};
         rawLayer.id = ids.join("-");
-        // named children, because api needs it for styling groups
+        if (layerConf.children) {
+            layerConf.children.forEach(groupedLayerConf => {
+                const rawGroupedLayerIndex = existingLayers.findIndex(layer => layer.id === groupedLayerConf.id);
+
+                if (rawGroupedLayerIndex > -1) {
+                    const rawGroupedLayer = Object.assign({}, existingLayers[rawGroupedLayerIndex], groupedLayerConf);
+
+                    if (!groupedLayerConf.maxScale && layerConf.maxScale) {
+                        setMinMaxScale(rawGroupedLayer, [layerConf.maxScale], [layerConf.minScale], layerConf);
+                    }
+                    existingLayers.splice(rawGroupedLayerIndex, 1, rawGroupedLayer);
+                }
+                else {
+                    console.warn(`Configuration of group layer contains id ${groupedLayerConf.id} in children, that is not contained in group layer ids [${layerConf.id}]. Layer will not be displayed correctly.`);
+                }
+            });
+        }
+        else {
+            existingLayers.forEach(aLayer => {
+                if (layerConf.styleId) {
+                    aLayer.styleId = layerConf.styleId;
+                }
+            });
+            collectMinMaxScales(existingLayers, maxScales, minScales);
+            setMinMaxScale(rawLayer, maxScales, minScales, layerConf);
+        }
         rawLayer.children = existingLayers;
-        setMinMaxScale(rawLayer, maxScales, minScales);
-        rawLayer.typ = "GROUP";
     }
     else if (sameUrlAndTyp(existingLayers)) {
+        collectMinMaxScales(existingLayers, maxScales, minScales);
         rawLayer = Object.assign({}, existingLayers[0], layerConf);
         rawLayer.id = existingLayers[0].id;
         rawLayer.layers = existingLayers.map(value => value.layers).toString();
-        setMinMaxScale(rawLayer, maxScales, minScales);
+        setMinMaxScale(rawLayer, maxScales, minScales, layerConf);
     }
     else {
         console.warn(`Layer '${layerConf.name}' with ids as array: [${layerConf.id}] cannot be created. All layers in the ids-array must habe same 'typ' and same 'url'.`);
     }
     layerConf.id = rawLayer.id;
-
     return rawLayer;
+}
+
+/**
+ * Returns true, if all layers have same url and typ.
+ * @param {Array} layers, list of layers
+ * @param {Array} maxScales, list to fill with maxScales of layers
+ * @param {Array} minScales, list to fill with minScales of layers
+ * @returns {Boolean} true, if all layers have same url and typ
+ */
+function collectMinMaxScales (layers, maxScales, minScales) {
+    layers.forEach(object => object.maxScale ? maxScales.push(parseInt(object.maxScale, 10)) : null);
+    layers.forEach(object => object.minScale ? minScales.push(parseInt(object.minScale, 10)) : null);
 }
 
 /**
@@ -201,11 +228,15 @@ function sameUrlAndTyp (layers) {
  * @param {Object} layer to set min- and maxScale at
  * @param {Array} maxScales list of maxScales
  * @param {Array} minScales list of minScales
+ * @param {Object} layerConf configuration of layer like in the config.json
  * @returns {void}
  */
-function setMinMaxScale (layer, maxScales, minScales) {
-    layer.maxScale = Math.max(...maxScales);
-    layer.minScale = Math.min(...minScales);
+function setMinMaxScale (layer, maxScales, minScales, layerConf) {
+    const layerConfMaxScale = parseInt(layerConf.maxScale, 10),
+        layerConfMinScale = parseInt(layerConf.minScale, 10);
+
+    layer.maxScale = !isNaN(layerConfMaxScale) ? layerConfMaxScale : Math.max(...maxScales);
+    layer.minScale = !isNaN(layerConfMinScale) ? layerConfMinScale : Math.min(...minScales);
 }
 
 /**
@@ -371,7 +402,7 @@ function mergeByMetaIds (toMergeByMdId, layerList) {
 }
 
 /**
- * Resets the zIndex to 0.
+ * Resets the zIndex to 1.
  * @returns {void}
  */
 export function resetZIndex () {

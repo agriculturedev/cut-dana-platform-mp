@@ -1027,6 +1027,7 @@ Hier können die Menüeinträge jeweils für das MainMenu (in der Desktopansicht
 |expanded|nein|Boolean|false|Definiert ob das jeweilige Menü beim Starten des Portals aus- oder eingeklappt ist.|false|
 |width|nein|String|"25%"|Setzt die initiale Breite des jeweiligen Menüs als Prozentwert.|false|
 |showDescription|nein|Boolean||Definiert ob eine Beschreibung zu den Modulen im jeweiligen Menü angezeigt werden soll.|false|
+|showHeaderIcon|nein|Boolean|false|Definiert ob im Menü Header das Icon des aktuellen Moduls angezeigt wird|false|
 |searchBar|nein|**[searchBar](#portalconfigmenusearchbar)**||Über das Eingabefeld Suche können verschiedene Suchen gleichzeitig angefragt werden.|false|
 |sections|nein|**[sections](#portalconfigmenusections)**[]||Unterteilung von Modulen im Menü.|false|
 |title|nein|**[title](#portalconfigmenutitle)**||Der Titel und weitere Parameter die im Hauptmenü angezeigt werden können.|false|
@@ -1517,7 +1518,7 @@ Alle Layer, die im Themenbaum des Portals sind, werden durchsucht.
 ```json
 {
     "type": "topicTree",
-    "searchInterfaceId": "topicTree" 
+    "searchInterfaceId": "topicTree"
 }
 ```
 
@@ -1678,20 +1679,21 @@ Mit diesem Modul lassen sich spezifische Portalinformationen anzeigen wie z.B. B
 |----|-------------|---|-------|------------|------|
 |icon|nein|String|"bi-info-circle"|Icon das im Menü vor dem Modulnamen angezeigt wird. Zur Auswahl siehe **[Bootstrap Icons](https://icons.getbootstrap.com/)**|false|
 |name|nein|String|"common:modules.about.name"|Name des Moduls im Menü.|false|
-|type|nein|String|"about"|Der type des Moduls. Definiert welches Modul konfiguriert ist.|false|
+|type|ja|String|"about"|Der type des Moduls. Definiert welches Modul konfiguriert ist.|false|
 |abstractText|nein|String|""|Beschreibungstext des Portals|false|
 |contact|no|String|null|Metadaten Kontaktinformationen|false|
-|cswUrl|nein|String|"../../src/assets/img/Logo_Masterportal.svg"|Metadaten URL|false|
-|logoLink|nein|String|"https://masterportal.org"|Link des Logos|false|
-|logoText|nein|String|"Masterportallogo"|Text bei nicht anzeigbarem Logo|false|
+|cswUrl|nein|String|""|Metadaten URL|false|
+|logo|nein|Boolean/String|true|"../../src/assets/img/Logo_Masterportal.svg"|Pfad zum Logo. Mit `false` wird das Logo ausgeblendet.|false|
+|logoLink|nein|String|"https://masterportal.org"|Link der bei Klick auf das Logo in einem neuen Tab aufgerufen wird.|false|
+|logoText|nein|String|"Masterportallogo"|Alternativtext der eingeblendet wird, wenn das Logo nicht angezeigt werden kann.|false|
 |metaDataCatalogueId|nein|String|"2"|Id des Metadatenkatalogdienstes|false|
 |metaId|nein|String|""|Id des Metadateneintrages|false|
 |metaUrl|nein|String|""|URL des Metadateneintrages|false|
 |noMetadataLoaded|nein|String|""|Text bei nicht anzeigbaren Metadaten|false|
 |showAdditionalMetaData|nein|Boolean|true|Metadatenlink zu erweiterten Metadaten anzeigen|false|
 |title|nein|String|""|Titel der Metadaten|false|
-|version|nein|String|""|Versionangabe des Masterportals|false|
-|versionLink|nein|String|"https://bitbucket.org/geowerkstatt-hamburg/masterportal/downloads/"|Link zu der Masterportalversion|false|
+|version|nein|Boolean/String|true|Versionsangabe des Masterportals. Mit `true` wird die Masterportalversion automatisch ermittelt. Mit `false` wird die Version ausgeblendet.|false|
+|versionLink|nein|String|"https://bitbucket.org/geowerkstatt-hamburg/masterportal/downloads/"|Link der bei Klick auf die version in einem neuen Tab aufgerufen wird.|false|
 |ustId|nein|String|""|Umsatzsteueridentifikationsnummer gem. § 27 Umsatzsteuergesetz|false|
 |privacyStatementText|no|String|"common:modules.about.privacyStatementText"|Text für den Datenschutzabschnitt|false|
 |privacyStatementUrl|no|String|""|URL zu der Datenschutzerklärungsseite|false|
@@ -1715,8 +1717,8 @@ Mit diesem Modul lassen sich spezifische Portalinformationen anzeigen wie z.B. B
 
 [inherits]: # (portalConfig.menu.sections.modules)
 
-Mit diesem Modul lassen sich zusätzliche WMS Layer über eine angegebene URL laden. Von der [GDI-DE](https://www.gdi-de.org/download/AK_Geodienste_Architektur_GDI-DE_Bereitstellung_Darstellungsdienste.pdf) wird empfohlen einen CORS-Header einzurichten, siehe Kapitel 4.7.1.  
-Schema für eine WMS Layer URL: `www.diensteurl/wmsdienste`. 
+Mit diesem Modul lassen sich zusätzliche WMS Layer über eine angegebene URL laden. Von der [GDI-DE](https://www.gdi-de.org/download/AK_Geodienste_Architektur_GDI-DE_Bereitstellung_Darstellungsdienste.pdf) wird empfohlen einen CORS-Header einzurichten, siehe Kapitel 4.7.1.
+Schema für eine WMS Layer URL: `www.diensteurl/wmsdienste`.
 
 |Name|Verpflichtend|Typ|Default|Beschreibung|Expert|
 |----|-------------|---|-------|------------|------|
@@ -2837,6 +2839,7 @@ Mit dem Messwerkzeug können Strecken und Flächen gemessen werden.
 
 |Name|Verpflichtend|Typ|Default|Beschreibung|Expert|
 |----|-------------|---|-------|------------|------|
+|color|nein|Number[]|[255, 127, 0, 1.0]|Gibt an, in welcher Farbe die gemessenen Strecken/Flächen angezeigt werden.|false|
 |earthRadius|nein|Number|6378137|Erdradius in Metern. Bitte beachten Sie, dass der Erdradius in Abhängigkeit zum Bezugsellipsoiden gewählt werden sollte. Für ETRS89 (EPSG:25832) ist dies beispielsweise GRS80.|false|
 |icon|nein|String|"bi-arrows-angle-expand"|Icon das im Menü vor dem Modulnamen angezeigt wird. Zur Auswahl siehe **[Bootstrap Icons](https://icons.getbootstrap.com/)**|false|
 |lineStringUnits|nein|String[]|["m", "km"]|Gibt an, welche Einheiten für Streckenberechnungen ausgewählt werden können. Unterstützt werden "m" (Meter), "nm" (Seemeile), "km" (Kilometer).|false|
@@ -4342,7 +4345,7 @@ Konfiguration des addLayerButton zur Auswahl von Layern.
                 {
                     "id":"elasticSearch_0",
                     "searchCategory": "Thema (externe Fachdaten)"
-                }, 
+                },
                 {
                     "id": "topicTree",
                     "searchCategory": "Thema"
@@ -4782,22 +4785,52 @@ Beim VectorTile-Layer wird ein abgelegtes Vorschaubild angezeigt, bei WMS- und W
 
 [inherits]: # (layerConfig.elements.layers)
 
-Es wird ein Gruppenlayer erzeugt, der alle Layer der angegeben ids enthält.
+Es wird ein Gruppenlayer erzeugt, der alle Layer der angegeben ids enthält. Siehe auch **[groupedLayers.md](../../Dev/groupedLayers.md)**.
 
 |Name|Verpflichtend|Typ|Default|Beschreibung|Expert|
 |----|-------------|---|-------|------------|------|
-|id|ja|String[]||Ids der zu gruppierenden Layer, diese müssen in der **[services.json](../Global-Config/services.json.md)** enthalten sein. Sie können unterschiedliche Typen haben.|false|
+|id|ja|String[]||Ids der zu gruppierenden Layer, diese müssen in der **[services.json](../Global-Config/services.json.md)** enthalten sein. Sie können unterschiedliche Typen haben (Attribut `typ`).|false|
 |typ|ja|String|"GROUP"|Setzt den Layertypen auf GROUP, welcher Layer gruppieren kann.|false|
-|styleId|nein|String||Id die den Style definiert. Id wird in der **[style.json](../Global-Config/style.json.md)** aufgelöst. Wenn gefüllt, dann erhalten alle gruppierten Layer diesen style.|false|
+|children|nein|Object[]||In `children` können Attribute an den gruppierten Layern überschrieben werden. Ausnahme: `visibility` wird nicht überschrieben. Alle ids im id-Array müssen eine Entsprechung in den `children` haben. |true|
 
 
-**Beispiel**
+
+**Beispiel ohne children**
 ```json
  {
     "id": [ "20501", "20502", "20503", "20504" ],
     "typ": "GROUP",
     "name": "Gruppe Freizeitrouten und Radfernwege",
     "styleId": "4515"
+}
+```
+
+**Beispiel mit children**
+
+```json
+{
+    "id": [ "27926", "1711", "18104"],
+    "typ": "GROUP",
+    "name": "Gruppe OAF, WFS, SensorThings",
+    "visibility": false,
+    "children" :[
+        {
+            "id": "27926",
+            "styleId": "8712",
+            "typ": "OAF",
+            "gfiTheme": "schulinfo"
+        },
+        {
+            "id": "1711",
+            "styleId": "1711",
+            "typ": "WFS"
+        },
+        {
+            "id": "18104",
+            "styleId": "18104",
+            "typ": "SensorThings"
+        }
+    ]
 }
 ```
 

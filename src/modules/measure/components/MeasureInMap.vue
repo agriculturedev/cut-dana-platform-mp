@@ -1,7 +1,10 @@
 <script>
 import {mapActions, mapGetters, mapMutations} from "vuex";
+import VectorLayer from "ol/layer/Vector.js";
 import MeasureInMapTooltip from "./MeasureInMapTooltip.vue";
 import FlatButton from "../../../shared/modules/buttons/components/FlatButton.vue";
+import source from "../js/measureSource";
+import getStyle from "../js/measureStyle";
 
 /**
  * Measurement tool to measure lines and areas in the map.
@@ -24,6 +27,7 @@ export default {
             "featureId",
             "tooltipCoord",
             "interaction",
+            "color",
             "source",
             "layer",
             "lines",
@@ -49,6 +53,13 @@ export default {
         }
     },
     created () {
+        this.setLayer(new VectorLayer({
+            source,
+            id: "measureLayer",
+            name: "measureLayer",
+            style: getStyle(this.color),
+            alwaysOnTop: true
+        }));
         this.$store.dispatch("Maps/checkLayer", this.layer).then((layerExists) => {
             if (!layerExists) {
                 this.$store.dispatch("Maps/addLayer", this.layer);
@@ -65,7 +76,7 @@ export default {
         this.removeDrawInteraction();
     },
     methods: {
-        ...mapMutations("Modules/Measure", ["setSelectedGeometry", "setSelectedLineStringUnit", "setSelectedPolygonUnit"]),
+        ...mapMutations("Modules/Measure", ["setSelectedGeometry", "setSelectedLineStringUnit", "setSelectedPolygonUnit", "setLayer"]),
         ...mapActions("Modules/Measure", ["deleteFeatures", "createDrawInteraction", "removeIncompleteDrawing", "removeDrawInteraction"]),
 
         /**

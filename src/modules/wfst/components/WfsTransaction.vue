@@ -317,7 +317,7 @@ h3 {
     #tool-wfs-transaction-form {
         margin-top: 1em;
         display: grid;
-        grid-template-columns: 5em 20em;
+        grid-template-columns: 8em 20em;
         grid-row-gap: calc(#{1em} / 3);
 
         .form-label {

@@ -40,10 +40,12 @@ function getRoutingLocationFinderGeosearchUrl (search) {
     else {
         serviceUrl += "/Lookup";
     }
+
     url = new URL(serviceUrl);
     url.searchParams.set("limit", state.geosearch.limit);
     url.searchParams.set("properties", "text");
-    url.searchParams.set("query", encodeURIComponent(search));
+    url.searchParams.set("query", search);
+
     return url;
 }
 

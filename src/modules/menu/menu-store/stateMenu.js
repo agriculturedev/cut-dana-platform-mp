@@ -33,6 +33,7 @@ export default {
         toggleButtonIcon: "bi-list",
         sections: [[]],
         showDescription: false,
+        showHeaderIcon: false,
         navigation: {
             currentComponent: {
                 type: "root",
@@ -50,6 +51,7 @@ export default {
         showDescription: true,
         title: null,
         toggleButtonIcon: "bi-tools",
+        showHeaderIcon: false,
         navigation: {
             currentComponent: {
                 type: "root",

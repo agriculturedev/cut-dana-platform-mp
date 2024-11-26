@@ -12,7 +12,7 @@ describe("src/modules/measure/js/measureStyle", function () {
         const source = new VectorSource(),
             layer = new VectorLayer({
                 source,
-                style,
+                style: style([255, 127, 0, 1.0]),
                 id: "measureLayer",
                 name: "measureLayer",
                 alwaysOnTop: true
@@ -34,6 +34,21 @@ describe("src/modules/measure/js/measureStyle", function () {
                 else if (i === 2) {
                     expect(geom.getCoordinates()).to.deep.equals([[[0, 1], [1, 1]]]);
                 }
+            }
+        });
+    });
+    it("all styles have configured color", function () {
+        const styles = style([50, 150, 250, 1.0]);
+
+        styles.forEach(aStyle => {
+            expect(aStyle.getImage().getFill().getColor()).to.deep.equal([50, 150, 250, 0.4]);
+            expect(aStyle.getImage().getStroke().getColor()).to.deep.equal([50, 150, 250, 1.0]);
+
+            if (aStyle.getStroke() !== null) {
+                expect(aStyle.getStroke().getColor()).to.deep.equal([50, 150, 250, 1.0]);
+            }
+            if (aStyle.getFill() !== null) {
+                expect(aStyle.getFill().getColor()).to.deep.equal([50, 150, 250, 0.3]);
             }
         });
     });

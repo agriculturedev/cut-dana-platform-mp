@@ -287,14 +287,15 @@ describe("src/modules/layerInformation/store/actionsLayerInformation.js", () => 
                     getDownloadLinks: () => [],
                     getPublicationDate: () => "thisIsADate",
                     getContact: () => "contact",
-                    getPublisher: () => "publisher"
+                    getPublisher: () => "publisher",
+                    getRevisionDate: () => "thisIsADate"
                 };
 
             sinon.stub(getCswRecordById, "getRecordById").returns(cswReturn);
 
             await actions.getAbstractInfo({commit, dispatch, state, rootGetters}, metaInfo);
 
-            expect(commit.callCount).to.be.equal(9);
+            expect(commit.callCount).to.be.equal(10);
             expect(commit.firstCall.args[0]).to.equal("setDownloadLinks");
             expect(commit.firstCall.args[1]).to.be.deep.equals(null);
             expect(commit.secondCall.args[0]).to.equal("setTitle");
@@ -311,8 +312,10 @@ describe("src/modules/layerInformation/store/actionsLayerInformation.js", () => 
             expect(commit.getCall(6).args[1]).to.be.deep.equals("contact");
             expect(commit.getCall(7).args[0]).to.equal("setPublisher");
             expect(commit.getCall(7).args[1]).to.be.deep.equals("publisher");
-            expect(commit.getCall(8).args[0]).to.equal("setDownloadLinks");
-            expect(commit.getCall(8).args[1]).to.be.deep.equals([]);
+            expect(commit.getCall(8).args[0]).to.equal("setDateRevision");
+            expect(commit.getCall(8).args[1]).to.be.deep.equals("thisIsADate");
+            expect(commit.getCall(9).args[0]).to.equal("setDownloadLinks");
+            expect(commit.getCall(9).args[1]).to.be.deep.equals([]);
         });
         it("ensures that downloadLinks is set to null", () => {
             const metaInfo = {},
@@ -320,7 +323,7 @@ describe("src/modules/layerInformation/store/actionsLayerInformation.js", () => 
 
             actions.getAbstractInfo({commit, dispatch, state, rootGetters}, metaInfo);
 
-            expect(commit.callCount).to.be.equal(8);
+            expect(commit.callCount).to.be.equal(9);
             expect(commit.firstCall.args[0]).to.equal("setDownloadLinks");
             expect(commit.firstCall.args[1]).to.be.deep.equals(null);
         });

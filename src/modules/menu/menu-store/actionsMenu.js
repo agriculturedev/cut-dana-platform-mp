@@ -163,6 +163,7 @@ export default {
             }
             if (getters.currentComponent(side).type === "searchbar") {
                 dispatch("Modules/SearchBar/updateSearchNavigation", side, {root: true});
+                commit("Modules/SearchBar/setPlaceholder", rootGetters["Modules/SearchBar/globalPlaceholder"], {root: true});
             }
             dispatch("handleActionButtons", {side: side, searchValue: searchValue});
         });

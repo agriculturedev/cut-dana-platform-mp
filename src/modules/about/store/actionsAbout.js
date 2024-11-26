@@ -1,4 +1,5 @@
 import getCswRecordById from "../../../shared/js/api/getCswRecordById";
+import packageJson from "../../../../package.json";
 
 /**
  * The actions for the About module
@@ -47,13 +48,17 @@ export default {
             commit("setAbstractText", metadata?.getAbstract());
             commit("setContact", metadata?.getContact());
         }
-        commit("setVersion", await dispatch("currentMasterPortalVersionNumber"));
+
+        dispatch("currentMasterportalVersionNumber");
     },
+
     /**
-     * Returns current Master Portal Version Number
+     * Returns current Masterportal Version Number
+     * @param {Object} context.commit the commit
+     * @param {Object} context.state the state
      * @returns {String} Masterportal version number
      */
-    currentMasterPortalVersionNumber () {
-        return require("../../../../package.json").version;
+    currentMasterportalVersionNumber ({commit, state}) {
+        commit("setVersion", state.version === true ? packageJson.version : state.version);
     }
 };

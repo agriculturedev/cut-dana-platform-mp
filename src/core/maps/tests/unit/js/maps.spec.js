@@ -19,7 +19,8 @@ describe("src/core/js/maps/maps.js", () => {
         store.getters = {
             cesiumLibrary: "path_to_cesium_library",
             controlsConfig: {
-                button3d: true
+                button3d: true,
+                expandable: {}
             }
         };
     });
@@ -57,7 +58,39 @@ describe("src/core/js/maps/maps.js", () => {
             expect(mapCollection.getMap("2D")).to.be.not.undefined;
             expect(load3DScriptSpy.notCalled).to.be.true;
         });
+        it("loads 3D map when button3d is configured in controlsConfig.expandable", () => {
+            const portalConfig = {
+                    portal: "config"
+                },
+                configJs = {
+                    config: "js"
+                };
 
+            store.getters.controlsConfig.button3d = false;
+            store.getters.controlsConfig.expandable.button3d = true;
+
+            initializeMaps(portalConfig, configJs);
+
+            expect(mapCollection.getMap("2D")).to.be.not.undefined;
+            expect(load3DScriptSpy.calledOnce).to.be.true;
+        });
+
+        it("does not load 3D map if button3d is not configured in either controlsConfig or controlsConfig.expandable", () => {
+            const portalConfig = {
+                    portal: "config"
+                },
+                configJs = {
+                    config: "js"
+                };
+
+            store.getters.controlsConfig.button3d = false;
+            store.getters.controlsConfig.expandable.button3d = false;
+
+            initializeMaps(portalConfig, configJs);
+
+            expect(mapCollection.getMap("2D")).to.be.not.undefined;
+            expect(load3DScriptSpy.notCalled).to.be.true;
+        });
     });
 
     describe("load3DMap", () => {

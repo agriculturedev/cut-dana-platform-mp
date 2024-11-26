@@ -5,29 +5,96 @@
 
 ## Unreleased - in development
 ### __Breaking Changes__
-- Searchbar config.json configuration: If a search interface is used in topic tree searchbar, new parameter 'searchInterfaceId' must be filled and used in topic tree searchbar configuration.
-- Searchbar in topic tree config.json configuration: 'searchInterfaceInstances' must contain the search interfaces to use. 'searchInterfaceInstanceIds' and 'searchCategory' have been removed.
 
 ### Added
-- AddWMS: Added Information about CORS header to doc and changed error message.
-- ShareView: Error handling when sharing via QR code has been improved.
-- Maps: add filter to getFeature Request in zoomToGetAndFilterFeatures function.
-- Routing: Added checkbox to determine if routes stay visible after closing the routing tool
-- Login: Documentation was added to [config.js](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/doc/config.js.md). 
+- Measure-Tool: Added config parameter color for the measured lines and polygons.
+- Menu: new config parameter showHeaderIcon to show the icon of the current component in the menu header.
 
 ### Changed
 
 ### Deprecated
 
 ### Removed
+- Issue #1300: Migrator: The following attributes are removed from the search interface bkg when migrating, as they have no effect: `minCharacters`, `suggestCount`, `suggestServiceId`, `zoomLevel`, `zoomToResultOnClick` and `zoomToResultOnHover`.
+- GetFeatureInfo: The attributes `imageLinks` and `maxWidth` have been removed from the gfiTheme `Default`, as the images are now rendered within the table.
+
+### Fixed
+- Issue #1121: For secured services that have the isSecured attribute, the lock icon is now displayed again.
+- Issue #1242: The correct tooltip for the selected baselayer is now displayed in the baselayerSwitcher.
+- Issue #1266: For layers whose ids are configured as an array, the visible range can now be restricted with `minScale` and `maxScale` in config.json.
+- Issue #1272: Prevents MDID layer IDs from being removed when setting layer IDs, when a shared link with both layer IDs and MDIDs is opened.
+- Issue #1280: showInLayerTree can be set up to false.
+- Issue #1287: The layers are now added to the topic tree in the same order in the layer selection when you click on `add all`.
+- Issue #1288: fixed crash that occurred when resetting `compareMaps` without selected layers.
+- Issue #1291: fixed reset of tool `compareMaps` to prevent layers from being removed from the layer tree.
+- Issue #1300:
+    - Searchbar: The EPSG code 25832 is now set as the default value in the search interface bkg.
+    - Migrator: The attribute `geosearchServiceId` in the search interface bkg is now correctly renamed to `geoSearchServiceId`.
+- Issue #1308:
+    - The postal code is now correctly placed before the city in the about module
+    - The `logo` and `version` in the about module can now be overwritten in config.json and shown or hidden.
+- wfst: layers that are not in services.json are supported.
+- 3D: Fixed issue where the 3D view would not launch when button3d was configured under controls.expandable in config.json.
+- Routing: The routing now also finds addresses with spaces and umlauts when the address search is carried out with the Locationfinder search interface.
+
+---
+
+## 2024-11-15 v3.4.1
+
+### Fixed
+- Searchbar: the search in search results shows results and no error occurs.
+- Filter: for FilterSnippets on gfiAttributes with object definition the title is now taken from the gfiAttribute.
+
+---
+
+## 2024-11-06 v3.4.0
+
+### Added
+- AddWMS: Added Information about CORS header to doc and changed error message.
+- ShareView: Error handling when sharing via QR code has been improved.
+- Maps: add filter to getFeature Request in zoomToGetAndFilterFeatures function.
+- Routing: Added checkbox to determine if routes stay visible after closing the routing tool
+- Login: Documentation was added to [config.js](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/doc/config.js.md).
+- Filter supports secure WFS request.
+- ShareView: Added hashtag to shared link to share link correctly.
+- LayerInformation: Added last revision date to Layer Information.
+
+### Changed
+- The following packages have been updated:
+    - dependencies:
+        - @masterportal/masterportalapi: 2.40.0 to 2.41.0
+
+### Removed
 - Deleted the `namespaces` option, as it is not a valid configuration for `createStore`, and also removed it from the `docs/Dev/unitTestVue.md` tutorial.
+- Renamed versionLatest to versionLatestDisabled in package.json, so that latest tag is not created until renamed back at the end of december.
 
 ### Fixed
 - Fixed the issue that the legend information was empty when an empty legend-object was passed to the legend component.
-- Corrected link for geodata infrastructure information pdf by GDI-DE. 
+- Corrected link for geodata infrastructure information pdf by GDI-DE.
+- Issue #1238: fixed `CQL_FILTER` URL parameter sending invalid `undefined` values.
+- Issue #1247: Grouped layer: added attribute `children` in config.json to overwrite attributes for single grouped layers, more see [Grouped layer](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/docs/Dev/groupedLayers.md).
 - Issue #1276: Duplicate icons StartModule in expandable ControlBar.
-- Print: Fixed opacity for wfs group layers
+- Issue #1286: i18next: Correct time patterns for missing key, converting 'HH.MM' to 'HH:MM'.
+- Issue #1294: PoiChoice: Fixed translation for "customPosition",  PoiOrientation: Fixed layout for the list of POI items.
 - `tree.type: auto`: layers configured in config.json do overwrite configuration in services.json.
+- Fixed issue with German translation not displaying in styleVT and wfsSearch modules.
+- Print:
+    - Group layers of different `typ` are printed.
+    - Fixed opacity for wfs group layers.
+- WFST: The attribute names are now fully visible and no longer overlapped.
+- BuildPortal: Fixed mastercodeVersionFolderName to never include whitespaces or colons to avoid an error being thrown, if the version you are building in includes them.
+- Searchbar: The action "Show topic in folder" was fixed.
+- i18next: Modified missing key handling to retain namespace prefixes.
+
+---
+
+## 2024-11-05 v3.3.2 (LTS)
+
+### Added
+- Issue #1247: Grouped layer: added attribute children in config.json to overwrite attributes for single grouped layers, more see [Grouped layer](https://bitbucket.org/geowerkstatt-hamburg/masterportal/src/dev_vue/docs/groupedLayers.md).
+
+### Fixed
+- Print: Group layers of different `typ` are printed.
 
 ---
 
@@ -126,6 +193,9 @@
     - Adds a custom styling option for GeoJson/ Json import
 - Export from draw_old tool: update GeoJSON export from draw_old tool to encapsulate all draw specific properties in a masterportal_attributes property; printing, file import and exporting other formats than GeoJSON were adapted accordingly
 - Searchbar in topic tree: More than one searchinterface is supported. Results are shown under category headers.
+
+### Deprecated
+- Searchbar in topic tree config.json configuration: 'searchInterfaceInstances' must contain the search interfaces to use. 'searchInterfaceInstanceIds' and 'searchCategory' are deprecated.
 
 ### Fixed
 - Legend: Same legends of group layers are shown only once.

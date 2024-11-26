@@ -45,7 +45,7 @@ export default {
         if (side !== getters.currentSide) {
             commit("Menu/switchToPreviousComponent", side, {root: true});
         }
-        if (getters.currentSearchInputValue !== "" && getters.currentActionEvent !== "") {
+        if (getters.currentSearchInputValue !== "" && getters.currentSearchInputValue !== undefined && getters.currentActionEvent !== "") {
             commit("Modules/SearchBar/setShowAllResults", true, {root: true});
             commit("Modules/SearchBar/setSearchInput", getters.currentSearchInputValue, {root: true});
             commit("Modules/SearchBar/setCurrentSearchInputValue", "", {root: true});

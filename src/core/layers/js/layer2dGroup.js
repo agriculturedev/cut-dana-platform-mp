@@ -44,7 +44,7 @@ Layer2dGroup.prototype.createLayer = function (attributes) {
         olLayers.push(layer.getLayer());
         sourceLayers.push(layer);
     });
-    groupLayer = new LayerGroup({layers: olLayers});
+    groupLayer = new LayerGroup({layers: olLayers, zIndex: attributes.zIndex});
     groupLayer.getSource = () => {
         return sourceLayers;
     };

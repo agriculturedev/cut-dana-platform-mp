@@ -149,6 +149,27 @@ describe("src/modules/shareView/components/ShareView.vue", () => {
                 content: "common:modules.shareView.copyErrorAlert"
             });
         });
+        it("copies the URL with attached # to clipboard", () => {
+            const writeTextSpy = sinon.spy();
+
+            global.window.isSecureContext = true;
+            global.navigator = {
+                clipboard: {
+                    writeText: writeTextSpy
+                }
+            };
+
+            wrapper = shallowMount(ShareViewComponent, {
+                global: {
+                    plugins: [store]
+                }
+            });
+
+            wrapper.vm.copyToClipboard();
+
+            expect(writeTextSpy.callCount).to.equal(1);
+            expect(writeTextSpy.firstCall.args[0]).to.equal("stub#");
+        });
     });
 
 });

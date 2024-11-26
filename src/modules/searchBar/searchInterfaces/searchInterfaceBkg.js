@@ -13,7 +13,7 @@ import {uniqueId} from "../../../shared/js/utils/uniqueId";
  * @see {@link https://sg.geodatenzentrum.de/web_public/gdz/dokumentation/deu/geokodierungsdienst.pdf}
  * @param {String} geoSearchServiceId Search service id. Resolved using the rest-services.json file.
  *
- * @param {String} [epsg] EPSG code of the coordinate reference system to use. By default, the value in `portalConfig.map.mapView.epsg` is used.
+ * @param {String} [epsg="EPSG:25832"] EPSG code of the coordinate reference system to use. By default, the value in `portalConfig.map.mapView.epsg` is used.
  * @param {Number[]} [extent=[454591, 5809000, 700000, 6075769]] Coordinate extent in which search algorithms should return.
  * @param {String} [hitTemplate="default"] The template for rendering the hits.
  * @param {Number} [minscore=0.6] Minimum score value that the results must have.
@@ -43,7 +43,7 @@ export default function SearchInterfaceBkg ({geoSearchServiceId, epsg, extent, h
 
     this.geoSearchServiceId = geoSearchServiceId;
 
-    this.epsg = epsg;
+    this.epsg = epsg || "EPSG:25832";
     this.extent = extent || [454591, 5809000, 700000, 6075769];
     this.minScore = minScore || 0.6;
     this.resultCount = resultCount || 20;

@@ -374,16 +374,19 @@ export default class InterfaceWfsExtern {
      */
     getUniqueValueByGET (service, attrName, onsuccess, onerror, axiosMock) {
         const url = service?.url,
-            params = {
-                service: "WFS",
-                version: "1.1.0",
-                request: "GetFeature",
-                typename: service?.typename,
-                propertyname: attrName
+            options = {
+                withCredentials: typeof service?.isSecured === "boolean" ? service.isSecured : false,
+                params: {
+                    service: "WFS",
+                    version: "1.1.0",
+                    request: "GetFeature",
+                    typename: service?.typename,
+                    propertyname: attrName
+                }
             },
             axiosObject = typeof axiosMock === "object" && axiosMock !== null ? axiosMock : axios;
 
-        axiosObject.get(url, {params})
+        axiosObject.get(url, options)
             .then(response => {
                 this.parseResponseUniqueValues(service?.typename, attrName, response?.request?.responseXML, list => {
                     if (typeof onsuccess === "function") {

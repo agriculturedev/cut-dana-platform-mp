@@ -58,7 +58,9 @@ export default {
             const el = document.querySelector("#layer-selection-treenode-" + escapeId(this.highlightLayerId));
 
             if (el) {
-                el.scrollIntoView({block: "nearest", behavior: "smooth"});
+                this.$nextTick(() => {
+                    el.scrollIntoView({block: "nearest", behavior: "smooth"});
+                });
             }
         }
     },
@@ -161,6 +163,10 @@ export default {
                     'bi-circle': conf.baselayer && singleBaselayer && !isLayerVisible
                 }
             ]"
+        />
+        <i
+            v-if="conf.isSecured"
+            class="bi-lock-fill pe-1"
         />
         <span
             :class="['layer-tree-layer-label', 'mt-0 d-flex flex-column align-self-start', isBold ? 'font-bold' : '']"

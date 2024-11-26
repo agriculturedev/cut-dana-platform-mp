@@ -167,8 +167,8 @@
         "distanceUnit": "meters",
         "geolocationDeniedText": "Localisation is not available",
         "imgAlt": "picture for point of interest",
-        "poiChoiceCurrentPostion": "Current location",
-        "poiChoiceCustomPostion": "Search address or set point in map",
+        "poiChoiceCurrentPosition": "Current location",
+        "poiChoiceCustomPosition": "Search address or set point in map",
         "poiChoiceClickPoint": "Set point in map",
         "poiChoiceConfirmation": "OK",
         "poiChoiceStop": "Quit",
@@ -187,7 +187,7 @@
           "moveSouth": "Move south",
           "moveWest": "Move west",
           "moveEast": "Move east"
-      }
+        }
       },
       "tiltView": {
         "downButton": "Tilt view down",
@@ -387,7 +387,7 @@
       "successfullyImportedLabel": "Successfully imported:",
       "zoom": "Zoom",
       "colorPerAttributes": "Color per attribute",
-      "stylingAttributeDescription":"Select an attribute to style the layer by.",
+      "stylingAttributeDescription": "Select an attribute to style the layer by.",
       "stylingColorDescription": "When a color is selected, a color scale is automatically created. For numerical (quantitative) values, a color scale is created ranging from light to dark. The selected color is assigned to the highest value in the data. Different colors are created for qualitative data."
     },
     "filter": {
@@ -531,7 +531,7 @@
           }
         }
       },
-      "title":"Object information"
+      "title": "Object information"
     },
     "gfiThemes": {
       "dataTable": {
@@ -542,7 +542,7 @@
       "name": "Info",
       "disclaimer": "Legal disclaimer",
       "home": {
-          "name": "Hamburg Town"
+        "name": "Hamburg Town"
       }
     },
     "language": {
@@ -948,31 +948,32 @@
         "unknownProjection": "Result provided within a unknown coordinate system"
       },
       "placeholder": {
+        "searchFor": "Search for",
         "address": "Search for Address",
         "addressDistrict": "Search address, district",
         "addressHospitalBplan": "Search for Address/Hospital/B-Plan",
         "addressTopic": "Search address, district, topics",
         "addressTopicParcel": "Search address, district, topics, parcel"
-    },
-    "actions":{
-      "activateLayerInTopicTree":"Show layer in topic tree",
-      "addLayerToTopicTree":"Add layer to topic tree",
-      "highlightFeature":"Highlight feature",
-      "openGetFeatureInfo":"Show information",
-      "setMarker":"Set marker",
-      "zoomToResult":"Zoom to result",
-      "startRouting":"Start route",
-      "showInTree":"Show topic in folder",
-      "showLayerInfo":"Information and legend"
-    },
-    "showAllResults": "Show all results",
-    "searchResults": "search results",
-    "search": "search",
-    "searchResultList": "search overview",
-    "searchResultsFrom": "search results from: ",
-    "mark": "Select the topic",
-    "add": "Add Topic",
-    "type": {
+      },
+      "actions": {
+        "activateLayerInTopicTree": "Show layer in topic tree",
+        "addLayerToTopicTree": "Add layer to topic tree",
+        "highlightFeature": "Highlight feature",
+        "openGetFeatureInfo": "Show information",
+        "setMarker": "Set marker",
+        "zoomToResult": "Zoom to result",
+        "startRouting": "Start route",
+        "showInTree": "Show topic in folder",
+        "showLayerInfo": "Information and legend"
+      },
+      "showAllResults": "Show all results",
+      "searchResults": "search results",
+      "search": "search",
+      "searchResultList": "search overview",
+      "searchResultsFrom": "search results from: ",
+      "mark": "Select the topic",
+      "add": "Add Topic",
+      "type": {
         "address": "address",
         "county": "county",
         "district": "district",
@@ -983,18 +984,18 @@
         "street": "street",
         "subject": "subject (external topics)",
         "topic": "issues & topics"
-    },
-    "specialWFS": {
-      "ongoing": "in process",
-      "terminated": "terminated",
-      "hazardous": "event of malfunction",
-      "childcare": "childcare",
-      "bplan": "b-plan"
-    },
-    "noInitialResults": "Initial search found no hits.",
-    "showAll": "Show all",
-    "layerResultNotShown": "The found layer cannot be displayed.",
-    "layerInfoNotShown": "The layer information cannot be displayed."
+      },
+      "specialWFS": {
+        "ongoing": "in process",
+        "terminated": "terminated",
+        "hazardous": "event of malfunction",
+        "childcare": "childcare",
+        "bplan": "b-plan"
+      },
+      "noInitialResults": "Initial search found no hits.",
+      "showAll": "Show all",
+      "layerResultNotShown": "The found layer cannot be displayed.",
+      "layerInfoNotShown": "The layer information cannot be displayed."
     },
     "selectFeatures": {
       "description": "Get information about objects you select on the map",
@@ -1174,18 +1175,18 @@
     },
     "wmsTime": {
       "layerSwiper": {
-          "description": "To move the swiper one can use the mouse or the arrow keys. When using the left and right arrow keys the layer is moved {{amount}}px to the respective side.",
-          "title": "Compare layers"
+        "description": "To move the swiper one can use the mouse or the arrow keys. When using the left and right arrow keys the layer is moved {{amount}}px to the respective side.",
+        "title": "Compare layers"
       },
       "timeSlider": {
-          "buttons": {
-              "backward": "Move one step back",
-              "deactivateLayerSwiper": "Remove layer",
-              "forward": "Move one step forward",
-              "layerSwiper": "Compare two points in time",
-              "play": "Playback of all points in time of the layer, starting from the currently selected point in time."
-          },
-          "inputRangeLabel": "Choose a point in time"
+        "buttons": {
+          "backward": "Move one step back",
+          "deactivateLayerSwiper": "Remove layer",
+          "forward": "Move one step forward",
+          "layerSwiper": "Compare two points in time",
+          "play": "Playback of all points in time of the layer, starting from the currently selected point in time."
+        },
+        "inputRangeLabel": "Choose a point in time"
       }
     }
   },
@@ -1307,67 +1308,51 @@
   },
   "libraries": {
     "vue-datepicker-next": {
-        "lang": {
-            "formatLocale": {
-                "months": [
-                    "January",
-                    "February",
-                    "March",
-                    "April",
-                    "May",
-                    "June",
-                    "July",
-                    "August",
-                    "September",
-                    "October",
-                    "November",
-                    "December"
-                ],
-                "monthsShort": [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec"
-                ],
-                "weekdays": [
-                    "Sunday",
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday"
-                ],
-                "weekdaysShort": [
-                    "Sun",
-                    "Mon",
-                    "Tue",
-                    "Wed",
-                    "Thu",
-                    "Fri",
-                    "Sat"
-                ],
-                "weekdaysMin": [
-                    "Su",
-                    "Mo",
-                    "Tu",
-                    "We",
-                    "Th",
-                    "Fr",
-                    "Sa"
-                ],
-                "firstDayOfWeek": 0,
-                "firstWeekContainsDate": 1
-            }
+      "lang": {
+        "formatLocale": {
+          "months": [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+          ],
+          "monthsShort": [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec"
+          ],
+          "weekdays": [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
+          ],
+          "weekdaysShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+          "weekdaysMin": ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+          "firstDayOfWeek": 0,
+          "firstWeekContainsDate": 1
         }
+      }
     }
-}
+  }
 }

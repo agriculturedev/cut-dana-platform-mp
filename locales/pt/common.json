@@ -136,8 +136,8 @@
         "distanceUnit": "",
         "geolocationDeniedText": "Localização não disponível",
         "imgAlt": "",
-        "poiChoiceCurrentPostion": "",
-        "poiChoiceCustomPostion": "",
+        "poiChoiceCurrentPosition": "",
+        "poiChoiceCustomPosition": "",
         "poiChoiceConfirmation": "",
         "poiChoiceStop": "",
         "poiChoiceTitle": "",
@@ -709,11 +709,11 @@
         "unknownProjection": "Resultados em sistema de coordenadas desconhecidas"
       },
       "placeholder": {
-          "address": "Pesquisa por endereço",
-          "addressDistrict": "",
-          "addressHospitalBplan": "Pesquisa por endereço/hospital/B-Plan(Plano de desenvolvimento)",
-          "addressTopic": "",
-          "addressTopicParcel": "Pesquisa endereço, bairro, tópicos, parcela"
+        "address": "Pesquisa por endereço",
+        "addressDistrict": "",
+        "addressHospitalBplan": "Pesquisa por endereço/hospital/B-Plan(Plano de desenvolvimento)",
+        "addressTopic": "",
+        "addressTopicParcel": "Pesquisa endereço, bairro, tópicos, parcela"
       },
       "showAllResults": "mostrar todos os resultados",
       "searchResults": "Procurar Resultados",
@@ -723,15 +723,15 @@
       "mark": "Marcar o tópico",
       "add": "Adicionar tópico",
       "type": {
-          "address": "Endereço",
-          "district": "Bairro",
-          "folder": "",
-          "general": "Tópico",
-          "location": "Localização",
-          "parcel": "Parcela",
-          "street": "Rua",
-          "subject": "Assunto",
-          "topic": "Tópico"
+        "address": "Endereço",
+        "district": "Bairro",
+        "folder": "",
+        "general": "Tópico",
+        "location": "Localização",
+        "parcel": "Parcela",
+        "street": "Rua",
+        "subject": "Assunto",
+        "topic": "Tópico"
       },
       "specialWFS": {
         "ongoing": "em processo",
@@ -846,7 +846,7 @@
     },
     "wmsTime": {
       "layerSwiper": {
-          "title": "Confrontare gli strati"
+        "title": "Confrontare gli strati"
       }
     }
   },

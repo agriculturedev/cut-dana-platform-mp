@@ -180,10 +180,10 @@ export default {
                         v-html="positionName"
                     />
                     <p>
-                        {{ contact.street + "  " + contact.postalCode }}
+                        {{ contact.street }}
                     </p>
                     <p>
-                        {{ contact.city }}
+                        {{ contact.postalCode + " " + contact.city }}
                     </p>
                     <a
                         :href="'mailto:' + contact.email"
@@ -214,6 +214,7 @@ export default {
             </div>
         </div>
         <div
+            v-if="logo || version"
             class="d-flex flex-row justify-content-between mb-3 mt-5 align-items-center logoAndVersion"
         >
             <a
@@ -227,7 +228,10 @@ export default {
                     :alt="logoText"
                 >
             </a>
-            <span class="version">
+            <span
+                v-if="version"
+                class="version"
+            >
                 <a
                     :href="versionLink ? versionLink : '#'"
                     :target="versionLink ? '_blank' : '_self'"

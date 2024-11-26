@@ -136,8 +136,8 @@
         "distanceUnit": "Метр",
         "geolocationDeniedText": "Локалізація недоступна",
         "imgAlt": "Зображення для Point of Interest",
-        "poiChoiceCurrentPostion": "Поточна позиція",
-        "poiChoiceCustomPostion": "Пошук адреси або встановлення точки на карті",
+        "poiChoiceCurrentPosition": "Поточна позиція",
+        "poiChoiceCustomPosition": "Пошук адреси або встановлення точки на карті",
         "poiChoiceConfirmation": "OK",
         "poiChoiceStop": "Завершити",
         "poiChoiceTitle": "Виберіть початкову точку для пошуку по радіусу:",
@@ -712,11 +712,11 @@
         "unknownProjection": "Результати в невідомій системі координат"
       },
       "placeholder": {
-          "address": "Пошук за адресою",
-          "addressDistrict": "",
-          "addressHospitalBplan": "Пошук адреси/лікарні/B-Plan",
-          "addressTopic": "Пошук адреси, району,теми",
-          "addressTopicParcel": "Пошук адреси, району, теми, ділянки"
+        "address": "Пошук за адресою",
+        "addressDistrict": "",
+        "addressHospitalBplan": "Пошук адреси/лікарні/B-Plan",
+        "addressTopic": "Пошук адреси, району,теми",
+        "addressTopicParcel": "Пошук адреси, району, теми, ділянки"
       },
       "showAllResults": "Показати всі результати",
       "searchResults": "Результати пошуку",
@@ -726,15 +726,15 @@
       "mark": "Позначте тему",
       "add": "Додати тему",
       "type": {
-          "address": "Адреса",
-          "district": "Район",
-          "folder": "",
-          "general": "Спеціалізовані дані",
-          "location": "Місце",
-          "parcel": "Земельна ділянка",
-          "street": "Вулиця",
-          "subject": "Тема (зовнішні спеціалізовані дані)",
-          "topic": "Тема (спеціалізовані дані)"
+        "address": "Адреса",
+        "district": "Район",
+        "folder": "",
+        "general": "Спеціалізовані дані",
+        "location": "Місце",
+        "parcel": "Земельна ділянка",
+        "street": "Вулиця",
+        "subject": "Тема (зовнішні спеціалізовані дані)",
+        "topic": "Тема (спеціалізовані дані)"
       },
       "specialWFS": {
         "ongoing": "у процесі",
@@ -849,18 +849,18 @@
     },
     "wmsTime": {
       "layerSwiper": {
-          "description": "Swiper можна переміщати за допомогою миші або клавіш зі стрілками на клавіатурі. При використанні клавіш зі стрілками Swiper {{amount}}px переміщається у відповідному напрямку.",
-          "title": "Порівняти шари"
+        "description": "Swiper можна переміщати за допомогою миші або клавіш зі стрілками на клавіатурі. При використанні клавіш зі стрілками Swiper {{amount}}px переміщається у відповідному напрямку.",
+        "title": "Порівняти шари"
       },
       "timeSlider": {
-          "buttons": {
-              "backward": "Один крок назад",
-              "deactivateLayerSwiper": "Видалити шар",
-              "forward": "Один крок вперед",
-              "layerSwiper": "Порівняння часових точок",
-              "play": "Автоматичне відтворення всіх часових точок, починаючи з обраного в даний момент часу"
-          },
-          "inputRangeLabel": "Виберіть момент часу"
+        "buttons": {
+          "backward": "Один крок назад",
+          "deactivateLayerSwiper": "Видалити шар",
+          "forward": "Один крок вперед",
+          "layerSwiper": "Порівняння часових точок",
+          "play": "Автоматичне відтворення всіх часових точок, починаючи з обраного в даний момент часу"
+        },
+        "inputRangeLabel": "Виберіть момент часу"
       }
     }
   },

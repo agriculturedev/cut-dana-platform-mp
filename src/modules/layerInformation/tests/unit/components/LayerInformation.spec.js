@@ -55,7 +55,8 @@ describe("src/modules/layerInformation/components/LayerInformation.vue", () => {
                                 legendAvailable: () => legendAvailable,
                                 showUrlGlobal: () => true,
                                 pointOfContact: () => pointOfContact,
-                                publisher: () => publisher
+                                publisher: () => publisher,
+                                dateRevision: sinon.stub()
                             },
                             actions: {
                                 setConfigParams: () => sinon.stub()

@@ -4,7 +4,6 @@ import VectorSource from "ol/source/Vector";
 import {platformModifierKeyOnly, primaryAction} from "ol/events/condition";
 import addFeaturePropertiesToFeature from "../js/addFeaturePropertiesToFeature";
 import prepareFeaturePropertiesModule from "../js/prepareFeatureProperties";
-import {rawLayerList} from "@masterportal/masterportalapi/src";
 import layerCollection from "../../../core/layers/js/layerCollection";
 import wfs from "@masterportal/masterportalapi/src/layer/wfs";
 
@@ -96,7 +95,7 @@ const actions = {
             drawInteraction.on("drawend", (event) => {
                 sourceLayer.getSource().addFeature(event.feature);
                 drawLayer.getSource().clear();
-                const currentLayer = rawLayerList.getLayerWhere({id: currentLayerId}),
+                const currentLayer = layerCollection.getLayerById(currentLayerId),
                     mapScale = rootGetters["Maps/scale"];
 
                 if ((currentLayer.minScale && mapScale < currentLayer.minScale) || (currentLayer.maxScale && mapScale > currentLayer.maxScale)) {

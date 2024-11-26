@@ -21,7 +21,7 @@ describe("src/modules/controls/orientation/components/PoiChoice.vue", () => {
                             namespaced: true,
                             getters: {
                                 poiMode: sinon.stub(),
-                                customPosition: () => "common:modules.controls.orientation.poiChoiceCustomPostion"
+                                customPosition: () => "common:modules.controls.orientation.poiChoiceCustomPosition"
                             },
                             mutations: {
                                 setShowPoiChoice: sinon.stub()
@@ -55,9 +55,9 @@ describe("src/modules/controls/orientation/components/PoiChoice.vue", () => {
         it("renders the Poi choice component", () => {
             expect(wrapper.find(".poi-choice").exists()).to.be.true;
             expect(wrapper.find(".choice-content").exists()).to.be.true;
-            expect(wrapper.find(".choice-content >label.currentPosition").text()).to.equal("common:modules.controls.orientation.poiChoiceCurrentPostion");
+            expect(wrapper.find(".choice-content >label.currentPosition").text()).to.equal("common:modules.controls.orientation.poiChoiceCurrentPosition");
             expect(wrapper.find(".choice-content >label.currentPosition input").element.value).to.equal("currentPosition");
-            expect(wrapper.find(".choice-content >label.customPosition").text()).to.equal("common:modules.controls.orientation.poiChoiceCustomPostion");
+            expect(wrapper.find(".choice-content >label.customPosition").text()).to.equal("common:modules.controls.orientation.poiChoiceCustomPosition");
             expect(wrapper.find(".choice-content >label.customPosition input").element.value).to.equal("customPosition");
         });
 

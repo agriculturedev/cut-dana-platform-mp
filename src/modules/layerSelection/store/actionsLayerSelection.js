@@ -153,6 +153,7 @@ const actions = {
             if (subjectDataLayerConfs) {
                 dispatch("navigateForward", {lastFolderName, subjectDataLayerConfs, baselayerConfs});
                 commit("setHighlightLayerId", layerId);
+                commit("Modules/SearchBar/setShowAllResults", false, {root: true});
                 commit("setVisible", true);
             }
         }

@@ -136,8 +136,8 @@
         "distanceUnit": "Meter",
         "geolocationDeniedText": "Lokalisierung nicht verfügbar",
         "imgAlt": "Bild für Point of Interest",
-        "poiChoiceCurrentPostion": "Standort",
-        "poiChoiceCustomPostion": "Adresssuche oder Punkt in Karte setzen",
+        "poiChoiceCurrentPosition": "Standort",
+        "poiChoiceCustomPosition": "Adresssuche oder Punkt in Karte setzen",
         "poiChoiceConfirmation": "OK",
         "poiChoiceStop": "Beenden",
         "poiChoiceTitle": "Ausgangspunkt für Umkeissuche wählen:",
@@ -714,15 +714,15 @@
         "addressHospitalBplan": "Sök na Adresse/Krankenhaus/B-Plan",
         "addressTopic": "Sök Adress, Stadtdeel, Themen",
         "addressTopicParcel": "Sök Adress, Stadtdeel, Themen, Flurstück"
-    },
-    "showAllResults": "alle Ergebnisse anzeigen",
-    "searchResults": "Suchergebnisse",
-    "search": "Sök",
-    "searchResultList": "Sök Übersicht",
-    "searchResultsFrom": "Sök Ergebnisse: ",
-    "mark": "Wähle das Thema",
-    "add": "Thema hinzufügen",
-    "type": {
+      },
+      "showAllResults": "alle Ergebnisse anzeigen",
+      "searchResults": "Suchergebnisse",
+      "search": "Sök",
+      "searchResultList": "Sök Übersicht",
+      "searchResultsFrom": "Sök Ergebnisse: ",
+      "mark": "Wähle das Thema",
+      "add": "Thema hinzufügen",
+      "type": {
         "address": "Adress",
         "district": "Stadtdeel",
         "folder": "",
@@ -732,16 +732,16 @@
         "street": "Stroat",
         "subject": "Thema",
         "topic": "Thema (Fachdaten)"
-    },
-    "specialWFS": {
-      "ongoing": "im Verfahren",
-      "terminated": "festgestellt",
-      "hazardous": "Störfallbetrieb",
-      "childcare": "Kita",
-      "bplan": "B-Plan"
-    },
-    "noInitialResults": "Die initiale Suche ergab keine Treffer.",
-    "showAll": "Alle anzeigen"
+      },
+      "specialWFS": {
+        "ongoing": "im Verfahren",
+        "terminated": "festgestellt",
+        "hazardous": "Störfallbetrieb",
+        "childcare": "Kita",
+        "bplan": "B-Plan"
+      },
+      "noInitialResults": "Die initiale Suche ergab keine Treffer.",
+      "showAll": "Alle anzeigen"
     },
     "selectFeatures": {
       "name": "Features utwählen",
@@ -846,18 +846,18 @@
     },
     "wmsTime": {
       "layerSwiper": {
-          "description": "Der Swiper kann mithilfe der Maus oder den Pfeiltasten der Tastatur bewegt werden. Bei der Nutzung der Pfeiltasten wird der Swiper {{amount}}px in die entsprechende Richtung bewegt.",
-          "title": "Layer vergleichen"
+        "description": "Der Swiper kann mithilfe der Maus oder den Pfeiltasten der Tastatur bewegt werden. Bei der Nutzung der Pfeiltasten wird der Swiper {{amount}}px in die entsprechende Richtung bewegt.",
+        "title": "Layer vergleichen"
       },
       "timeSlider": {
-          "buttons": {
-              "backward": "Einen Zeitpunkt zurück",
-              "deactivateLayerSwiper": "Layer entfernen",
-              "forward": "Einen Zeitpunkt voran",
-              "layerSwiper": "Zeitpunkte vergleichen",
-              "play": "Ein automatisches Abspielen aller Zeitpunkte, ausgehend vom aktuell ausgewählten Zeitpunkt"
-          },
-          "inputRangeLabel": "Einen Zeitpunkt auswählen"
+        "buttons": {
+          "backward": "Einen Zeitpunkt zurück",
+          "deactivateLayerSwiper": "Layer entfernen",
+          "forward": "Einen Zeitpunkt voran",
+          "layerSwiper": "Zeitpunkte vergleichen",
+          "play": "Ein automatisches Abspielen aller Zeitpunkte, ausgehend vom aktuell ausgewählten Zeitpunkt"
+        },
+        "inputRangeLabel": "Einen Zeitpunkt auswählen"
       }
     }
   },

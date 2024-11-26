@@ -25,7 +25,8 @@ export default {
             "polygons",
             "lines",
             "polygonAreas",
-            "lineLengths"
+            "lineLengths",
+            "color"
         ])
     },
     watch: {
@@ -105,11 +106,11 @@ export default {
                     color: [0, 0, 0, 1]
                 }),
                 stroke = new Stroke({
-                    color: [255, 127, 0, 1],
+                    color: this.color,
                     width: 1
                 }),
                 backgroundFill = new Fill({
-                    color: [255, 127, 0, 1]
+                    color: this.color
                 });
 
             return [
