@@ -1,6 +1,7 @@
 {
   "dataNarrator": {
     "path": "dipasAddons/dataNarrator",
-    "type": "tool"
+    "type": "tool",
+    "vue": true
   }
 }
