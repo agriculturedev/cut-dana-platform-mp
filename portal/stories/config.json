@@ -152,8 +152,7 @@
       "sections": [
         [
           {
-            "type": "dataNarrator",
-            "active": true
+            "type": "dataNarrator"
           },
           {
             "type": "draw",
@@ -263,56 +262,6 @@
           "visibility": false
         },
         {
-          "id": "VectorTile",
-          "name": "ArcGIS VectorTile",
-          "shortname": "VectorTile",
-          "typ": "VectorTile",
-          "visibility": false,
-          "preview": {
-            "src": "./resources/vectorTile.png"
-          },
-          "gfiAttributes": "showAll",
-          "url": "https://test.geoportal-hamburg.de/vt/esri/tile/{z}/{y}/{x}.pbf",
-          "epsg": "EPSG:25832",
-          "extent": [
-            441336.2209999999,
-            5915995,
-            594002,
-            5986767.56699999981
-          ],
-          "origin": [
-            -9497963.94293634221,
-            9997963.94293634221
-          ],
-          "resolutions": [
-            39054.5466520950868,
-            19527.2733260475434,
-            9763.63666302377169,
-            4881.81833151188584,
-            2440.90916575594292,
-            1220.45458287797146,
-            610.227291438985731,
-            305.113645719492865,
-            152.556822859746433,
-            76.2784114298732163,
-            38.1392057149366082,
-            19.0696028574683041,
-            9.534801428734152,
-            4.767400714367076,
-            2.383700357183538,
-            1.191850178591769
-          ],
-          "tileSize": 512,
-          "vtStyles": [
-            {
-              "id": "VectorTile_STYLE",
-              "name": "Test",
-              "url": "https://test.geoportal-hamburg.de/vt/esri/resources/styles/root.json",
-              "defaultStyle": true
-            }
-          ]
-        },
-        {
           "id": "VectorTile_basemap_de",
           "name": "Web Vektor",
           "typ": "VectorTile",
@@ -375,7 +324,7 @@
           "name": "Gruppe Freizeitrouten und Radfernwege (4 WFS Layer)",
           "typ": "GROUP",
           "styleId": "4515",
-          "visibility": true,
+          "visibility": false,
           "showInLayerTree": true
         },
         {
@@ -388,7 +337,7 @@
           "id": "10220",
           "name": "Dauerzählstellen (Rad) Hamburg",
           "typ": "WMS",
-          "visibility": true
+          "visibility": false
         },
         {
           "id": "23555",
@@ -441,7 +390,7 @@
           "id": "2426",
           "name": "Bezirke",
           "typ": "WMS",
-          "visibility": true
+          "visibility": false
         },
         {
           "id": "2425",
@@ -645,7 +594,7 @@
           "styleId": "8712",
           "name": "Schulen (Layertyp OAF)",
           "typ": "OAF",
-          "visibility": true,
+          "visibility": false,
           "gfiTheme": "schulinfo"
         },
         {
@@ -857,7 +806,7 @@
                   "id": "Entities3D",
                   "name": "3D-Entities Testlayer",
                   "typ": "Entities3D",
-                  "visibility": false,
+                  "visibility": true,
                   "entities": [
                     {
                       "url": "https://daten-hamburg.de/gdi3d/datasource-data/Simple_Building.glb",
