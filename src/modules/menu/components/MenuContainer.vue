@@ -98,6 +98,14 @@ export default {
             this.setCurrentMenuWidth({side: this.side, width: "100%"});
         }
     },
+    mounted () {
+        // Hack to activate DataNarrator by default
+        this.clickedMenuElement({
+            name: "common:modules.tools.DataNarrator",
+            side: "secondaryMenu",
+            type: "dataNarrator"
+        });
+    },
     methods: {
         ...mapMutations("Menu", [
             "collapseMenues",
