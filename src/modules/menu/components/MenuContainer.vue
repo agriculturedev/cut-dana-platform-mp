@@ -102,7 +102,7 @@ export default {
         // Hack to activate DataNarrator by default
         this.clickedMenuElement({
             name: "common:modules.tools.DataNarrator",
-            side: "secondaryMenu",
+            side: "mainMenu",
             type: "dataNarrator"
         });
     },
