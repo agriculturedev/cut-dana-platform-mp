@@ -1,6 +1,6 @@
-[submodule "story-backend"]
-	path = story-backend
-	url = https://github.com/citysciencelab/cut-dana-platform-backend.git
-[submodule "addons/dipasAddons/dataNarrator"]
-	path = addons/dipasAddons/dataNarrator
-	url = https://github.com/citysciencelab/cut-dana-platform-addon.git
+[submodule "backend"]
+	path = backend
+	url = git@github.com:agriculturedev/cut-dana-platform-backend.git
+[submodule "addons/dataNarrator"]
+	path = addons/dataNarrator
+	url = git@github.com:agriculturedev/cut-dana-platform-addon.git
