@@ -8,10 +8,9 @@
 .idea
 .vscode
 .history
-/img/*.db
 /jsdoc
 /docHtml
-/nbproject/private/
+/nbproject/
 styleguide
 .history
 
@@ -34,19 +33,13 @@ examples*
 
 examples.zip
 portal/master
-portal/masterCustom
-portal/masterDefault
 
 jshintrc
 lgv-config
 masterportalapi
 node_modules
 portalconfigs
-stablePortale
 temp
-
-test/coverage
-test/end2end/Screenshots/ScreenshotsTest
 
 debug.log
 devtools/proxyconf.json
@@ -58,14 +51,12 @@ npm-debug.log
 /portal/*
 !/portal/basic
 !/portal/master
-!/portal/masterCustom
-!/portal/masterDefault
-!/portal/mobility-results
-!/portal/mp-guben
-!/portal/mp-sh
-!/portal/mobility-data
+!/portal/auto
+!/portal/layer
 
 
-#ignore pipeline files
-.gitlab-ci.yml
-bitbucket-pipelines.yml
+# Ignore mkdocs build dir
+site/*
+
+# Ignore Python virtual environment
+.venv/*

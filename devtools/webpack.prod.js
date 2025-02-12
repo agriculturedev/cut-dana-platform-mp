@@ -22,7 +22,7 @@ module.exports = function () {
                     loader: "file-loader",
                     options: {
                         name: "[name].[ext]",
-                        outputPath: "css/woffs/",
+                        outputPath: "./css/woffs/",
                         publicPath: "./woffs/"
                     }
                 },

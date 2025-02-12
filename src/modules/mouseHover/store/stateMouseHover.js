@@ -2,9 +2,10 @@ import Overlay from "ol/Overlay.js";
 /**
  * User type definition
  * @typedef {Object} MouseHoverStates
+ * @property {String[]} configPaths Path array of possible config locations. First one found will be used
  * @property {Object} overlay =new Overlay({}) mouseHover overlay (tooltip) - paramaters get set during initialization.
  * @property {Number} numFeaturesToShow The number of features that will be shown in the popup.
- * @property {Number} infoText The text that will be shown in the popup.
+ * @property {String} infoText The text that will be shown in the popup.
  * @property {Array} layersFromConfig Array with layers from the config.
  * @property {Array} layersFromConfig Array with layers from the config.
  * @property {Array} mouseHoverLayers Array with layers from the config that have mouseHoverInfos.
@@ -12,8 +13,10 @@ import Overlay from "ol/Overlay.js";
  * @property {Array} infoBox Array with the Infos from the currently hovered feature/s.
  * @property {Array} hoverPosition Array with coordinates of the currently hovered feature/s.
  * @property {Boolean} pleaseZoom True if more features are being hovered than the configured max in numFeaturesToShow.
+ * @property {String} type The type of the mouseHover component.
  */
 export default {
+    configPaths: ["portalConfig.map.mouseHover"],
     overlay: new Overlay({
         id: "mousehover-overlay",
         element: document.createElement("DIV"),
@@ -21,7 +24,7 @@ export default {
         positioning: "bottom-left"
     }),
     numFeaturesToShow: 2,
-    infoText: "",
+    infoText: "common:modules.mouseHover.infoText",
     layersFromConfig: [],
     mouseHoverLayers: [],
     mouseHoverInfos: [],
@@ -29,23 +32,5 @@ export default {
     hoverPosition: null,
     pleaseZoom: false,
     isActive: true,
-
-    highlightVectorRulesPolygon: {
-        "fill": {
-            "color": [255, 255, 255, 0.5]
-        },
-        "stroke": {
-            "width": 4,
-            "color": [255, 0, 0, 0.9]
-        }
-    },
-    highlightVectorRulesPointLine: {
-        "stroke": {
-            "width": 8,
-            "color": [255, 0, 255, 0.9]
-        },
-        "image": {
-            "scale": 2
-        }
-    }
+    type: "mouseHover"
 };

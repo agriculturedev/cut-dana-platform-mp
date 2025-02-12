@@ -1,14 +1,8 @@
-import {generateSimpleMutations} from "../../../app-store/utils/generators";
-import state from "./statePortalFooter";
+import {generateSimpleMutations} from "../../../shared/js/utils/generators";
+import statePortalFooter from "./statePortalFooter";
 
 const mutations = {
-    /**
-     * Creates from every state-key a setter.
-     * For example, given a state object {key: value}, an object
-     * {setKey:   (state, payload) => *   state[key] = payload * }
-     * will be returned.
-     */
-    ...generateSimpleMutations(state)
+    ...generateSimpleMutations(statePortalFooter)
 };
 
 export default mutations;

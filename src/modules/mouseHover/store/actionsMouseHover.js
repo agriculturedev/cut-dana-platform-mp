@@ -1,20 +1,22 @@
-import {createGfiFeature} from "../../../api/gfi/getWmsFeaturesByMimeType";
 import {buffer} from "ol/extent";
 import Point from "ol/geom/Point";
-import rawLayerList from "@masterportal/masterportalapi/src/rawLayerList";
+import {createGfiFeature} from "../../../shared/js/utils/getWmsFeaturesByMimeType";
 
 export default {
     /**
      * Sets the config-params of this MouseHover into state.
      * Adds the overlay and eventListener for the map.
+     * @param {Object} param.commit the commit
+     * @param {Object} param.dispatch the dispatch
+     * @param {Object} param.state the state
      * @returns {void}
      */
-    initialize ({state, commit, dispatch}) {
-        const {numFeaturesToShow, infoText, highlightOnHover} = Config.mouseHover,
+    initialize ({commit, dispatch, state}) {
+        const {numFeaturesToShow, infoText} = state,
             map = mapCollection.getMap("2D");
         let featuresAtPixel = [];
 
-        commit("setMouseHoverLayers");
+        dispatch("setMouseHoverLayers");
         commit("setMouseHoverInfos");
         map.addOverlay(state.overlay);
 
@@ -30,18 +32,9 @@ export default {
             }
             featuresAtPixel = [];
             commit("setHoverPosition", evt.coordinate);
-
-            if (highlightOnHover) {
-                dispatch("Maps/removeHighlightFeature", "decrease", {root: true});
-            }
-
             // works for WebGL layers that are point layers
             map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
                 if (layer?.getVisible()) {
-                    if (highlightOnHover) {
-                        dispatch("highlightFeature", {feature, layer});
-                    }
-
                     if (feature.getProperties().features) {
                         feature.get("features").forEach(clusteredFeature => {
                             featuresAtPixel.push(createGfiFeature(
@@ -61,16 +54,16 @@ export default {
                 }
             });
             /** check WebGL Layers
-             * use buffered coord instead of pixel for hitTolerance
-             * only necessary for WebGL polygon and line layers
+            * use buffered coord instead of pixel for hitTolerance
+            * only necessary for WebGL polygon and line layers
             */
             map.getLayers().getArray()
                 .filter(layer => layer.get("renderer") === "webgl" && !layer.get("isPointLayer")) // point features are already caught by map.forEachFeatureAtPixel loop
                 .forEach(layer => {
                     if (layer.get("gfiAttributes") && layer.get("gfiAttributes") !== "ignore") {
                         /**
-                         * use OL resolution based buffer to adjust the hitTolerance (in m) for lower zoom levels
-                         */
+                       * use OL resolution based buffer to adjust the hitTolerance (in m) for lower zoom levels
+                       */
                         const hitBox = buffer(
                             new Point(evt.coordinate).getExtent(),
                             (layer.get("hitTolerance") || 1) * Math.sqrt(mapCollection.getMapView("2D").getResolution())
@@ -109,11 +102,25 @@ export default {
     },
 
     /**
+     * Sets the layers with a mouseHoverField to the state
+     * @param {Object} param.commit the commit
+     * @param {Object} param.rootGetters the rootGetters
+     * @returns {void}
+     */
+    setMouseHoverLayers ({commit, rootGetters}) {
+        commit("setMouseHoverLayers", rootGetters.allLayerConfigs.filter(layer => {
+            return layer?.mouseHoverField && layer.mouseHoverField !== "";
+        }));
+    },
+
+    /**
      * Filters the infos from each feature that should be displayed.
+     * @param {Object} param.commit the commit
+     * @param {Object} param.state the state
      * @param {Array} features array of hovered Features
      * @returns {void}
      */
-    filterInfos ({state, commit}, features) {
+    filterInfos ({commit, state}, features) {
         const infoBox = [];
 
         if (features.length > 0) {
@@ -139,43 +146,5 @@ export default {
                 }
             });
         }
-    },
-
-    highlightFeature ({dispatch, state}, {feature, layer}) {
-        const {highlightVectorRulesPointLine, highlightVectorRulesPolygon} = Config.mouseHover,
-            layerId = layer.get("id"),
-            featureGeometryType = feature.getGeometry().getType(),
-            featureId = feature.getId(),
-            styleObj = featureGeometryType.toLowerCase().indexOf("polygon") > -1 ?
-                highlightVectorRulesPolygon ?? state.highlightVectorRulesPolygon :
-                highlightVectorRulesPointLine ?? state.highlightVectorRulesPointLine,
-            highlightObject = {
-                type: featureGeometryType === "Point" || featureGeometryType === "MultiPoint" ? "increase" : "highlightPolygon",
-                id: featureId,
-                layer: layer,
-                feature: feature,
-                scale: styleObj.image?.scale
-            },
-            rawLayer = rawLayerList.getLayerWhere({id: layerId});
-
-        if (featureGeometryType === "LineString" || featureGeometryType === "MultiLineString") {
-            highlightObject.type = "highlightLine";
-        }
-        layer.id = layerId;
-        highlightObject.zoomLevel = styleObj.zoomLevel;
-        if (rawLayer && rawLayer.styleId) {
-            highlightObject.styleId = rawLayer.styleId;
-        }
-        else if (layer && layer.styleId) {
-            highlightObject.styleId = layer.styleId;
-        }
-
-        highlightObject.highlightStyle = {
-            fill: styleObj.fill,
-            stroke: styleObj.stroke,
-            image: styleObj.image
-        };
-
-        dispatch("Maps/highlightFeature", highlightObject, {root: true});
     }
 };

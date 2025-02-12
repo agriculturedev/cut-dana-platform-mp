@@ -1,20 +1,28 @@
-import isMobile from "../utils/isMobile";
-import getDpi from "../utils/getDpi";
-import isDevMode from "../utils/isDevMode";
-import masterPortalVersionNumber from "../utils/masterPortalVersionNumber";
-
+/**
+ * The root state.
+ * @module app-store/state
+ * @typedef {Object} app-store state
+ * @property {Object} [configJs=null] The config.js data.
+ * @property {String} [deviceMode="Desktop"] The current deviceMode.
+ * @property {Object[]} [layerConfig=[]] The layer configuration.
+ * @property {Object} [loadedConfigs= { configJson: false, restServicesJson: false, servicesJson: false }] The loaded configs.
+ * @property {Boolean} [styleListLoaded=false} true, id list of vectorstyles is loaded.
+ * @property {Object} [portalConfig=null] The portal configuration.
+ * @property {Object} [restConf=null] The rest-services.json data.
+ * @property {Object} [urlParams=[]] The url params.
+ */
 const state = {
-    _store: null,
-    configJson: null,
     configJs: null,
-    restConf: null,
+    deviceMode: "Desktop",
+    layerConfig: [],
+    loadedConfigs: {
+        configJson: false,
+        restServicesJson: false,
+        servicesJson: false
+    },
     styleListLoaded: false,
-    mobile: isMobile(), // resize update in ./index.js
-    dpi: getDpi(),
-    masterPortalVersionNumber,
-    isDevMode,
-    i18NextInitialized: false,
-    idCounter: 1,
+    portalConfig: null,
+    restConfig: null,
     urlParams: {}
 };
 

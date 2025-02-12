@@ -1,30 +1,28 @@
 <script>
-import {mapActions, mapMutations, mapGetters} from "vuex";
-import actions from "../store/actionsMouseHover";
-import mutations from "../store/mutationsMouseHover";
-import getters from "../store/gettersMouseHover";
+import {mapActions, mapGetters} from "vuex";
 
+/**
+ * Mouse Hover
+ * @module modules/MouseHover
+ */
 export default {
     name: "MouseHover",
     computed: {
-        ...mapGetters("MouseHover", Object.keys(getters)),
-        ...mapGetters({
-            isMobile: "mobile"
-        })
+        ...mapGetters("Modules/MouseHover", [
+            "configPaths",
+            "infoBox",
+            "infoText",
+            "pleaseZoom",
+            "type"
+        ])
     },
     mounted () {
-        if (Config.mouseHover) {
-            this.$nextTick(() => {
-                this.initialize();
-            });
-        }
-        Backbone.Events.listenTo(Radio.channel("MouseHover"), {
-            "toggle": () => this.setIsActive(!this.isActive)
-        });
+        this.initializeModule({configPaths: this.configPaths, type: this.type});
+        this.initialize();
     },
     methods: {
-        ...mapActions("MouseHover", Object.keys(actions)),
-        ...mapMutations("MouseHover", Object.keys(mutations))
+        ...mapActions("Modules/MouseHover", ["initialize"]),
+        ...mapActions(["initializeModule"])
     }
 };
 </script>
@@ -69,25 +67,26 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-@import "~/css/mixins.scss";
 @import "~variables";
+@import "~mixins";
 
 .mouseHover {
     font-size: $font-size-base;
     text-align: left;
     max-width: inherit;
-    padding: 8px;
+    padding: 0.5rem;
     background-color: $white;
     color: $dark-grey;
     white-space: nowrap;
     border: 1px solid rgba(0, 0, 0, 0.2);
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+
     .title {
-        font-size: $font_size_big;
-        font-weight: bold;
+        font-size: $font-size-base;
+        font-family: $font_family_accent;
     }
     .info {
-        font-size: $font_size_big;
+        font-size: $font_size_sm;
         font-style: italic;
     }
 }

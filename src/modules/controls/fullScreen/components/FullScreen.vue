@@ -1,8 +1,6 @@
 <script>
 import {mapGetters} from "vuex";
-import ControlIcon from "../../ControlIcon.vue";
-import TableStyleControl from "../../TableStyleControl.vue";
-import uiStyle from "../../../../utils/uiStyle";
+import ControlIcon from "../../components/ControlIcon.vue";
 
 /**
  * Enables fullscreen using browser tools.
@@ -74,26 +72,33 @@ function isFullScreen () {
  * FullScreen control that allows switching between fullscreen
  * and normal mode for the map. May also open a new tab if the
  * instance is running in an iFrame.
+ * @module modules/controls/FullScreen
+ * @vue-data {Boolean} active - Shows if full screen is active.
  */
 export default {
     name: "FullScreen",
+    components: {
+        ControlIcon
+    },
     data: function () {
         return {
             active: isFullScreen()
         };
     },
     computed: {
-        ...mapGetters(["uiStyle"]),
-
-        component () {
-            return uiStyle.getUiStyle() === "TABLE" ? TableStyleControl : ControlIcon;
-        }
+        ...mapGetters("Controls/FullScreen", ["iconArrow", "iconExit"])
     },
     mounted () {
         document.addEventListener("mozfullscreenchange", this.escapeHandler);
         document.addEventListener("MSFullscreenChange", this.escapeHandler);
         document.addEventListener("webkitfullscreenchange", this.escapeHandler);
         document.addEventListener("fullscreenchange", this.escapeHandler);
+    },
+    unmounted () {
+        document.removeEventListener("mozfullscreenchange", this.escapeHandler);
+        document.removeEventListener("MSFullscreenChange", this.escapeHandler);
+        document.removeEventListener("webkitfullscreenchange", this.escapeHandler);
+        document.removeEventListener("fullscreenchange", this.escapeHandler);
     },
     methods: {
         /**
@@ -127,16 +132,11 @@ export default {
 </script>
 
 <template>
-    <div class="fullscreen-button">
-        <component
-            :is="component"
+    <div id="full-screen-button">
+        <ControlIcon
             :title="$t(`common:modules.controls.fullScreen.${active ? 'disable' : 'enable'}`)"
-            :icon-name="active ? 'fullscreen-exit' : 'arrows-fullscreen'"
+            :icon-name="active ? iconExit : iconArrow"
             :on-click="toggleFullScreen"
         />
     </div>
 </template>
-
-<style lang="scss" scoped>
-    @import "~variables";
-</style>

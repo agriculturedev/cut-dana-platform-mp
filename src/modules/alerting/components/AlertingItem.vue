@@ -1,74 +1,54 @@
 <script>
 
-import ModalItem from "../../../share-components/modals/components/ModalItem.vue";
 import axios from "axios";
-import {mapActions, mapGetters} from "vuex";
+import {mapActions, mapGetters, mapMutations} from "vuex";
+import SwitchInput from "../../../shared/modules/checkboxes/components/SwitchInput.vue";
 
+/**
+ * Alerting
+ * @module modules/AlertingItem
+ * @vue-data {Boolean} availableLocalStorage - Shows if localStorage is available.
+ * @vue-data {String} currentUrl - Current url.
+ * @vue-data {Function|null} subscribtion handler to unsubsribe event listining (https://vuex.vuejs.org/api/#subscribeaction).
+ * @vue-data {String} sortedAlertsSwitch - Switch for data to be used.
+ */
 export default {
     name: "AlertingItem",
-
-    components: {
-        ModalItem
-    },
-
+    components: {SwitchInput},
     data () {
         return {
-            availableLocalStorage: false
+            availableLocalStorage: false,
+            currentUrl: document.URL.replace(/#.*$/, "").replace(/\/*\?.*$/, "/").replace(/\bwww.\b/, ""),
+            unsubscribeAction: null,
+            sortedAlertsSwitch: "initial"
         };
     },
-
     computed: {
         ...mapGetters("Alerting", [
+            "alerts",
+            "alertWindowTitle",
+            "configPaths",
             "displayedAlerts",
             "fetchBroadcastUrl",
+            "initialAlerts",
+            "initialClosed",
             "localStorageDisplayedAlertsKey",
             "showTheModal",
-            "sortedAlerts"
+            "sortedAlerts",
+            "type",
+            "displayOnEventList"
         ]),
-
-        /**
-         * Reads current URL and returns it without hash and without get params, always ending with slash.
-         * This is needed to have a normalized URL tocompare with configured BroadcastConfig URLs;
-         * see example file /portal/master/resources/broadcastedPortalAlerts.json
-         * @returns {String} The normalized current browser URL
-         */
-        currentUrl: () => {
-            return document.URL.replace(/#.*$/, "").replace(/\/*\?.*$/, "/").replace(/\bwww.\b/, "");
-        },
-
         /**
          * Console mapping to be able to debug in template.
          * @returns {void}
          */
         console: () => console
     },
-
-    watch: {
-        /**
-         * Syncs localstorage with displayedAlerts prop.
-         * @param {object} newDisplayedAlerts newly changed displayedAlerts object
-         * @returns {void}
-         */
-        displayedAlerts (newDisplayedAlerts) {
-            if (this.availableLocalStorage) {
-                // Local storage is synced with this.displayedAlert
-                localStorage[this.localStorageDisplayedAlertsKey] = JSON.stringify(newDisplayedAlerts);
-            }
-        }
-    },
-
     /**
-     * Created hook: Creates event listener for legacy Radio calls (to be removed seometime).
-     * Checks if localstorage is available.
+     * Created hook: Checks if localstorage is available.
      * @returns {void}
      */
     created () {
-        Backbone.Events.listenTo(Radio.channel("Alert"), {
-            "alert": newAlert => {
-                this.addSingleAlert(newAlert);
-            }
-        });
-
         try {
             if (localStorage) {
                 this.availableLocalStorage = true;
@@ -78,49 +58,48 @@ export default {
             this.availableLocalStorage = false;
             console.error("Spelling localestorage is not available in this application. Please allow third party cookies in your browser!");
         }
-    },
 
+        /* Hint: store.subscribeAction(): https://vuex.vuejs.org/api/#subscribeaction */
+        this.unsubscribeAction = this.$store.subscribeAction((action) => {
+            this.checkForEventAlerts(action);
+        });
+    },
     /**
-     * Mounted hook: Initially sets up localstorage and then fetches BroadcastConfig.
+     * Mounted hook: Initially fetches BroadcastConfig.
      * @returns {void}
      */
     mounted () {
-        let initialDisplayedAlerts;
-
-        this.initialize();
-
-        if (this.availableLocalStorage && localStorage[this.localStorageDisplayedAlertsKey] !== undefined) {
-            try {
-                initialDisplayedAlerts = JSON.parse(localStorage[this.localStorageDisplayedAlertsKey]);
-
-                this.setDisplayedAlerts(initialDisplayedAlerts);
-            }
-            catch (e) {
-                localStorage[this.localStorageDisplayedAlertsKey] = JSON.stringify({});
-            }
-        }
-        else {
-            this.setDisplayedAlerts({});
-        }
+        this.initializeModule({configPaths: this.configPaths, type: this.type});
 
         if (this.fetchBroadcastUrl !== undefined && this.fetchBroadcastUrl !== false) {
             this.fetchBroadcast(this.fetchBroadcastUrl);
         }
-    },
 
+        this.addAlertsFromConfig(this.initialAlerts);
+    },
+    unmounted () {
+        if (this.unsubscribeAction) {
+            this.unsubscribeAction();
+        }
+    },
     methods: {
+        ...mapActions(["initializeModule"]),
         ...mapActions("Alerting", [
+            "addAlertsFromConfig",
             "addSingleAlert",
             "alertHasBeenRead",
             "cleanup",
-            "initialize",
-            "setDisplayedAlerts"
+            "activateDisplayOnEventAlerts"
+        ]),
+        ...mapMutations("Alerting", [
+            "removeFromAlerts",
+            "setFetchBroadcastUrl"
         ]),
 
         /**
          * Do this after successfully fetching broadcastConfig:
          * Process configured data and add each resulting alert into the state.
-         * @param {object} response received response object
+         * @param {Object} response received response object
          * @returns {void}
          */
         axiosCallback: function (response) {
@@ -152,14 +131,16 @@ export default {
             }
 
             collectedAlerts.forEach(singleAlert => {
-                singleAlert.multipleAlert = true;
+                singleAlert.initial = true;
+                singleAlert.isNews = true;
+                singleAlert.initialConfirmed = singleAlert.mustBeConfirmed;
                 this.addSingleAlert(singleAlert);
             });
         },
 
         /**
          * Just a wrapper method for the XHR request for the sake of testing.
-         * @param {string} fetchBroadcastUrl fetchBroadcastUrl
+         * @param {String} fetchBroadcastUrl fetchBroadcastUrl
          * @returns {void}
          */
         fetchBroadcast: function (fetchBroadcastUrl) {
@@ -167,94 +148,229 @@ export default {
                 console.warn(error);
             });
         },
-
+        /**
+         * Toggles the modal
+         * @param {Boolean} value value for showTheModal
+         * @returns {void}
+         */
+        toggleModal: function (value) {
+            this.$store.commit("Alerting/setShowTheModal", value);
+        },
         /**
          * When closing the modal, update all alerts' have-been-read states.
          * @returns {void}
          */
-        onModalHid: function () {
+        onModalClose: function () {
             this.cleanup();
+            this.$store.commit("Alerting/setInitialClosed", true);
         },
-
         /**
          * Update a single alert's has-been-read state.
-         * @param {string} hash hash
+         * @param {String} hash hash
          * @returns {void}
          */
         markAsRead: function (hash) {
             this.alertHasBeenRead(hash);
+        },
+        /**
+         * Remove an alert from the alert modal
+         * @param {String} hash hash
+         * @returns {void}
+         */
+        removeAlert: function (hash) {
+            this.removeFromAlerts({hash: hash});
+        },
+        /**
+         * Check category name to distiguish between news and alert categories
+         * @param {String} category category name
+         * @returns {void}
+         */
+        checkCategory: function (category) {
+            const checkCategory = category.toLowerCase();
+
+            if (checkCategory !== "error" && checkCategory !== "warning" && checkCategory !== "success") {
+                return true;
+            }
+            return false;
+        },
+        /**
+         * Select the class for the alert category.
+         * @param {String} category category of the alert
+         * @returns {void}
+         */
+        selectCategoryClass: function (category) {
+            const generalizedCategory = category?.toLowerCase();
+
+            if (generalizedCategory === "news" || generalizedCategory === "success") {
+                return "badge rounded-pill bg-success";
+            }
+            else if (generalizedCategory === "warning") {
+                return "badge rounded-pill bg-warning";
+            }
+            else if (generalizedCategory === "error") {
+                return "badge rounded-pill bg-danger";
+            }
+            return "badge rounded-pill bg-info";
+        },
+        /**
+         * Event handler for alerts on events
+         * @param {String} action Current event of the masterportal
+         * @returns {void}
+         */
+        checkForEventAlerts: function (action) {
+            if (this.displayOnEventList?.length > 0 && this.displayOnEventList.some((element) => {
+                if (element.type === action.type) {
+                    if (typeof element.value === "string" && element.value === action.payload) {
+
+                        return true;
+                    }
+                    else if (typeof element.value === "object" &&
+                        Object.entries(element.value).every(([key, value]) => action.payload[key] === value)
+                    ) {
+
+                        return true;
+                    }
+                    return false;
+                }
+
+                return false;
+            })) {
+                this.sortedAlertsSwitch = "onEvent";
+                this.activateDisplayOnEventAlerts(action);
+            }
         }
     }
 };
 </script>
 
 <template>
-    <div>
-        <ModalItem
-            :show-modal="showTheModal"
-            @modalHid="onModalHid"
+    <div
+        v-if="showTheModal && sortedAlerts(sortedAlertsSwitch).length>0"
+        id="alertModal"
+        class="modal"
+        tabindex="-1"
+        aria-modal="true"
+        role="dialog"
+    >
+        <div
+            class="modal-dialog modal-dialog-centered modal-dialog-scrollable"
+            role="document"
         >
-            <div
-                v-for="(alertCategory, categoryIndex) in sortedAlerts"
-                :key="alertCategory.category"
-                class="alertCategoryContainer"
-                :class="{ last: categoryIndex === sortedAlerts.length-1 }"
-            >
-                <h3>
-                    {{ $t(alertCategory.category) }}
-                </h3>
-
+            <div class="modal-content">
+                <div class="modal-header">
+                    {{ $t(alertWindowTitle) }}
+                    <button
+                        type="button"
+                        class="btn-close"
+                        aria-label="Close"
+                        @click="toggleModal(false); onModalClose();"
+                    />
+                </div>
                 <div
-                    v-for="(singleAlert, singleAlertIndex) in alertCategory.content"
-                    :key="singleAlert.hash"
-                    class="singleAlertWrapper"
-                    :class="singleAlert.displayClass"
+                    class="modal-body"
                 >
                     <div
-                        class="singleAlertContainer"
-                        :class="{
-                            singleAlertIsImportant: singleAlert.mustBeConfirmed,
-                            last: singleAlertIndex === alertCategory.content.length-1
-                        }"
+                        v-for="(alertCategory, categoryIndex) in sortedAlerts(sortedAlertsSwitch)"
+                        :key="alertCategory.category"
+                        class="alertCategoryContainer"
                     >
                         <div
-                            class="singleAlertMessage"
-                            v-html="singleAlert.content"
-                        />
-
-                        <p
-                            v-if="singleAlert.mustBeConfirmed && availableLocalStorage"
-                            class="confirm"
+                            v-for="(singleAlert, singleAlertIndex) in alertCategory.content"
+                            :key="singleAlert.hash"
+                            :class="singleAlert.category"
                         >
-                            <a
-                                role="button"
-                                tabindex="0"
-                                @click="markAsRead(singleAlert.hash)"
-                                @keydown.enter="markAsRead(singleAlert.hash)"
+                            <div
+                                class="singleAlertContainer row"
                             >
-                                {{ $t(singleAlert.confirmText) }}
-                            </a>
-                        </p>
+                                <hr
+                                    v-if="singleAlertIndex > 0 || categoryIndex > 0"
+                                >
+                                <div
+                                    class="d-flex justify-content-between mb-3"
+                                >
+                                    <h3>
+                                        {{ singleAlert.title }}
+                                    </h3>
+                                    <button
+                                        v-if="sortedAlerts(sortedAlertsSwitch).length >1"
+                                        type="button"
+                                        class="btn btn-close btn-sm col-1"
+                                        aria-label="Close"
+                                        @click="removeAlert(singleAlert.hash);"
+                                    />
+                                </div>
+                                <div class="d-flex justify-content-end bd-highlight mb-3">
+                                    <span :class="selectCategoryClass(singleAlert.category) + ' badge-pill'">
+                                        {{ $t(singleAlert.displayCategory) }}
+                                    </span>
+                                </div>
+                                <div
+                                    v-html="singleAlert.content"
+                                />
+                                <div
+                                    v-if="checkCategory(singleAlert.category)"
+                                    class="d-flex justify-content-between small"
+                                >
+                                    <div
+                                        v-if="singleAlert.creationDate"
+                                        class="mt-2 creation-date"
+                                        v-html="$t(`common:modules.alerting.created`) + singleAlert.creationDate"
+                                    />
+                                    <div
+                                        v-if="singleAlert.initialConfirmed && availableLocalStorage"
+                                        class="mt-1"
+                                    >
+                                        <div
+                                            class="form-check form-check-reverse form-switch mt-1"
+                                        >
+                                            <SwitchInput
+                                                :id="'flexSwitchCheckDefault'"
+                                                :aria="singleAlert.mustBeConfirmed? $t(singleAlert.confirmText) : $t(singleAlert.reConfirmText)"
+                                                :interaction="() => markAsRead(singleAlert.hash)"
+                                                :label="singleAlert.mustBeConfirmed? $t(singleAlert.confirmText) : $t(singleAlert.reConfirmText)"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </ModalItem>
+        </div>
     </div>
 </template>
 
 <style lang="scss" scoped>
     @import "~variables";
+    #alertModal{
+        display: block;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-body {
+        /* Hide scrollbar for Firefox */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Hide scrollbar for Edge, Chrome, Safari and Opera */
+    .modal-body::-webkit-scrollbar{
+        display: none;
+    }
+
+    .badge-pill{
+        font-size:$font-size-base;
+    }
+
     div.alertCategoryContainer {
-        margin-bottom:24px;
-
+        margin-bottom:0;
         &.last {
-            margin-bottom:12px;
+            margin-bottom:0.4375rem;
         }
-
         h3 {
             border:none;
-            color: $secondary_contrast;
-            font-size:14px;
+            color: $dark_blue;
+            font-size:$font-size-lg;
             font-weight:bold;
             letter-spacing:initial;
             line-height:18px;
@@ -262,48 +378,12 @@ export default {
             padding:0;
         }
 
-        /*
-            This is only for now. Because there havent been defined any styles yet.
-            Negative margin may be bad in the long run.
-        */
-        div.singleAlertWrapper {
-            &.error {
-                margin-left:-24px;
-                border-left: 4px solid rgba(255, 0, 0, 0.9);
-                padding-left: 21px;
-            }
-            &.warning {
-                margin-left:-24px;
-                border-left: 4px solid rgba(255, 125, 0, 0.7);
-                padding-left: 21px;
-            }
-        }
-
         div.singleAlertContainer {
-            border-bottom:1px dotted #CCCCCC;
-            color:$secondary_contrast;
-            font-size:12px;
-            margin-bottom:12px;
-            padding-bottom:12px;
-
-            &.singleAlertIsImportant p {
-                color:#EE7777;
-
-                &.confirm a {
-                    color:$secondary_contrast;
-                    cursor:pointer;
-                    text-decoration:underline;
-
-                    &:hover {
-                        text-decoration:none;
-                    }
-                }
-            }
-
-            &.last {
-                border-bottom:none;
-                padding-bottom:0;
-            }
+            color:$dark_blue;
+            font-size:$font-size-base;
+            margin-top:0;
+            margin-bottom:0.3125rem;
+            padding-bottom:0;
         }
     }
 </style>

@@ -236,6 +236,12 @@ cd cut-data-narrator
 npm install
 ```
 
+```console
+cd addons\dipasAddons\dataNarrator
+npm install --legacy-peer-deps
+```
+
+
 With this, all dependencies are installed.
 
 Add the following attributes to config.js of your configured portal:

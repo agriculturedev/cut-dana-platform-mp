@@ -1,25 +1,15 @@
 const replace = require("replace-in-file"),
     path = require("path"),
     rootPath = path.resolve(__dirname, "../../"),
-    mastercodeVersionFolderName = require(path.resolve(rootPath, "devtools/tasks/getMastercodeVersionFolderName"))();
+    mastercodeVersionFolderName = require(path.resolve(rootPath, "devtools/tasks/getMastercodeVersionFolderName"))().split(path.sep).join("/");
 
 
 module.exports = function (destination) {
     const replacements = [
         {
-            "files": destination + "/index.html",
-            "from": /\/*(\.+\/)*img\/Logo_Masterportal\.svg/g,
-            "to": "../mastercode/" + mastercodeVersionFolderName + "/img/Logo_Masterportal.svg"
-        },
-        {
-            "files": destination + "/index.html",
-            "from": /\/*(\.+\/)*img\/ajax-loader\.gif/g,
-            "to": "../mastercode/" + mastercodeVersionFolderName + "/img/ajax-loader.gif"
-        },
-        {
             "files": destination + "/js/masterportal.js",
-            "from": /\/img\/tools\/draw\/circle_/g,
-            "to": "/mastercode/" + mastercodeVersionFolderName + "/img/tools/draw/circle_"
+            "from": /\/src\/assets\/img\/tools\/draw\/circle_/g,
+            "to": "/mastercode/" + mastercodeVersionFolderName + "/src/assets/img/tools/draw/circle_"
         },
         {
             "files": destination + "/index.html",
@@ -32,23 +22,13 @@ module.exports = function (destination) {
             "to": "./woffs"
         },
         {
-            "files": destination + "/css/masterportal.css",
-            "from": /url\s?\(\s?"\/img\//g,
-            "to": "url(\"../img/"
-        },
-        {
-            "files": destination + "/css/masterportal.css",
-            "from": /url\s?\(\s?'\/img\//g,
-            "to": "url('../img/"
-        },
-        {
-            "files": destination + "/css/masterportal.css",
-            "from": /url\s?\(\s?\/img\//g,
-            "to": "url(../img/"
+            "files": destination + "/js/masterportal.js",
+            "from": /\..\/..\/img\//g,
+            "to": "../mastercode/" + mastercodeVersionFolderName + "/img/"
         },
         {
             "files": destination + "/js/masterportal.js",
-            "from": /\..\/..\/img\//g,
+            "from": /\..\/..\/src\/assets\/img\//g,
             "to": "../mastercode/" + mastercodeVersionFolderName + "/img/"
         },
         {

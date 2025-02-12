@@ -1,44 +1,40 @@
 <script>
 import {mapGetters, mapMutations} from "vuex";
-import ControlIcon from "../../ControlIcon.vue";
+import ControlIcon from "../../components/ControlIcon.vue";
 
 /**
  * The BackForward control element allows stepping back
  * and forth through view states regarding zoom and center.
+ * @module modules/controls/BackForward
  */
 export default {
     name: "BackForward",
     components: {
         ControlIcon
     },
-    props: {
-        /** icon name of the forward button */
-        iconFor: {
-            type: String,
-            default: "skip-end-fill"
-        },
-        /** icon name of the backward button */
-        iconBack: {
-            type: String,
-            default: "skip-start-fill"
-        }
-    },
     computed: {
-        ...mapGetters("controls/backForward", ["forthAvailable", "backAvailable"])
+        ...mapGetters("Controls/BackForward", [
+            "backAvailable",
+            "forthAvailable",
+            "iconBack",
+            "iconForward",
+            "supportedDevices"
+        ])
     },
     mounted () {
         mapCollection.getMap("2D").on("moveend", this.memorizeMap);
     },
-    beforeDestroy () {
+    beforeUnmount () {
         mapCollection.getMap("2D").un("moveend", this.memorizeMap);
     },
     methods: {
-        ...mapMutations(
-            "controls/backForward",
-            ["forward", "backward", "memorize"]
-        ),
+        ...mapMutations("Controls/BackForward", [
+            "backward",
+            "forward",
+            "memorize"
+        ]),
         memorizeMap () {
-            this.memorize(mapCollection.getMap("2D").getView());
+            this.memorize(mapCollection.getMapView("2D"));
         },
         moveForward () {
             this.forward(mapCollection.getMap("2D"));
@@ -51,12 +47,14 @@ export default {
 </script>
 
 <template>
-    <div class="back-forward-buttons">
+    <div
+        id="back-forward-buttons"
+    >
         <ControlIcon
             class="forward"
             :title="$t(`common:modules.controls.backForward.stepForward`)"
             :disabled="!forthAvailable"
-            :icon-name="iconFor"
+            :icon-name="iconForward"
             :on-click="moveForward"
         />
         <ControlIcon
@@ -68,6 +66,3 @@ export default {
         />
     </div>
 </template>
-
-<style lang="scss" scoped>
-</style>

@@ -1,0 +1,141 @@
+site_name: Masterportal Docs
+site_author: Masterportal Open Source Community
+repo_name: BitBucket
+repo_url: https://bitbucket.org/geowerkstatt-hamburg/masterportal/
+docs_dir: docs
+
+theme:
+    name: material
+    features:
+        - content.code.annotate
+        - content.code.copy
+        - content.tabs.link
+        - content.tooltips
+        - navigation.tabs
+        - navigation.tabs.sticky
+        - navigation.tracking
+        - navigation.sections
+        - navigation.top
+        - search.share
+        - search.suggest
+        - toc.follow
+    palette:
+        -   scheme: slate
+            primary: white
+            accent: indigo
+            toggle:
+                icon: material/lightbulb
+                name: Switch to light mode
+        -   scheme: default
+            primary: white
+            accent: indigo
+            toggle:
+                icon: fontawesome/solid/moon
+                name: Switch to dark mode
+    logo: '_media/Logo_Masterportal.svg'
+    favicon: '_media/favicon.ico'
+
+validation:
+        omitted_files: warn
+        absolute_links: warn
+        unrecognized_links: warn
+        anchors: warn
+
+plugins:
+    - tablestrip:
+          strip_word: "Expert"
+
+markdown_extensions:
+    # Code Block Highlighting:
+    -   pymdownx.highlight:
+            anchor_linenums: true
+            line_spans: __span
+            pygments_lang_class: true
+    - pymdownx.inlinehilite
+    - pymdownx.snippets
+    - pymdownx.superfences
+
+    # Content Tabs
+    - pymdownx.tabbed:
+          alternate_style: true
+
+    # Code Block Annotations
+    - md_in_html
+
+    # Admonitions:
+    - admonition
+    - pymdownx.details
+
+    # Table of contents:
+    -   toc:
+            permalink: 🔗
+            permalink_title: Copy heading link to clipboard
+
+    # Extra CSS-Attributes for Markdown Elements
+    - attr_list
+
+    # Emoji Support
+    -   pymdownx.emoji:
+            emoji_index: !!python/name:material.extensions.emoji.twemoji
+            emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra:
+    social:
+        -   icon: fontawesome/solid/circle-info
+            link: https://www.masterportal.org/
+        -   icon: fontawesome/brands/bitbucket
+            link: https://bitbucket.org/geowerkstatt-hamburg/masterportal/
+
+extra_css:
+    - '_docsCustomization/css/contentAreaFullWidth.css'
+extra_javascript:
+    - '_docsCustomization/js/copyHeadingLinkToClipboard.js'
+
+nav:
+    -   Home: index.md
+    -   Setup:
+            - Setup/setup.md
+    -   User Documentation:
+            - User/About.md
+            -   Global Settings:
+                    -   'services.json': User/Global-Config/services.json.md
+                    -   'rest-services.json': User/Global-Config/rest-services.json.md
+                    -   'style.json': User/Global-Config/style.json.md
+            -   Portal Settings:
+                    -   'config.js': User/Portal-Config/config.js.md
+                    -   'config.json': User/Portal-Config/config.json.md
+                    -   'config.json DE': User/Portal-Config/config.json.de.md
+            -   'Misc':
+                    - 'Migrate Config to v3': User/Misc/migrateConfigv2Tov3.md
+                    - 'Migrate Config to v3 DE': User/Misc/migrateConfigv2Tov3.de.md
+                    - User/Misc/languages.md
+                    -   'URL Parameters': User/Misc/urlParameter.md
+            -   'Proxies':
+                    -   'Proxy': User/Proxies/proxy.md
+                    -   'proxyconf.json': User/Proxies/proxyconf.json.md
+
+    -   'Developer Documentation':
+            -   'About': Dev/About.md
+            -   'Contributing':
+                    - Dev/Contributing/setupDev.md
+                    - Dev/Contributing/codingConventions.md
+                    - Dev/Contributing/codingConventionsInfo.md
+                    - Dev/Contributing/gitWorkflow.md
+                    - Dev/Contributing/versioning.md
+            -   'General':
+                    - Dev/jsdoc.md
+                    - Dev/unitTestVue.md
+                    - Dev/fonts.md
+                    - Dev/sensorThings.md
+                    - Dev/variables.md
+                    - Dev/remoteInterface/remoteInterface.md
+            -   'Tutorials':
+                    - Dev/Tutorials/tutorial.md
+                    - Dev/Tutorials/addOnsVue.md
+            -   'Vue Components':
+                    - Dev/vueComponents/Alerting.md
+                    - Dev/vueComponents/BasicDragHandle.md
+                    - Dev/vueComponents/BasicResizeHandle.md
+                    - Dev/vueComponents/GraphicalSelect.md
+                    - Dev/vueComponents/LayerPreview.md
+                    - Dev/vueComponents/layerSelector.md

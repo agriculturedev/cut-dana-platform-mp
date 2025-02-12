@@ -1,14 +1,8 @@
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import {fetchFirstModuleConfig} from "../../../utils/fetchFirstModuleConfig.js";
+import store from "../../../app-store";
 
 dayjs.extend(duration);
-
-/** @const {String} [Path array of possible config locations. First one found will be used] */
-/** @const {Object} [vue actions] */
-const configPaths = [
-    "configJs.alerting"
-];
 
 /**
  * Finds an alert by hash value
@@ -21,16 +15,19 @@ function findSingleAlertByHash (haystackAlerts, needleHash) {
 
     return foundAlerts.length ? foundAlerts[0] : false;
 }
-
 /**
  * Checks if an alert should be displayed considerung its .displayFrom and .displayUntil properties.
  * @param {Object} alertToCheck The alert to check
  * @returns {Boolean} True if its defined timespan includes current time
  */
 function checkAlertLifespan (alertToCheck) {
-    return (!alertToCheck.displayFrom || dayjs().isAfter(alertToCheck.displayFrom)) && (!alertToCheck.displayUntil || dayjs().isBefore(alertToCheck.displayUntil));
-}
+    if (alertToCheck.displayFrom === false && alertToCheck.displayUntil === false) {
+        return true;
+    }
 
+    return (!alertToCheck.displayFrom || dayjs().isAfter(alertToCheck.displayFrom)) && (!alertToCheck.displayUntil || dayjs().isBefore(alertToCheck.displayUntil));
+
+}
 /**
  * Checks if an already displayed alert may be displayed again.
  * @param {Object} displayedAlerts an object as collection of already displayed alerts with their hash value as associated key
@@ -38,82 +35,70 @@ function checkAlertLifespan (alertToCheck) {
  * @returns {Boolean} True if the given alert may be displayed again
  */
 function checkAlertViewRestriction (displayedAlerts, alertToCheck) {
-    const alertDisplayedAt = displayedAlerts[alertToCheck.hash];
 
-    // not yet displayed
-    if (alertDisplayedAt === undefined) {
-        return true;
-    }
-    // displayed, but not restricted to display multiple times
-    if (alertToCheck.once === false) {
-        return true;
-    }
-    // displayed and restricted to only a single time
-    if (alertToCheck.once === true) {
+    // if hash is already in localStorage then alert is not shown
+    if (localStorage[store.getters["Alerting/localStorageDisplayedAlertsKey"]]?.includes(alertToCheck.hash)) {
         return false;
     }
-    // displayed, but restriction time elapsed
-    if (dayjs().isAfter(dayjs(alertDisplayedAt).add(dayjs.duration(alertToCheck.once)))) {
+
+    // displayed, but not restricted to display multiple times
+    if (alertToCheck.once === false || alertToCheck.once === undefined) {
         return true;
     }
 
-    return false;
+    // displayed and restricted to only a single time
+    if (alertToCheck.once === true) {
+        store.commit("Alerting/addToDisplayedAlerts", alertToCheck);
+    }
+
+    return true;
+
 }
 
 export default {
     /**
-     * Initially read given configs
-     * @param {object} context context
-     * @returns {void}
-     */
-    initialize: context => {
-        fetchFirstModuleConfig(context, configPaths, "Alerting");
-    },
-
-    /**
-     * Mapping to equilavent mutation
-     * @param {object} commit commit
-     * @param {object} alerts alerts to be set
-     * @returns {void}
-     */
-    setDisplayedAlerts: function ({commit}, alerts = {}) {
-        commit("setDisplayedAlerts", alerts);
-    },
-
-    /**
-     * Removes read alerts, set displayed alerts as displayed and hide modal.
-     * @param {object} state state
-     * @param {object} commit commit
+     * Updates localStorage with read and once:true alerts, set displayed alerts as displayed and hide modal.
+     * @param {Object} state state
+     * @param {Object} commit commit
      * @returns {void}
      */
     cleanup: function ({state, commit}) {
+        const storageKey = state.localStorageDisplayedAlertsKey;
+
         state.alerts.forEach(singleAlert => {
-            if (!singleAlert.mustBeConfirmed) {
-                commit("removeFromAlerts", singleAlert);
+            if (!singleAlert.mustBeConfirmed && singleAlert.initialConfirmed !== false && singleAlert.initial !== undefined) {
                 commit("addToDisplayedAlerts", singleAlert);
+                commit("removeFromAlerts", singleAlert);
             }
         });
-        commit("setReadyToShow", false);
-    },
 
+        if (localStorage[storageKey]) {
+            localStorage[storageKey] = JSON.stringify({...state.displayedAlerts, ...JSON.parse(localStorage[storageKey])});
+        }
+        else {
+            localStorage[storageKey] = JSON.stringify(state.displayedAlerts);
+        }
+        commit("setReadyToShow", false);
+
+    },
     /**
-     * Marks a single alert as read. Triggers callback function if defined. As a conclusion, the callback
-     * function does only work if the alert must be confirmed and has not been read.
-     * @param {object} state state
-     * @param {string} hash Hash of read alert
+     * Marks a single alert as un/read. Triggers callback function if defined.
+     * @param {Object} state state
+     * @param {String} hash Hash of read alert
      * @returns {void}
      */
     alertHasBeenRead: function ({state, commit}, hash) {
         const singleAlert = findSingleAlertByHash(state.alerts, hash);
 
         if (singleAlert !== false) {
-            commit("setAlertAsRead", singleAlert);
-            if (typeof singleAlert.legacy_onConfirm === "function") {
-                singleAlert.legacy_onConfirm();
+            if (singleAlert.mustBeConfirmed === true) {
+                commit("setAlertAsRead", singleAlert);
+            }
+            else {
+                commit("setAlertAsUnread", singleAlert);
             }
         }
     },
-
     /**
      * Checks a new alert object, if it may be added to alerting queue. This includes checking, if
      *  1: alert is already in queue
@@ -121,17 +106,21 @@ export default {
      *  3: alert is limited to be display in the future
      *  4: alert has already been read and is not ready to be displayed again yet
      *  5: allows multiple alerts from newsFeedPortaljson (singleAlert.multipleAlert = true) in state.alerts.
-     * @param {object} state state
-     * @param {object} newAlert alert object to be added to queue
+     * @param {Object} state state
+     * @param {Object} newAlert alert object to be added to queue
      * @returns {void}
      */
     addSingleAlert: function ({state, commit}, newAlert) {
         const objectHash = require("object-hash"),
             newAlertObj = typeof newAlert === "string" ? {content: newAlert} : newAlert,
-            alertProtoClone = {...state.alertProto};
+            alertProtoClone = {...state.alertProto},
+            hasInitAlert = state.alerts.some(function (alert) {
+                return alert.initial === true;
+            });
 
-        let
+        let category,
             isUnique = false,
+            onceInSession = false,
             isNotRestricted = false,
             isInTime = false,
             displayAlert = false;
@@ -140,10 +129,18 @@ export default {
             return false;
         }
 
-        // in case its an object with deprecated text property, display warning and continue
-        if (typeof newAlertObj.text === "string" && typeof newAlertObj.content !== "string") {
-            console.warn("Deprecated: Alerting module - property \"text\" is deprecated. Use \"content\" instead.");
-            newAlertObj.content = newAlertObj.text;
+        if (newAlertObj?.category !== undefined) {
+            category = newAlertObj.category.toLowerCase();
+        }
+
+        if (state.availableCategories.includes(category)) {
+            newAlertObj.displayCategory = `common:modules.alerting.categories.${category}`;
+        }
+        else if (newAlertObj.category === undefined || newAlertObj.category === "") {
+            newAlertObj.displayCategory = "info";
+        }
+        else {
+            newAlertObj.displayCategory = newAlertObj.category;
         }
 
         // in case its not an object with a non empty string at .content, dont continue
@@ -151,7 +148,6 @@ export default {
             console.warn("Alert cancelled, bad content value:", newAlertObj.content);
             return false;
         }
-
         for (const key in newAlertObj) {
             alertProtoClone[key] = newAlertObj[key];
         }
@@ -164,39 +160,86 @@ export default {
             alertProtoClone.hash = alertProtoClone.hash + alertProtoClone.displayUntil;
         }
         alertProtoClone.hash = objectHash(alertProtoClone.hash);
-
         isUnique = findSingleAlertByHash(state.alerts, alertProtoClone.hash) === false;
-        if (!isUnique) {
-            console.warn("Alert ignored (duplicate): " + alertProtoClone.hash);
-        }
-
+        onceInSession = !isUnique ? alertProtoClone.onceInSession : false;
         isInTime = checkAlertLifespan(alertProtoClone);
-        if (!isInTime) {
-            console.warn("Alert ignored (not the time): " + alertProtoClone.hash);
+        isNotRestricted = checkAlertViewRestriction(state.displayedAlerts, alertProtoClone);
+
+        if (alertProtoClone.isNews) {
+            commit("Modules/News/addNews", alertProtoClone, {root: true});
         }
 
-        isNotRestricted = checkAlertViewRestriction(state.displayedAlerts, alertProtoClone);
-        if (!isNotRestricted) {
-            console.warn("Alert ignored (shown recently): " + alertProtoClone.hash);
+        if (typeof alertProtoClone.displayOnEvent === "object") {
+            commit("addToDisplayOnEventList", alertProtoClone.displayOnEvent);
         }
 
         displayAlert = isUnique && isInTime && isNotRestricted;
         if (displayAlert) {
-            if (newAlert.multipleAlert !== true) {
+            if ((newAlert.multipleAlert !== true && !newAlert.initial && state.initialClosed === true) || (newAlert.multipleAlert === true && hasInitAlert === true && state.initialClosed === true)) {
                 state.alerts = [];
             }
-            commit("addToAlerts", alertProtoClone);
+            if (!localStorage[state.localStorageDisplayedAlertsKey]?.includes(alertProtoClone.hash)) {
+                commit("addToAlerts", alertProtoClone);
+            }
         }
-
         // even if current alert got seeded out, there still might be another one in the pipe
         if (state.alerts.length > 0) {
-            if (findSingleAlertByHash(state.alerts, alertProtoClone.hash) !== false && isInTime && isNotRestricted) {
+            if (findSingleAlertByHash(state.alerts, alertProtoClone.hash) !== false && isInTime && isNotRestricted && !onceInSession) {
                 // this is necessary because this action returned false even if the alert was displayed
                 displayAlert = true;
             }
-            commit("setReadyToShow", true);
+
+            if (displayAlert) {
+                commit("setReadyToShow", true);
+            }
         }
 
         return displayAlert;
+    },
+
+    /**
+     * Loops trough defined alerts from config.js and add it to the alerting module.
+     * @param {Object} context the vue context
+     * @param {Object} context.dispatch the commit
+     * @param {Object} alerts object with defined alerts
+     * @returns {void}
+     */
+    addAlertsFromConfig ({dispatch}, alerts) {
+        Object.values(alerts).forEach((value) => {
+            value.initial = true;
+            value.isNews = true;
+            value.initialConfirmed = value.mustBeConfirmed;
+            dispatch("addSingleAlert", value);
+        });
+    },
+    /**
+     * Check if a current event has alert items and activate them.
+     * @param {Object} state state
+     * @param {Object} action Event type and value to check for alertsOnEvent items
+     * @returns {void}
+     */
+    activateDisplayOnEventAlerts ({state, commit}, action) {
+        state.alertsOnEvent = [];
+
+        state.alerts.forEach((alert) => {
+            let displayProps;
+
+            if (Object.hasOwn(alert, "displayOnEvent")) {
+                displayProps = alert.displayOnEvent;
+
+                if (action.type === displayProps.type) {
+                    if (typeof displayProps.value === "string" && displayProps.value === action.payload) {
+                        state.alertsOnEvent.push(alert);
+                    }
+                    else if (typeof displayProps.value === "object" &&
+                        Object.entries(displayProps.value).every(([key, value]) => action.payload[key] === value)
+                    ) {
+                        state.alertsOnEvent.push(alert);
+                    }
+                }
+            }
+        });
+
+        commit("setReadyToShow", true);
     }
 };

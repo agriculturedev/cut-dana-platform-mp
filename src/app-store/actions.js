@@ -1,142 +1,180 @@
 import axios from "axios";
-import {getByArraySyntax} from "../utils/fetchFirstModuleConfig";
-import isInternetExplorer from "../utils/isInternetExplorer";
+import {rawLayerList} from "@masterportal/masterportalapi/src";
+import styleList from "@masterportal/masterportalapi/src/vectorStyle/styleList";
 
+import actionsLayerConfig from "./actionsLayerConfig";
+import {fetchFirstModuleConfig} from "../shared/js/utils/fetchFirstModuleConfig";
+import {portalConfigKey, treeTopicConfigKey} from "../shared/js/utils/constants";
+import {updateProxyUrl} from "./js/getProxyUrl";
+import {upperFirst} from "../shared/js/utils/changeCase";
+
+/**
+ * The root actions.
+ * @module app-store/actions
+ */
 export default {
+    ...actionsLayerConfig,
+
     /**
-     * Copies the the content of the given element to the clipboard if the browser accepts the command.
-     * Solution for the weird behaviour on iOS from:
-     * https://stackoverflow.com/questions/34045777/copy-to-clipboard-using-javascript-in-ios
-     *
-     * @param {Element} el element to copy,
+     * Check/adapt for proxy configs and commit the loaded config.js to the state.
+     * @param {Object} context the vue context
+     * @param {Object} context.commit the commit
+     * @param {Object} configJs The config.js
      * @returns {void}
      */
-    copyToClipboard ({dispatch}, el) {
-        const oldReadOnly = el.readOnly,
-            oldContentEditable = el.contentEditable,
-            range = document.createRange(),
-            selection = window.getSelection();
+    loadConfigJs ({commit}, configJs) {
+        const proxyHost = configJs.proxyHost ? configJs.proxyHost : "";
 
-        el.readOnly = false;
-        el.contentEditable = true;
-
-        range.selectNodeContents(el);
-        selection.removeAllRanges();
-        if (!isInternetExplorer()) {
-            selection.addRange(range);
-        }
-        // Seems to be required for mobile devices
-        el.setSelectionRange(0, 999999);
-
-        el.readOnly = oldReadOnly;
-        el.contentEditable = oldContentEditable;
-
-        try {
-            document.execCommand("copy");
-            dispatch("Alerting/addSingleAlert", {content: i18next.t("common:modules.util.copyToClipboard.contentSaved")}, {root: true});
-        }
-        catch (err) {
-            dispatch("Alerting/addSingleAlert", {content: i18next.t("common:modules.util.copyToClipboard.contentNotSaved")}, {root: true});
-            console.error(`CopyToClipboard: ${err}`);
-        }
+        updateProxyUrl(configJs, proxyHost);
+        commit("setConfigJs", configJs);
     },
+
     /**
-     * Function to save config.js's content and load the config files which path is specified in config.js.
-     * @param {Object} config the config.js
+     * Load the config.json, check/adapt for proxy configs.
+     * @param {Object} context the vue context
+     * @param {Object} context.commit the commit
+     * @param {Object} context.state the state
      * @returns {void}
      */
-    loadConfigJs ({commit}, config) {
-        commit("setConfigJs", config);
-        return axios.get(config.restConf)
-            .then(response => commit("setRestConf", response.data))
-            .catch(error => console.error(`Error occured during loading restConf specified by config.json (${config.restConf}).`, error));
-    },
-    /**
-     * Function to check if the deprecated parameters could be specified for more than one location e.g. they (location of the parameter or tool) have multiple possible paths.
-    * Furthermore the function checks whether the given paths for the parameters are defined or undefined.
-    * @param {Object} deprecatedPath an object with keys (dotted string as new path) and String[] as values, holding the old and deprecated paths
-    * @param {Object} config - the config.json or config.js.
-    * @returns {Object} - returns a new config (.json or .js) without the deprecated parameters. They were replaced by the actual ones.
-    */
-    checkWhereDeprecated (deprecatedPath, config) {
-        let updatedConfig = config,
-            parameters = {};
+    loadConfigJson ({commit, state, dispatch, getters}) {
+        const format = ".json";
+        let targetPath = "config.json";
 
-        Object.entries(deprecatedPath).forEach((entry) => {
-            parameters = this.getDeprecatedParameters(entry, config);
+        if (state.configJs?.portalConf?.slice(-5) === format) {
+            targetPath = state.configJs.portalConf;
+        }
 
-            if (parameters !== undefined && parameters.output !== undefined) {
-                updatedConfig = this.replaceDeprecatedCode(parameters, config);
-            }
-        });
-        return updatedConfig;
+        axios.get(targetPath)
+            .then(response => {
+                updateProxyUrl(response.data);
+                commit("setPortalConfig", response.data ? response.data[portalConfigKey] : null);
+                if (getters.isMobile) {
+                    dispatch("moveStartModuleControls", "mainMenu");
+                    dispatch("moveStartModuleControls", "secondaryMenu");
+                }
+                commit("setLayerConfig", response.data ? response.data[treeTopicConfigKey] : null);
+                commit("setLoadedConfigs", "configJson");
+            })
+            .catch(error => {
+                console.error(`Error occured during loading config.json specified by config.js (${targetPath}).`, error);
+            });
     },
 
     /**
-     * Function to determine:
-     * Firstly: the path as dotted string (newSplittedPath).
-     * Secondly: the output given by the config.json for the path with the deprecated parameter. (output)
-     * Thirdly: the deprecated key/parameter itself. (deprecatedKey)
-     * @param {[String, String[]]} [entry=[]] - Array with the single "steps" / elements of the deprecated path. entry[0] ist the new path, elem[1] is an array of old paths
-     * @param {Object} [config={}] - The config.json or config.js.
-     * @returns {Object} - returns an object with the three mentioned above parameters.
-    */
-    getDeprecatedParameters (entry = [], config = {}) {
-        const newSplittedPath = entry[0].split(".");
-        let oldSplittedPath = "",
-            output = "",
-            deprecatedKey = "",
-            parameters;
+     * Moves modules from controls startModule to main- or secondary-menu.
+     * @param {Object} context the vue context
+     * @param {Object} context.getters the getters
+     * @param {Object} context.state the state
+     * @param {String} side side of menu
+     * @returns {void}
+     */
+    moveStartModuleControls ({getters, state}, side) {
+        if (getters.controlsConfig?.startModule) {
+            const modules = [].concat(getters.controlsConfig.startModule[side]);
 
-        entry[1].forEach((oldPathes) => {
-            oldSplittedPath = oldPathes.split(".");
-            output = getByArraySyntax(config, oldPathes.split("."));
-            if (output === undefined) {
-                return;
-            }
-            deprecatedKey = oldSplittedPath[oldSplittedPath.length - 1];
-            parameters = {
-                "newSplittedPath": newSplittedPath,
-                "oldSplittedPath": oldSplittedPath,
-                "output": output,
-                "deprecatedKey": deprecatedKey
-            };
-        });
-        return parameters;
+            modules.forEach(module => {
+                if (module) {
+                    state.portalConfig[side].sections[0].push(module);
+                }
+            });
+            state.portalConfig.map.controls.startModule[side] = [];
+        }
+
     },
 
     /**
-     * Function to find and replace the old deprecated path.
-     * Inserts the new and current key into the config instead of the deprecated parameter.
-     * The deprecated parameter is deleted. The content is allocated to the new key.
-     * @param {Object} parameters - contains the new current parameter to replace the deprecated parameter. Contains also an object which lists the path of the deprecated parameter, the output/content of the deprecated parameter and the deprecated parameter itself.
-     * @param {Object} config - the config.json or config.js.
-     * @returns {Object} - returns a updated config where the deprecated parameters are replaced by the new and current ones.
-    */
-    replaceDeprecatedCode (parameters, config) {
-        const updatedConfig = {...config},
-            output = parameters.output,
-            deprecatedKey = parameters.deprecatedKey,
-            splittedCurrentPath = parameters.newSplittedPath;
-        let current = updatedConfig;
+     * Load the rest-services.json, check/adapt for proxy configs and commit it to the state.
+     * @param {Object} context the vue context
+     * @param {Object} context.commit the commit
+     * @param {Object} context.state the state
+     * @returns {void}
+     */
+    loadRestServicesJson ({commit, state}) {
+        axios.get(state.configJs?.restConf)
+            .then(response => {
+                updateProxyUrl(response.data);
+                commit("setRestConfig", response.data);
+                commit("setLoadedConfigs", "restServicesJson");
+            })
+            .catch(error => {
+                console.error(`Error occured during loading rest-services.json specified by config.js (${state.configJs?.restConf}).`, error);
+            });
+    },
 
-        splittedCurrentPath.forEach((element, index) => {
-            if (index === splittedCurrentPath.length - 1 && output !== undefined) {
-                current[element] = output;
-                console.warn(parameters.deprecatedKey + " is deprecated. Instead, please use the following path/parameter: " + String(parameters.newSplittedPath).replace(/,/g, ".") + " in the config.json. For this session it is automatically replaced.");
-            }
-            else if (output === undefined) {
-                return;
+    /**
+     * Load the services.json via masterportalapi.
+     * @param {Object} context the vue context
+     * @param {Object} context.state the state
+     * @param {Object} context.commit the commit
+     * @param {Object} context.dispatch the dispatch
+     * @returns {void}
+     */
+    loadServicesJson ({state, commit, dispatch}) {
+        rawLayerList.initializeLayerList(state.configJs?.layerConf, (_, error) => {
+            if (error) {
+                dispatch("Alerting/addSingleAlert", {
+                    category: "error",
+                    content: i18next.t("common:app-store.loadServicesJsonFailed", {layerConf: state.configJs?.layerConf})
+                }, {root: true});
             }
             else {
-                if (!current[element]) {
-                    current[element] = {};
-                }
-                current = current[element];
+                commit("setLoadedConfigs", "servicesJson");
             }
-            delete current[deprecatedKey];
         });
+    },
 
-        return updatedConfig;
+    /**
+     * Sets the config-params of a module into state.
+     * @param {Object} context the context Vue instance
+     * @param {Object} payload The payload.
+     * @param {String[]} payload.configPaths The path to configuration of the module in the config file.
+     * @param {String} payload.type The type of the module.
+     * @returns {void}
+     */
+    initializeModule: (context, {configPaths, type}) => {
+        return fetchFirstModuleConfig(context, configPaths, upperFirst(type));
+    },
+
+    /**
+     * Initializes other actions.
+     * @param {Object} context the vue context
+     * @param {Object} context.dispatch the dispatch
+     * @returns {void}
+     */
+    initializeOther ({dispatch}) {
+        dispatch("Modules/WmsTime/watchVisibleLayerConfig", null, {root: true});
+    },
+
+    /**
+     * Initializes the style list of vector styling. Sets state variable 'StyleListLoaded' to true, if successful loaded.
+     * @param {Object} context the vue context
+     * @param {Object} context.state the state
+     * @param {Object} context.commit the commit
+     * @param {Object} context.dispatch the dispatch
+     * @param {Object} context.getters the getters
+     * @returns {void}
+     */
+    initializeVectorStyle ({state, commit, dispatch, getters}) {
+        const styleGetters = {
+            mapMarkerPointStyleId: getters.mapMarker?.pointStyleId,
+            mapMarkerPolygonStyleId: getters.mapMarker?.polygonStyleId,
+            highlightFeaturesPointStyleId: getters["Modules/HighlightFeatures/pointStyleId"],
+            highlightFeaturesPolygonStyleId: getters["Modules/HighlightFeatures/polygonStyleId"],
+            highlightFeaturesLineStyleId: getters["Modules/HighlightFeatures/lineStyleId"],
+            zoomToFeatureId: getters.zoomTo?.find(entry => entry.id === "zoomToFeatureId")?.styleId
+        };
+
+        styleList.initializeStyleList(styleGetters, state.configJs, getters.allLayerConfigs, getters.configuredModules,
+            (initializedStyleList, error) => {
+                if (error) {
+                    dispatch("Alerting/addSingleAlert", {
+                        category: "warning",
+                        content: i18next.t("common:app-store.loadStylev3JsonFailed", {style_v3: state.configJs?.styleConf ? state.configJs?.styleConf : "style_v3.json"})
+                    }, {root: true});
+                }
+                return initializedStyleList;
+            }).then(() => {
+            commit("setStyleListLoaded", true);
+        }).catch(error => console.error(error));
     }
 };
