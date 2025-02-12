@@ -37,6 +37,9 @@ const Config = {
         },
         fallbackLanguage: "de",
         changeLanguageOnStartWhen: ["querystring", "localStorage", "htmlTag"]
+    },
+    login: {
+        interceptorUrlRegex: "http://localhost:8000*"
     }
 };
 

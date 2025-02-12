@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="index.ts" type="BunRunConfiguration" nameIsGenerated="true">
+    <option name="program" value="index.ts" />
+    <option name="runtimeParameters">
+      <list>
+        <option value="--inspect" />
+        <option value="--watch" />
+      </list>
+    </option>
+    <option name="stopOnEntry" value="true" />
+    <option name="workingDirectory" value="$PROJECT_DIR$/backend/" />
+    <method v="2" />
+  </configuration>
+</component>
