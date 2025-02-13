@@ -11,10 +11,10 @@ import AxiosUtils from "./utilsAxios";
  * @return {Boolean|String} login message if parameters exist, else false
  */
 export function handleLoginParameters () {
-
-    if (!Object.prototype.hasOwnProperty.call(Config, "login")) {
-        return false;
-    }
+    //
+    // if (!Object.prototype.hasOwnProperty.call(Config, "login")) {
+    //     return false;
+    // }
 
     /**
      * Perform oidc login, if url parameter is present
@@ -31,27 +31,41 @@ export function handleLoginParameters () {
     if (urlParams.has("code")) {
         let response = null;
 
-        const config = Config.login,
-            code = urlParams.get("code"),
-            state = urlParams.get("state"),
-            req = OIDC.getToken(config.oidcTokenEndpoint, config.oidcClientId, config.oidcRedirectUri, code);
+        fetch("https://new-dana-backend.elie.de/auth/config").then((r) => {
+            if (!r.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return r.json(); // Parse the JSON response
+        })
+            .then(json => {
+                console.log(json);
+                const config = {
+                        oidcTokenEndpoint: json.tokenUri,
+                        oidcClientId: json.clientId,
+                        oidcRedirectUri: json.redirectUri,
+                        interceptorUrlRegex: Config.login.interceptorUrlRegex,
+                    },
+                    code = urlParams.get("code"),
+                    state = urlParams.get("state"),
+                    req = OIDC.getToken(config.oidcTokenEndpoint, config.oidcClientId, config.oidcRedirectUri, code);
 
-        if (OIDC.getState() !== state) {
-            return "<h1>Invalid state</h1>";
-        }
+                if (OIDC.getState() !== state) {
+                    return "<h1>Invalid state</h1>";
+                }
 
-        if (req?.status !== 200) {
-            OIDC.eraseCookies();
-            return "Status: " + req?.status + " " + req?.responseText;
-        }
+                if (req?.status !== 200) {
+                    OIDC.eraseCookies();
+                    return "Status: " + req?.status + " " + req?.responseText;
+                }
 
-        response = JSON.parse(req.response);
+                response = JSON.parse(req.response);
 
-        OIDC.setCookies(response.access_token, response.id_token, response.expires_in, response.refresh_token);
+                OIDC.setCookies(response.access_token, response.id_token, response.expires_in, response.refresh_token);
 
-        addAuthenticationBearerInterceptors(config);
+                addAuthenticationBearerInterceptors(config);
 
-        return "user logged in: " + (Cookie.get("email") || "no email defined for user");
+                return "user logged in: " + (Cookie.get("email") || "no email defined for user");
+            });
     }
 
     return false;
