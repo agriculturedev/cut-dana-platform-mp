@@ -34,7 +34,7 @@ npm run elie-buildPortal
 cd dist
 
 # Step 3: Declare an array of app names for which you want to build Docker images
-apps=("mp-guben" "mobility-data")
+apps=("stories")
 
 # Step 4: Copy master code to each app directory
 echo "Copying master code to app directories..."
