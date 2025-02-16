@@ -275,10 +275,9 @@ async function renewTokenIfNecessary (access_token, refresh_token, config) {
 
     if (expiry > 0 && expiry <= 60_000) {
 
-        const oidcTokenEndpoint = config.oidcTokenEndpoint,
-            oidcClientId = config.oidcClientId,
-
-            req = refreshToken(oidcTokenEndpoint, oidcClientId, refresh_token);
+        const configResponse = await fetch("https://new-dana-backend.elie.de/auth/config"),
+            configJson = await configResponse.json(),
+            req = refreshToken(configJson.tokenUri, configJson.clientId, refresh_token);
 
         if (req.status === 200) {
             const response = JSON.parse(req.response);
