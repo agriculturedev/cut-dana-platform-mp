@@ -45,8 +45,6 @@ do
     cp -r mastercode "$app/"
 done
 
-
-
 # Step 5: Login to GitHub Container Registry
 echo "Logging into GitHub Container Registry..."
 echo $GH_TOKEN | docker login ghcr.io -u $GH_USERNAME --password-stdin
