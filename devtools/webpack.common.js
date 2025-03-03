@@ -75,15 +75,15 @@ module.exports = function () {
             colors: true,
             warnings: true,
             errors: true,
-            errorDetails: true,
+            errorDetails: true
             // comment in for detailed logging in console
-            logging: "verbose",
-            modules: true,
-            moduleTrace: true,
-            reasons: true,
-            performance: true,
-            timings: true,
-            entrypoints: true
+            // logging: "verbose",
+            // modules: true,
+            // moduleTrace: true,
+            // reasons: true,
+            // performance: true,
+            // timings: true,
+            // entrypoints: true
         },
         output: {
             path: path.resolve(__dirname, "../build/"),
