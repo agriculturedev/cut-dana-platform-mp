@@ -42,8 +42,8 @@ module.exports = function () {
                 "Access-Control-Allow-Origin": "*"
             },
             https: true,
-            open: false,
-            openPage: "portal/master",
+            open: true,
+            openPage: "portal/stories",
             overlay: true,
             port: 9001,
             proxy: proxies,
@@ -68,7 +68,18 @@ module.exports = function () {
                         name: "[name].[ext]",
                         publicPath: "../../src/assets/css/fonts"
                     }
-                }
+                },
+                // Improved SCSS handling for Vue components
+                // {
+                //     test: /\.scss$/,
+                //     use: [
+                //         'vue-style-loader',
+                //         'css-loader',
+                //         {
+                //             loader: 'sass-loader'
+                //         }
+                //     ]
+                // }
             ]
         }
         // comment in to create a graphical representation of the bundle as html that is automatically displayed in the browser at 'npm run start'
