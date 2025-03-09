@@ -61,7 +61,6 @@ export default {
 
         let loggedIn = false;
 
-
         commit("setAccessToken", token);
         commit("setRefreshToken", refreshToken);
 

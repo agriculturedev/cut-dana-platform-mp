@@ -40,7 +40,7 @@ loadConfigJs.then(() => {
     app = createApp(App);
 
     if (utilsLogin.handleLoginParameters()) {
-        window.close();
+        // window.close();
         return;
     }
 

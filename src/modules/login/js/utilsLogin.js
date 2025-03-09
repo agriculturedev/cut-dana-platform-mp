@@ -31,19 +31,18 @@ export function handleLoginParameters () {
     if (urlParams.has("code")) {
         let response = null;
 
-        fetch("https://new-dana-backend.elie.de/auth/config").then((r) => {
+        fetch("http://localhost:8000/auth/config").then((r) => {
             if (!r.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error("Network response was not ok");
             }
             return r.json(); // Parse the JSON response
         })
             .then(json => {
-                console.log(json);
                 const config = {
                         oidcTokenEndpoint: json.tokenUri,
                         oidcClientId: json.clientId,
                         oidcRedirectUri: json.redirectUri,
-                        interceptorUrlRegex: Config.login.interceptorUrlRegex,
+                        interceptorUrlRegex: Config.login.interceptorUrlRegex
                     },
                     code = urlParams.get("code"),
                     state = urlParams.get("state"),
@@ -59,6 +58,7 @@ export function handleLoginParameters () {
                 }
 
                 response = JSON.parse(req.response);
+                console.log(response);
 
                 OIDC.setCookies(response.access_token, response.id_token, response.expires_in, response.refresh_token);
 
@@ -80,7 +80,6 @@ export function handleLoginParameters () {
  */
 function addAuthenticationBearerInterceptors (config) {
     const token = Cookie.get("token");
-
 
     if (token !== undefined) {
         const account = OIDC.parseJwt(token),

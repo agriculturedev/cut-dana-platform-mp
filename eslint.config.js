@@ -60,7 +60,7 @@ module.exports = [
             "default-param-last": "error",
             "dot-notation": "error",
             "eqeqeq": "error",
-            "func-style": ["error", "declaration"],
+            "func-style": "off",
             "max-depth": "error",
             "max-nested-callbacks": ["error", 10],
             "max-params": ["warn", 9],
@@ -113,8 +113,8 @@ module.exports = [
             "no-useless-return": "error",
             "no-var": "error",
             "no-void": "error",
-            "one-var": "error",
-            "one-var-declaration-per-line": "error",
+            "one-var": "off",
+            "one-var-declaration-per-line": "off",
             "prefer-const": "error",
             "prefer-numeric-literals": "error",
             "prefer-rest-params": "error",
@@ -182,7 +182,7 @@ module.exports = [
                 }
             ],
             "@stylistic/js/quotes": "error",
-            "@stylistic/js/semi": "error",
+            "@stylistic/js/semi": "off",
             "@stylistic/js/semi-spacing": "error",
             "@stylistic/js/semi-style": "error",
             "@stylistic/js/space-before-blocks": "error",
@@ -229,18 +229,7 @@ module.exports = [
             "jsdoc/implements-on-classes": "off",
             "jsdoc/require-param-name": "off",
             "jsdoc/require-param-description": "off",
-            "jsdoc/require-jsdoc": [
-                "error",
-                {
-                    "require": {
-                        "FunctionDeclaration": true,
-                        "MethodDefinition": true,
-                        "ClassDeclaration": true,
-                        "ArrowFunctionExpression": false,
-                        "FunctionExpression": false
-                    }
-                }
-            ],
+            "jsdoc/require-jsdoc": "off",
             // vue plugin Base Rules
             "vue/comment-directive": [
                 "error",
@@ -249,6 +238,7 @@ module.exports = [
                 }
             ],
             "vue/jsx-uses-vars": ["off"],
+            "vue/max-attributes-per-line": "off",
             "vue/require-explicit-emits": ["off"],
             "vue/no-deprecated-destroyed-lifecycle": ["off"],
             "vue/no-deprecated-events-api": ["off"],
