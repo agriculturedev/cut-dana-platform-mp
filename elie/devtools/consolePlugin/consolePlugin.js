@@ -4,36 +4,12 @@ const EnhancedConsole = {
     install() {
         // Store the original console methods
         const originalConsoleLog = console.log;
-        const originalWarn = console.warn;
-        const originalError = console.error;
-        const originalInfo = console.info;
-        const originalDebug = console.debug;
 
         // Define your custom prefix styles
         const prefixStyles = {
-            info: {
-                text: 'INFO',
-                color: 'dodgerblue'
-            },
-            warn: {
-                text: 'WARN',
-                color: 'orange'
-            },
-            error: {
-                text: 'ERROR',
-                color: 'crimson'
-            },
-            success: {
-                text: 'SUCCESS',
-                color: 'mediumseagreen'
-            },
-            debug: {
-                text: 'DEBUG',
-                color: 'purple'
-            },
             elie: {
                 text: 'ELIE',
-                color: 'rgb(25, 111, 249)'
+                styles: "background: hsl(217 95% 54%); color: hsl(217 95% 90%); font-weight: bold; padding: .2rem .3rem; border-radius: .2rem;",
             }
         };
 
@@ -56,7 +32,7 @@ const EnhancedConsole = {
             // Call the original console.log with our modified arguments
             originalConsoleLog(
                 styledPrefix,
-                `color: ${prefix.color}; font-weight: bold;`,
+                prefix.styles,
                 '', // Reset styles
                 ...args
             );
@@ -65,10 +41,6 @@ const EnhancedConsole = {
         // Add success method to Console.prototype to help IDE recognition
         if (typeof Console !== 'undefined') {
             try {
-                Console.prototype.success = function(...args) {
-                    return enhancedLog.call(this, 'success', ...args);
-                };
-
                 Console.prototype.elie = function(...args) {
                     return enhancedLog.call(this, 'elie', ...args);
                 };
@@ -85,25 +57,6 @@ const EnhancedConsole = {
             };
         }
 
-        // Override the console.log method
-        console.log = enhancedLog;
-
-        // Override other console methods
-        console.info = function(...args) {
-            return enhancedLog('info', ...args);
-        };
-
-        console.warn = function(...args) {
-            return enhancedLog('warn', ...args);
-        };
-
-        console.error = function(...args) {
-            return enhancedLog('error', ...args);
-        };
-
-        console.debug = function(...args) {
-            return enhancedLog('debug', ...args);
-        };
 
         console.elie = function(...args) {
             return enhancedLog('elie', ...args);
