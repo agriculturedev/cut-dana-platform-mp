@@ -184,7 +184,7 @@ export default {
                 </div>
             </div>
         </div>
-        <button
+        <div
             class="modal-backdrop fade in"
             @click="hidePoiChoice"
         />

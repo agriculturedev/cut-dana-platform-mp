@@ -237,6 +237,9 @@ module.exports = [
                     "reportUnusedDisableDirectives": false
                 }
             ],
+            'vue/no-parsing-error': 'off',
+            'vue/valid-template-root': 'off',
+            'vue/no-template-shadow': 'off',
             "vue/jsx-uses-vars": ["off"],
             "vue/max-attributes-per-line": "off",
             "vue/require-explicit-emits": ["off"],
